@@ -1,0 +1,34 @@
+ORCHESTRATOR REQUEST: Hardware Discovery Needed
+
+To: macpro51 (192.168.1.183)
+From: Mac Studio (Orchestrator)
+Priority: High
+Date: 2025-11-13 14:50 PST
+
+ACTION REQUIRED:
+Please run hardware discovery to complete your cluster profile.
+
+COMMAND:
+ssh marc@192.168.1.183 "python3 /mnt/ssdraid0/agentic-system/cluster-deployment/discover-hardware.py macpro51"
+
+OR if on the node directly:
+python3 /mnt/ssdraid0/agentic-system/cluster-deployment/discover-hardware.py macpro51
+
+This will discover:
+- CPU cores, frequency, architecture
+- RAM configuration
+- Storage devices (SSD/HDD)
+- Network interfaces and speeds
+- GPU capabilities
+- Performance score
+
+OUTPUT LOCATION:
+/mnt/ssdraid0/agentic-system/databases/cluster/nodes/macpro51/hardware_profile.json
+
+Once complete, the orchestrator will:
+- Optimize task allocation for your hardware
+- Set max_concurrent_tasks based on cores
+- Calculate performance score
+- Begin intelligent task routing
+
+STATUS: Waiting for hardware profile...
