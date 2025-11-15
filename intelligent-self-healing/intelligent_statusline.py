@@ -140,19 +140,57 @@ class IntelligentStatusLine:
             data['hook_count'] = 0
             data['recent_hook_activity'] = False
 
-        # MCP server configuration
+        # MCP server configuration - count both configured and running
         try:
             claude_json = Path.home() / ".claude.json"
             if claude_json.exists():
                 with open(claude_json, 'r') as f:
                     config = json.load(f)
-                    data['mcp_count'] = len(config.get('mcpServers', {}))
+                    mcp_servers = config.get('mcpServers', {})
+                    total_configured = len(mcp_servers)
+
+                    # Count how many are actually running by checking processes
+                    running_count = 0
+                    for server_name, server_config in mcp_servers.items():
+                        # Skip disabled servers
+                        if server_config.get('disabled', False):
+                            continue
+
+                        # Extract command/args to identify the process
+                        command = server_config.get('command', '')
+                        args = server_config.get('args', [])
+
+                        # Build search pattern
+                        if args and len(args) > 0:
+                            # Use first arg as identifier (usually the script path)
+                            search_pattern = args[0]
+                        else:
+                            search_pattern = command
+
+                        if search_pattern:
+                            try:
+                                result = subprocess.run(
+                                    ['pgrep', '-f', search_pattern],
+                                    capture_output=True,
+                                    text=True,
+                                    timeout=1
+                                )
+                                if result.stdout.strip():
+                                    running_count += 1
+                            except Exception:
+                                pass
+
+                    data['mcp_count'] = total_configured
+                    data['mcp_running'] = running_count
             else:
                 data['mcp_count'] = 0
+                data['mcp_running'] = 0
         except json.JSONDecodeError:
             data['mcp_count'] = 0
+            data['mcp_running'] = 0
         except Exception:
             data['mcp_count'] = 0
+            data['mcp_running'] = 0
 
         # Temporal workflow engine status
         try:
@@ -715,17 +753,24 @@ Priority meanings:
         else:
             items.append(('💻', 'idle', 2))
 
-        # Normal: MCP configuration (ALWAYS show)
+        # Normal: MCP configuration (ALWAYS show running/total)
         mcp_count = data.get('mcp_count', 0)
+        mcp_running = data.get('mcp_running', 0)
         expected_mcp_min = 6
         expected_mcp_max = 10
 
+        # Format: "running/total mcp" (e.g., "7/12 mcp")
+        mcp_display = f"{mcp_running}/{mcp_count}mcp"
+
+        # Warning if too few/many configured OR if running count is significantly low
         if mcp_count < expected_mcp_min:
-            items.append(('⚠️', f"{mcp_count}mcp low!", 1))  # Warning - too few
+            items.append(('⚠️', f"{mcp_display} low!", 1))  # Warning - too few configured
         elif mcp_count > expected_mcp_max:
-            items.append(('⚠️', f"{mcp_count}mcp high!", 1))  # Warning - too many
+            items.append(('⚠️', f"{mcp_display} high!", 1))  # Warning - too many configured
+        elif mcp_running < (mcp_count - 3):  # More than 3 servers not running
+            items.append(('⚠️', f"{mcp_display} degraded!", 1))  # Warning - many servers down
         else:
-            items.append(('🔌', f"{mcp_count}mcp", 2))  # Normal - always show count
+            items.append(('🔌', mcp_display, 2))  # Normal - show running/total
 
         # Workflow engines - removed from display per user request
         # (Status still checked in _collect_system_data but not shown on statusline)
