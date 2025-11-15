@@ -1,0 +1,356 @@
+"""
+Advanced Reasoning Workflow
+============================
+
+Integrates cutting-edge AI techniques for complex decision-making:
+- Meta-Prompting: Design optimal prompts before execution
+- Chain of Verification: Multi-step verification for accuracy
+- Multi-Agent Debate: Multiple perspectives on critical decisions
+- Reasoning Scaffolds: Structured reasoning frameworks
+- Edge Case Learning: Learn from failure patterns
+
+Triggers:
+- When confidence < 0.7 on critical decisions
+- Architecture and design decisions
+- Post-ERROR analysis and learning
+- Weekly failure pattern analysis
+"""
+
+import os
+import json
+import subprocess
+from datetime import datetime
+
+# Advanced prompting techniques integration
+ADVANCED_PROMPTING_BASE = "/Volumes/SSDRAID0/agentic-system/intelligent-agents/advanced_prompting"
+
+def meta_prompt_decision(event):
+    """
+    Use meta-prompting to design optimal approach for complex decisions
+
+    Triggered when confidence is low (<70%) on critical decisions
+    """
+    print(f"🧠 Meta-Prompting - Designing optimal decision approach")
+
+    # Get decision context from event
+    task = event.data.get("task", "Unknown task")
+    context = event.data.get("context", {})
+
+    # Use meta-prompting to design optimal prompt
+    result = subprocess.run([
+        "python3",
+        f"{ADVANCED_PROMPTING_BASE}/meta_prompting.py",
+        "--task", task,
+        "--context", json.dumps(context),
+        "--optimize"
+    ], capture_output=True, text=True, timeout=120)
+
+    if result.returncode == 0:
+        meta_result = json.loads(result.stdout)
+
+        # Store designed prompt in Enhanced Memory
+        memory.create_entity(
+            name=f"meta_prompt_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+            entity_type="meta_prompt_design",
+            observations=[
+                f"Task: {task}",
+                f"Designed Prompt: {meta_result['designed_prompt']}",
+                f"Rationale: {meta_result['design_rationale']}",
+                f"Estimated Quality: {meta_result['estimated_quality']}"
+            ]
+        )
+
+        # Use voice notification
+        voice.speak(f"Meta-prompting complete. Designed optimal approach with {meta_result['estimated_quality']*100}% estimated quality.")
+
+        print(f"✅ Meta-prompt designed: Quality {meta_result['estimated_quality']}")
+        return meta_result
+    else:
+        print(f"❌ Meta-prompting failed: {result.stderr}")
+        return None
+
+
+def chain_of_verification(event):
+    """
+    Multi-step verification for critical decisions
+
+    Generates answer, then creates verification questions,
+    answers them, and produces final verified result
+    """
+    print(f"🔍 Chain of Verification - Multi-step accuracy check")
+
+    claim = event.data.get("claim", "")
+    context = event.data.get("context", {})
+
+    result = subprocess.run([
+        "python3",
+        f"{ADVANCED_PROMPTING_BASE}/chain_of_verification.py",
+        "--claim", claim,
+        "--context", json.dumps(context),
+        "--max-iterations", "3"
+    ], capture_output=True, text=True, timeout=180)
+
+    if result.returncode == 0:
+        verification_result = json.loads(result.stdout)
+
+        # Store verification in memory
+        memory.create_entity(
+            name=f"verification_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+            entity_type="chain_of_verification",
+            observations=[
+                f"Original Claim: {claim}",
+                f"Verification Questions: {len(verification_result['questions'])}",
+                f"Final Verdict: {verification_result['final_verdict']}",
+                f"Confidence: {verification_result['confidence']}"
+            ]
+        )
+
+        print(f"✅ Verification complete: {verification_result['final_verdict']}")
+        return verification_result
+    else:
+        print(f"❌ Verification failed: {result.stderr}")
+        return None
+
+
+def multi_agent_debate(event):
+    """
+    Multiple AI perspectives debate complex decisions
+
+    Creates agents with different viewpoints (optimist, pessimist, pragmatist)
+    that debate the decision until consensus or timeout
+    """
+    print(f"💬 Multi-Agent Debate - Multiple perspectives analysis")
+
+    decision = event.data.get("decision", "")
+    options = event.data.get("options", [])
+
+    result = subprocess.run([
+        "python3",
+        f"{ADVANCED_PROMPTING_BASE}/multi_agent_debate.py",
+        "--decision", decision,
+        "--options", json.dumps(options),
+        "--rounds", "3",
+        "--agents", "optimist,pessimist,pragmatist"
+    ], capture_output=True, text=True, timeout=300)
+
+    if result.returncode == 0:
+        debate_result = json.loads(result.stdout)
+
+        # Store debate in memory
+        memory.create_entity(
+            name=f"debate_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+            entity_type="multi_agent_debate",
+            observations=[
+                f"Decision: {decision}",
+                f"Debate Rounds: {debate_result['rounds']}",
+                f"Consensus: {debate_result.get('consensus', 'No consensus')}",
+                f"Final Recommendation: {debate_result['recommendation']}"
+            ]
+        )
+
+        voice.speak(f"Multi-agent debate complete. Recommendation: {debate_result['recommendation']}")
+
+        print(f"✅ Debate complete: {debate_result['recommendation']}")
+        return debate_result
+    else:
+        print(f"❌ Debate failed: {result.stderr}")
+        return None
+
+
+def reasoning_scaffold(event):
+    """
+    Structured reasoning framework for complex problems
+
+    Applies systematic reasoning patterns:
+    - Decomposition: Break into sub-problems
+    - Analogical: Compare to similar problems
+    - Causal: Trace cause-effect chains
+    - Counterfactual: What-if analysis
+    """
+    print(f"🏗️  Reasoning Scaffold - Structured problem-solving")
+
+    problem = event.data.get("problem", "")
+    scaffold_type = event.data.get("scaffold_type", "decomposition")
+
+    result = subprocess.run([
+        "python3",
+        f"{ADVANCED_PROMPTING_BASE}/reasoning_scaffolds.py",
+        "--problem", problem,
+        "--scaffold", scaffold_type
+    ], capture_output=True, text=True, timeout=180)
+
+    if result.returncode == 0:
+        scaffold_result = json.loads(result.stdout)
+
+        # Store reasoning in memory
+        memory.create_entity(
+            name=f"reasoning_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+            entity_type="reasoning_scaffold",
+            observations=[
+                f"Problem: {problem}",
+                f"Scaffold Type: {scaffold_type}",
+                f"Steps: {len(scaffold_result['steps'])}",
+                f"Solution: {scaffold_result['solution']}"
+            ]
+        )
+
+        print(f"✅ Reasoning complete: {scaffold_result['solution']}")
+        return scaffold_result
+    else:
+        print(f"❌ Reasoning failed: {result.stderr}")
+        return None
+
+
+def learn_from_failures(event):
+    """
+    Analyze ERROR states and extract learnings
+
+    Identifies patterns in failures, root causes, and prevention strategies
+    """
+    print(f"📚 Edge Case Learning - Analyzing failure patterns")
+
+    # Get recent ERROR states from AutoKitteh sessions
+    sessions = autokitteh.list_sessions(
+        project="autonomous_system",
+        state="SESSION_STATE_TYPE_ERROR",
+        limit=50
+    )
+
+    failure_patterns = []
+    for session in sessions:
+        # Extract error details
+        error_info = {
+            "workflow": session.get("workflow"),
+            "function": session.get("function"),
+            "error": session.get("error"),
+            "timestamp": session.get("timestamp")
+        }
+        failure_patterns.append(error_info)
+
+    if not failure_patterns:
+        print("ℹ️  No recent failures to analyze")
+        return {"status": "no_failures"}
+
+    # Use edge case learning to extract patterns
+    result = subprocess.run([
+        "python3",
+        f"{ADVANCED_PROMPTING_BASE}/edge_case_learning.py",
+        "--failures", json.dumps(failure_patterns),
+        "--extract-patterns"
+    ], capture_output=True, text=True, timeout=180)
+
+    if result.returncode == 0:
+        learning_result = json.loads(result.stdout)
+
+        # Store learnings in semantic memory
+        for pattern in learning_result.get('patterns', []):
+            memory.create_entity(
+                name=f"failure_pattern_{pattern['pattern_id']}",
+                entity_type="failure_pattern",
+                observations=[
+                    f"Pattern: {pattern['description']}",
+                    f"Occurrences: {pattern['count']}",
+                    f"Root Cause: {pattern['root_cause']}",
+                    f"Prevention: {pattern['prevention_strategy']}"
+                ]
+            )
+
+        voice.speak(f"Failure analysis complete. Identified {len(learning_result['patterns'])} patterns with prevention strategies.")
+
+        print(f"✅ Learning complete: {len(learning_result['patterns'])} patterns identified")
+        return learning_result
+    else:
+        print(f"❌ Learning failed: {result.stderr}")
+        return None
+
+
+# Scheduled triggers
+@cron("0 */6 * * *")  # Every 6 hours
+def analyze_failure_patterns(event):
+    """Periodic failure pattern analysis and learning"""
+    print("🔄 Running periodic failure analysis...")
+    return learn_from_failures(event)
+
+
+# Event-driven triggers
+@event("low_confidence_decision")
+def handle_low_confidence(event):
+    """Triggered when confidence < 0.7 on critical decisions"""
+    print(f"⚠️  Low confidence detected: {event.data.get('confidence')}")
+
+    # Use multi-step approach
+    meta_result = meta_prompt_decision(event)
+    debate_result = multi_agent_debate(event)
+
+    # Combine insights
+    final_decision = {
+        "meta_prompt_quality": meta_result.get("estimated_quality") if meta_result else 0,
+        "debate_recommendation": debate_result.get("recommendation") if debate_result else None,
+        "enhanced_confidence": (meta_result.get("estimated_quality", 0) + 0.7) / 2 if meta_result else 0.7
+    }
+
+    return final_decision
+
+
+@event("architecture_decision")
+def handle_architecture_decision(event):
+    """Triggered for major architecture decisions"""
+    print("🏛️  Architecture decision requires advanced reasoning")
+
+    # Use reasoning scaffold for systematic analysis
+    scaffold_result = reasoning_scaffold(event)
+
+    # Verify with chain of verification
+    verification_result = chain_of_verification({
+        "data": {
+            "claim": scaffold_result.get("solution") if scaffold_result else "",
+            "context": event.data
+        }
+    })
+
+    return {
+        "solution": scaffold_result,
+        "verification": verification_result,
+        "approved": verification_result.get("confidence", 0) > 0.8 if verification_result else False
+    }
+
+
+@event("post_error_analysis")
+def handle_post_error(event):
+    """Triggered after ERROR states to learn and prevent recurrence"""
+    print("🔍 Analyzing ERROR for learning opportunities")
+    return learn_from_failures(event)
+
+
+# Integration with Ember MCP for quality verification
+def verify_with_ember(decision_result):
+    """
+    Verify decision quality with Ember (production-only policy enforcement)
+    """
+    ember_check = shell.run([
+        "curl", "-s", "http://localhost:8300/verify",
+        "-H", "Content-Type: application/json",
+        "-d", json.dumps({
+            "decision": decision_result,
+            "require_production_quality": True
+        })
+    ])
+
+    if ember_check.returncode == 0:
+        ember_result = json.loads(ember_check.stdout)
+        return ember_result.get("approved", False)
+    return False
+
+
+print("✅ Advanced Reasoning workflow loaded")
+print("📊 Available functions:")
+print("  - meta_prompt_decision: Design optimal prompts")
+print("  - chain_of_verification: Multi-step accuracy verification")
+print("  - multi_agent_debate: Multiple perspective analysis")
+print("  - reasoning_scaffold: Structured problem-solving")
+print("  - learn_from_failures: Extract patterns from errors")
+print("🎯 Triggers:")
+print("  - Every 6 hours: Failure pattern analysis")
+print("  - Event 'low_confidence_decision': Enhanced decision-making")
+print("  - Event 'architecture_decision': Systematic architecture analysis")
+print("  - Event 'post_error_analysis': Learning from failures")

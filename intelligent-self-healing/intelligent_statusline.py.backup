@@ -1,0 +1,462 @@
+#!/usr/bin/env python3
+"""
+Intelligent Adaptive StatusLine for Claude Code
+Uses AI to prioritize and display what's actually important RIGHT NOW
+
+Production-ready implementation that shows:
+- Critical issues first (errors, warnings, resource constraints)
+- Active work (training, processing, workflows)
+- System health (memory, storage, services)
+- Context-aware information based on current system state
+
+Integrates with intelligent display agent data collection
+"""
+
+import json
+import sys
+import os
+import subprocess
+from pathlib import Path
+from typing import Dict, Any, List, Tuple, Optional
+from datetime import datetime
+import anthropic
+
+# ANSI color codes for rich terminal display
+class Colors:
+    RED = '\033[91m'
+    YELLOW = '\033[93m'
+    GREEN = '\033[92m'
+    BLUE = '\033[94m'
+    CYAN = '\033[96m'
+    MAGENTA = '\033[95m'
+    GRAY = '\033[90m'
+    BOLD = '\033[1m'
+    RESET = '\033[0m'
+
+
+class IntelligentStatusLine:
+    """Production AI-powered adaptive statusline generator"""
+
+    def __init__(self):
+        self.max_length = 80
+        self.api_key = os.environ.get("ANTHROPIC_API_KEY")
+        self.use_ai = self.api_key is not None
+
+        if self.use_ai:
+            try:
+                self.client = anthropic.Anthropic(api_key=self.api_key)
+                self.model = "claude-sonnet-4-20250514"
+            except Exception as e:
+                print(f"AI initialization failed: {e}", file=sys.stderr)
+                self.use_ai = False
+
+    def collect_system_data(self) -> Dict[str, Any]:
+        """
+        Collect comprehensive system state data
+        Mirrors intelligent display agent's data collection
+        """
+        data = {
+            'timestamp': datetime.now().isoformat(),
+            'hostname': os.uname().nodename
+        }
+
+        # Count active agent processes
+        try:
+            result = subprocess.run(
+                ['ps', 'aux'],
+                capture_output=True,
+                text=True,
+                timeout=2
+            )
+            agent_lines = [
+                l for l in result.stdout.split('\n')
+                if 'python' in l.lower() and 'agent' in l.lower() and 'grep' not in l
+            ]
+            data['agent_count'] = len(agent_lines)
+        except subprocess.TimeoutExpired:
+            data['agent_count'] = 0
+        except Exception as e:
+            data['agent_count'] = 0
+
+        # Claude Code session status
+        try:
+            sessions_dir = Path.home() / ".claude" / "sessions"
+            if sessions_dir.exists():
+                data['claude_sessions'] = len(list(sessions_dir.glob("*")))
+            else:
+                data['claude_sessions'] = 0
+
+            result = subprocess.run(
+                ['pgrep', '-f', 'claude-code'],
+                capture_output=True,
+                text=True,
+                timeout=1
+            )
+            data['claude_running'] = bool(result.stdout.strip())
+        except Exception:
+            data['claude_sessions'] = 0
+            data['claude_running'] = False
+
+        # MCP server configuration
+        try:
+            claude_json = Path.home() / ".claude.json"
+            if claude_json.exists():
+                with open(claude_json, 'r') as f:
+                    config = json.load(f)
+                    data['mcp_count'] = len(config.get('mcpServers', {}))
+            else:
+                data['mcp_count'] = 0
+        except json.JSONDecodeError:
+            data['mcp_count'] = 0
+        except Exception:
+            data['mcp_count'] = 0
+
+        # Temporal workflow engine status
+        try:
+            result = subprocess.run(
+                ['pgrep', '-f', 'temporal'],
+                capture_output=True,
+                text=True,
+                timeout=1
+            )
+            data['temporal_running'] = bool(result.stdout.strip())
+        except Exception:
+            data['temporal_running'] = False
+
+        # AutoKitteh event-driven automation status
+        try:
+            result = subprocess.run(
+                ['pgrep', '-f', 'autokitteh'],
+                capture_output=True,
+                text=True,
+                timeout=1
+            )
+            data['autokitteh_running'] = bool(result.stdout.strip())
+        except Exception:
+            data['autokitteh_running'] = False
+
+        # Recent error detection from logs
+        data['recent_errors'] = self._check_recent_errors()
+
+        # MLX machine learning training detection
+        try:
+            result = subprocess.run(
+                ['ps', 'aux'],
+                capture_output=True,
+                text=True,
+                timeout=2
+            )
+            mlx_lines = [l for l in result.stdout.split('\n') if 'mlx' in l.lower() and 'python' in l]
+            data['mlx_training'] = len(mlx_lines) > 0
+        except Exception:
+            data['mlx_training'] = False
+
+        # Memory pressure (macOS vm_stat)
+        data['memory_pressure'] = self._check_memory_pressure()
+
+        # Storage usage on hot tier
+        data['storage_usage'] = self._check_storage_usage()
+
+        # Current working directory for context
+        data['cwd'] = os.path.basename(os.getcwd())
+
+        # Active Claude Code skill detection
+        data['active_skill'] = self._detect_active_skill()
+
+        return data
+
+    def _check_recent_errors(self) -> int:
+        """Scan recent logs for error conditions"""
+        error_count = 0
+
+        log_paths = [
+            Path("/Volumes/SSDRAID0/agentic-system/arduino-surface/logs/display-agent.log"),
+            Path("/tmp/phoenix_session_start.log")
+        ]
+
+        for log_path in log_paths:
+            if not log_path.exists():
+                continue
+
+            try:
+                with open(log_path, 'r') as f:
+                    # Check last 50 lines for errors
+                    lines = f.readlines()[-50:]
+                    error_count += sum(
+                        1 for l in lines
+                        if 'ERROR' in l or 'CRITICAL' in l or 'FATAL' in l
+                    )
+            except Exception:
+                continue
+
+        return error_count
+
+    def _check_memory_pressure(self) -> str:
+        """Check system memory pressure"""
+        try:
+            result = subprocess.run(
+                ['vm_stat'],
+                capture_output=True,
+                text=True,
+                timeout=2
+            )
+
+            # Parse vm_stat output
+            output = result.stdout
+            if 'Pages free' in output:
+                # Extract free pages (simplified)
+                for line in output.split('\n'):
+                    if 'Pages free' in line:
+                        free_pages = int(line.split(':')[1].strip().rstrip('.'))
+                        # macOS page size is 4096 bytes
+                        free_mb = (free_pages * 4096) / (1024 * 1024)
+                        if free_mb < 500:
+                            return 'high'
+                        elif free_mb < 2000:
+                            return 'moderate'
+                        else:
+                            return 'normal'
+
+            return 'normal'
+        except Exception:
+            return 'unknown'
+
+    def _check_storage_usage(self) -> int:
+        """Check storage usage percentage on hot tier"""
+        try:
+            hot_tier = Path("/Volumes/SSDRAID0/agentic-system")
+            if not hot_tier.exists():
+                return 0
+
+            result = subprocess.run(
+                ['df', '-h', str(hot_tier)],
+                capture_output=True,
+                text=True,
+                timeout=2
+            )
+
+            lines = result.stdout.strip().split('\n')
+            if len(lines) > 1:
+                parts = lines[1].split()
+                if len(parts) >= 5:
+                    usage_str = parts[4].rstrip('%')
+                    return int(usage_str)
+
+            return 0
+        except (subprocess.TimeoutExpired, ValueError, IndexError):
+            return 0
+        except Exception:
+            return 0
+
+    def ai_prioritize_display(self, data: Dict[str, Any]) -> List[Tuple[str, str, int]]:
+        """
+        Use Claude AI to intelligently prioritize statusline content
+
+        Returns: List of (emoji, text, priority) tuples
+        Priority levels: 0=critical, 1=high, 2=normal, 3=low
+        """
+
+        if not self.use_ai:
+            return self._rule_based_prioritize(data)
+
+        context_prompt = f"""Analyze this agentic system state and determine the 3-4 most important pieces of information for a statusline display.
+
+System Data:
+{json.dumps(data, indent=2)}
+
+Prioritization Rules:
+1. Errors/critical issues: Always show first (priority 0)
+2. Resource warnings (memory, storage): High priority (priority 1)
+3. Active work (training, workflows): High priority (priority 1)
+4. Service status changes: Important if down (priority 1)
+5. Normal operations: Medium priority (priority 2)
+6. Background services running: Low priority (priority 3)
+
+Keep total under 80 characters. Be concise but informative.
+
+Return JSON array of items:
+[
+  {{"emoji": "❌", "text": "3 errors", "priority": 0}},
+  {{"emoji": "🔥", "text": "MLX training", "priority": 1}},
+  {{"emoji": "🤖", "text": "19 agents", "priority": 2}}
+]
+
+Priority meanings:
+- 0: Critical (display in red)
+- 1: High importance (display in yellow)
+- 2: Normal status (display in green)
+- 3: Background info (display in gray)
+"""
+
+        try:
+            response = self.client.messages.create(
+                model=self.model,
+                max_tokens=512,
+                messages=[{"role": "user", "content": context_prompt}]
+            )
+
+            response_text = response.content[0].text
+
+            # Extract JSON from response
+            if "```json" in response_text:
+                json_start = response_text.find("```json") + 7
+                json_end = response_text.find("```", json_start)
+                json_str = response_text[json_start:json_end].strip()
+            elif "```" in response_text:
+                json_start = response_text.find("```") + 3
+                json_end = response_text.find("```", json_start)
+                json_str = response_text[json_start:json_end].strip()
+            else:
+                json_str = response_text.strip()
+
+            items = json.loads(json_str)
+
+            # Validate and convert to tuples
+            result = []
+            for item in items:
+                if all(key in item for key in ['emoji', 'text', 'priority']):
+                    result.append((item['emoji'], item['text'], item['priority']))
+
+            if not result:
+                # AI returned invalid format - use rules
+                return self._rule_based_prioritize(data)
+
+            return result
+
+        except (json.JSONDecodeError, anthropic.APIError, Exception) as e:
+            print(f"AI prioritization failed: {e}", file=sys.stderr)
+            return self._rule_based_prioritize(data)
+
+    def _rule_based_prioritize(self, data: Dict[str, Any]) -> List[Tuple[str, str, int]]:
+        """Production rule-based prioritization (fallback when AI unavailable)"""
+        items = []
+
+        # Critical: Active errors
+        error_count = data.get('recent_errors', 0)
+        if error_count > 0:
+            items.append(('❌', f"{error_count} errors", 0))
+
+        # High: Memory pressure
+        if data.get('memory_pressure') == 'high':
+            items.append(('⚠️', 'High memory', 1))
+
+        # High: Storage warning
+        storage_usage = data.get('storage_usage', 0)
+        if storage_usage > 90:
+            items.append(('💾', f"{storage_usage}% full", 0))
+        elif storage_usage > 80:
+            items.append(('💾', f"{storage_usage}% used", 1))
+
+        # High: Active ML training
+        if data.get('mlx_training'):
+            items.append(('🔥', 'MLX training', 1))
+
+        # High: Critical services down
+        if not data.get('temporal_running'):
+            items.append(('⚠️', 'Temporal down', 1))
+        if not data.get('autokitteh_running'):
+            items.append(('⚠️', 'AK down', 1))
+
+        # Normal: Agent activity
+        agent_count = data.get('agent_count', 0)
+        if agent_count > 0:
+            items.append(('🤖', f"{agent_count}agents", 2))
+
+        # Normal: Claude Code status
+        if data.get('claude_running'):
+            items.append(('🧠', 'running', 2))
+        else:
+            items.append(('🧠', 'idle', 2))
+
+        # Normal: MCP configuration
+        mcp_count = data.get('mcp_count', 0)
+        items.append(('🔌', f"{mcp_count}mcp", 2))
+
+        # Low: Workflow engines (only if running)
+        if data.get('temporal_running'):
+            items.append(('⏰', '▶', 3))
+        if data.get('autokitteh_running'):
+            items.append(('🐈', '▶', 3))
+
+        return items
+
+    def format_statusline(self, items: List[Tuple[str, str, int]], use_colors: bool = True) -> str:
+        """
+        Format prioritized items into compact statusline with color coding
+
+        Args:
+            items: List of (emoji, text, priority) tuples
+            use_colors: Whether to apply ANSI color codes
+
+        Returns:
+            Formatted statusline string
+        """
+
+        # Sort by priority (0=critical first, then 1, 2, 3)
+        items.sort(key=lambda x: x[2])
+
+        parts = []
+        current_length = 0
+
+        for emoji, text, priority in items:
+            # Apply color based on priority
+            if use_colors:
+                if priority == 0:  # Critical
+                    colored_text = f"{Colors.RED}{emoji} {text}{Colors.RESET}"
+                elif priority == 1:  # High
+                    colored_text = f"{Colors.YELLOW}{emoji} {text}{Colors.RESET}"
+                elif priority == 2:  # Normal
+                    colored_text = f"{Colors.GREEN}{emoji} {text}{Colors.RESET}"
+                else:  # Low priority
+                    colored_text = f"{Colors.GRAY}{emoji} {text}{Colors.RESET}"
+            else:
+                colored_text = f"{emoji} {text}"
+
+            # Calculate display length (without color codes)
+            display_length = len(f"{emoji} {text}")
+
+            # Check length constraint
+            separator_length = 3  # " | "
+            if current_length + display_length + separator_length > self.max_length:
+                break
+
+            parts.append(colored_text)
+            current_length += display_length + separator_length
+
+        return " | ".join(parts)
+
+    def generate(self) -> str:
+        """
+        Generate intelligent adaptive statusline
+
+        Returns:
+            Formatted statusline string with colors
+        """
+        try:
+            # Collect comprehensive system data
+            data = self.collect_system_data()
+
+            # Use AI to prioritize what's important
+            items = self.ai_prioritize_display(data)
+
+            # Format with colors
+            statusline = self.format_statusline(items, use_colors=True)
+
+            return statusline
+
+        except Exception as e:
+            # Robust fallback for any unexpected errors
+            print(f"Statusline generation error: {e}", file=sys.stderr)
+            cwd = os.path.basename(os.getcwd())
+            return f"🤖 Agentic System | 📁 {cwd}"
+
+
+def main():
+    """Command-line interface for intelligent statusline"""
+    statusline = IntelligentStatusLine()
+    output = statusline.generate()
+    print(output)
+
+
+if __name__ == "__main__":
+    main()

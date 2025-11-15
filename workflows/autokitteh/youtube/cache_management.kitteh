@@ -1,0 +1,240 @@
+"""
+YouTube Cache Management Workflow
+Manages transcript cache, monitoring, and optimization.
+"""
+
+def monitor_cache_size(event):
+    """
+    Monitor transcript cache size and alert if growing too large.
+    Triggered: Daily at 11 PM
+    """
+    print("💾 Monitoring cache size...")
+
+    cache_dir = "/Users/marc/Documents/Cline/MCP/youtube-transcript-mcp"
+
+    # Get cache size
+    result = shell.run([
+        "du", "-sh", cache_dir
+    ])
+
+    cache_size = result.stdout.split()[0]
+
+    # Count transcript files
+    result = shell.run([
+        "find", cache_dir,
+        "-name", "full_transcript_*.txt",
+        "-type", "f"
+    ])
+
+    transcript_files = result.stdout.strip().split("\n")
+    transcript_count = len([f for f in transcript_files if f])
+
+    # Calculate total size in bytes for threshold check
+    result = shell.run([
+        "du", "-sb", cache_dir
+    ])
+
+    size_bytes = int(result.stdout.split()[0])
+
+    # Alert if cache exceeds 100MB
+    if size_bytes > 100 * 1024 * 1024:
+        voice_notify(
+            f"YouTube cache size alert: {cache_size} with {transcript_count} files"
+        )
+
+    # Store metrics
+    memory.store({
+        "type": "cache_metrics",
+        "cache_size": cache_size,
+        "size_bytes": size_bytes,
+        "transcript_count": transcript_count,
+        "timestamp": time.now()
+    })
+
+    print(f"✅ Cache metrics: {cache_size}, {transcript_count} files")
+
+    return {
+        "status": "success",
+        "cache_size": cache_size,
+        "transcript_count": transcript_count,
+        "size_bytes": size_bytes,
+        "timestamp": time.now()
+    }
+
+def optimize_cache(event):
+    """
+    Optimize cache by compressing old transcripts.
+    Triggered: Monthly on 1st at 5 AM
+    """
+    print("🗜️ Optimizing cache...")
+
+    cache_dir = "/Users/marc/Documents/Cline/MCP/youtube-transcript-mcp"
+    archive_dir = f"{cache_dir}/archive"
+
+    # Create archive directory if needed
+    shell.run(["mkdir", "-p", archive_dir])
+
+    # Find transcripts older than 30 days
+    result = shell.run([
+        "find", cache_dir,
+        "-name", "full_transcript_*.txt",
+        "-mtime", "+30",
+        "-type", "f",
+        "-not", "-path", "*/archive/*"
+    ])
+
+    old_files = result.stdout.strip().split("\n")
+    old_files = [f for f in old_files if f]
+
+    if len(old_files) == 0:
+        print("✅ No files to optimize")
+        return {"status": "success", "files_optimized": 0}
+
+    # Compress old files
+    for file_path in old_files:
+        basename = file_path.split("/")[-1]
+        compressed_path = f"{archive_dir}/{basename}.gz"
+
+        # Compress
+        shell.run(["gzip", "-c", file_path, ">", compressed_path])
+
+        # Verify compression
+        if file.exists(compressed_path):
+            shell.run(["rm", file_path])
+
+    voice_notify(f"Cache optimized: compressed {len(old_files)} old transcripts")
+
+    print(f"✅ Optimized {len(old_files)} files")
+
+    return {
+        "status": "success",
+        "files_optimized": len(old_files),
+        "timestamp": time.now()
+    }
+
+def rebuild_cache_index(event):
+    """
+    Rebuild searchable index of cached transcripts.
+    Triggered: Weekly on Tuesday at 3 AM
+    """
+    print("🔍 Rebuilding cache index...")
+
+    cache_dir = "/Users/marc/Documents/Cline/MCP/youtube-transcript-mcp"
+
+    # Find all transcript files
+    result = shell.run([
+        "find", cache_dir,
+        "-name", "full_transcript_*.txt",
+        "-type", "f"
+    ])
+
+    transcript_files = result.stdout.strip().split("\n")
+    transcript_files = [f for f in transcript_files if f]
+
+    index = []
+
+    for file_path in transcript_files:
+        # Extract video ID from filename
+        basename = file_path.split("/")[-1]
+        video_id = basename.replace("full_transcript_", "").replace(".txt", "")
+
+        # Get file stats
+        file_size = file.size(file_path)
+        modified_time = file.modified_time(file_path)
+
+        # Read first 200 chars for preview
+        content = file.read(file_path)
+        preview = content[:200] if len(content) > 200 else content
+
+        index.append({
+            "video_id": video_id,
+            "file_path": file_path,
+            "file_size": file_size,
+            "modified_time": modified_time.isoformat(),
+            "preview": preview
+        })
+
+    # Write index
+    index_file = f"{cache_dir}/cache_index.json"
+    file.write_json(index_file, {
+        "generated_at": time.now().isoformat(),
+        "total_files": len(index),
+        "transcripts": index
+    })
+
+    voice_notify(f"Cache index rebuilt: {len(index)} transcripts indexed")
+
+    print(f"✅ Index rebuilt: {len(index)} transcripts")
+
+    return {
+        "status": "success",
+        "transcripts_indexed": len(index),
+        "index_file": index_file,
+        "timestamp": time.now()
+    }
+
+def verify_cache_integrity(event):
+    """
+    Verify cache file integrity and detect corruption.
+    Triggered: Weekly on Wednesday at 2 AM
+    """
+    print("🔐 Verifying cache integrity...")
+
+    cache_dir = "/Users/marc/Documents/Cline/MCP/youtube-transcript-mcp"
+
+    # Find all transcript files
+    result = shell.run([
+        "find", cache_dir,
+        "-name", "full_transcript_*.txt",
+        "-type", "f"
+    ])
+
+    transcript_files = result.stdout.strip().split("\n")
+    transcript_files = [f for f in transcript_files if f]
+
+    corrupted = []
+    verified = 0
+
+    for file_path in transcript_files:
+        # Check if file is readable
+        try:
+            content = file.read(file_path)
+
+            # Basic integrity checks
+            if len(content) == 0:
+                corrupted.append({"file": file_path, "reason": "empty"})
+            elif len(content) < 50:
+                corrupted.append({"file": file_path, "reason": "too_short"})
+            else:
+                verified += 1
+        except:
+            corrupted.append({"file": file_path, "reason": "unreadable"})
+
+    if len(corrupted) > 0:
+        voice_notify(f"Cache integrity issue: {len(corrupted)} corrupted files found")
+
+        # Remove corrupted files
+        for item in corrupted:
+            shell.run(["rm", item["file"]])
+
+    print(f"✅ Integrity check: {verified} verified, {len(corrupted)} corrupted")
+
+    return {
+        "status": "success",
+        "verified": verified,
+        "corrupted": len(corrupted),
+        "corrupted_files": corrupted,
+        "timestamp": time.now()
+    }
+
+# Schedule cache monitoring daily at 11 PM
+schedule.cron("0 23 * * *", monitor_cache_size)
+
+# Schedule cache optimization monthly on 1st at 5 AM
+schedule.cron("0 5 1 * *", optimize_cache)
+
+# Schedule index rebuild weekly on Tuesday at 3 AM
+schedule.cron("0 3 * * 2", rebuild_cache_index)
+
+# Schedule integrity verification weekly on Wednesday at 2 AM
+schedule.cron("0 2 * * 3", verify_cache_integrity)

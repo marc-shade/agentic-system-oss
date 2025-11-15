@@ -1,0 +1,122 @@
+"""
+AGI Memory Consolidation Workflow
+Consolidates episodic memories into semantic patterns nightly.
+"""
+
+def consolidate_memories(event):
+    """
+    Consolidate episodic memories into semantic patterns.
+    Triggered: Daily at 2 AM via cron
+    """
+    print("🧠 Starting memory consolidation...")
+
+    # Run consolidation script
+    result = shell.run([
+        "python3",
+        "/Users/marc/.claude/scripts/consolidate_memories.py"
+    ])
+
+    if result.exit_code != 0:
+        voice_notify(f"Memory consolidation failed: {result.stderr}")
+        return {"status": "failed", "error": result.stderr}
+
+    # Parse output for metrics
+    output_lines = result.stdout.split("\n")
+    patterns_extracted = 0
+    for line in output_lines:
+        if "patterns extracted" in line.lower():
+            patterns_extracted = int(line.split(":")[1].strip())
+
+    # Store result in enhanced memory
+    memory.store({
+        "type": "consolidation_result",
+        "timestamp": time.now(),
+        "patterns_extracted": patterns_extracted,
+        "status": "success"
+    })
+
+    # Voice notification
+    voice_notify(f"Memory consolidation complete. Extracted {patterns_extracted} patterns.")
+
+    print(f"✅ Consolidation complete: {patterns_extracted} patterns")
+
+    return {
+        "status": "success",
+        "patterns_extracted": patterns_extracted,
+        "timestamp": time.now()
+    }
+
+def check_memory_health(event):
+    """
+    Check memory system health metrics.
+    Triggered: Every 6 hours
+    """
+    print("🔍 Checking memory health...")
+
+    # Run health check
+    result = shell.run([
+        "/Users/marc/.claude/scripts/agi_health_check.sh"
+    ])
+
+    if "HEALTHY" not in result.stdout:
+        voice_notify("AGI memory system health check failed!")
+        return {"status": "unhealthy", "output": result.stdout}
+
+    print("✅ Memory system healthy")
+
+    return {"status": "healthy", "timestamp": time.now()}
+
+def emergency_memory_backup(event):
+    """
+    Create emergency backup of memory files.
+    Triggered: Daily at 3 AM (after consolidation)
+    """
+    print("💾 Creating emergency memory backup...")
+
+    backup_dir = "/Users/marc/.claude/memory/backups/" + time.now().format("YYYY-MM-DD")
+
+    # Create backup directory
+    shell.run(["mkdir", "-p", backup_dir])
+
+    # Backup episodic memory
+    shell.run([
+        "cp", "-r",
+        "/Users/marc/.claude/memory/episodic",
+        backup_dir + "/episodic"
+    ])
+
+    # Backup semantic memory
+    shell.run([
+        "cp", "-r",
+        "/Users/marc/.claude/memory/semantic",
+        backup_dir + "/semantic"
+    ])
+
+    # Compress backup
+    result = shell.run([
+        "tar", "-czf",
+        backup_dir + ".tar.gz",
+        backup_dir
+    ])
+
+    # Remove uncompressed backup
+    shell.run(["rm", "-rf", backup_dir])
+
+    # Keep only last 7 backups
+    shell.run([
+        "bash", "-c",
+        "cd /Users/marc/.claude/memory/backups && ls -t *.tar.gz | tail -n +8 | xargs rm -f"
+    ])
+
+    print("✅ Emergency backup complete")
+
+    return {"status": "success", "backup_path": backup_dir + ".tar.gz"}
+
+# Schedule memory consolidation daily at 2 AM
+schedule.cron("0 2 * * *", consolidate_memories)
+
+# Schedule health check every 6 hours
+schedule.cron("0 */6 * * *", check_memory_health)
+
+# Schedule backup daily at 3 AM
+schedule.cron("0 3 * * *", emergency_memory_backup)

@@ -1,0 +1,186 @@
+"""
+YouTube Transcript Extraction Workflow
+Handles video transcript extraction and caching.
+"""
+
+def extract_transcript(event):
+    """
+    Extract transcript from YouTube video.
+    Triggered: On-demand or via queue
+    """
+    video_url = event.data.get("video_url")
+
+    if not video_url:
+        return {"status": "error", "message": "No video URL provided"}
+
+    print(f"🎥 Extracting transcript from: {video_url}")
+
+    # Check if already cached
+    video_id = extract_video_id(video_url)
+    cache_path = f"/Users/marc/Documents/Cline/MCP/youtube-transcript-mcp/full_transcript_{video_id}.txt"
+
+    if file.exists(cache_path):
+        print(f"✅ Transcript cached: {cache_path}")
+        return {
+            "status": "cached",
+            "video_id": video_id,
+            "cache_path": cache_path,
+            "timestamp": time.now()
+        }
+
+    # Extract using yt-dlp
+    result = shell.run([
+        "python3",
+        "/Users/marc/Documents/Cline/MCP/youtube-transcript-mcp/extract_transcript.py",
+        video_url
+    ])
+
+    if result.exit_code != 0:
+        voice_notify(f"Transcript extraction failed for video {video_id}")
+        return {
+            "status": "failed",
+            "video_id": video_id,
+            "error": result.stderr
+        }
+
+    # Verify extraction
+    if file.exists(cache_path):
+        file_size = file.size(cache_path)
+        voice_notify(f"Transcript extracted: {video_id}, {file_size} bytes")
+
+        # Store extraction record
+        memory.store({
+            "type": "transcript_extraction",
+            "video_id": video_id,
+            "video_url": video_url,
+            "file_size": file_size,
+            "timestamp": time.now()
+        })
+
+        print(f"✅ Transcript extracted: {file_size} bytes")
+
+        return {
+            "status": "success",
+            "video_id": video_id,
+            "cache_path": cache_path,
+            "file_size": file_size,
+            "timestamp": time.now()
+        }
+    else:
+        return {
+            "status": "failed",
+            "video_id": video_id,
+            "error": "Transcript file not created"
+        }
+
+def extract_video_id(url):
+    """Extract video ID from various YouTube URL formats."""
+    # Simple regex-based extraction
+    patterns = [
+        r"watch\?v=([a-zA-Z0-9_-]+)",
+        r"youtu\.be/([a-zA-Z0-9_-]+)",
+        r"embed/([a-zA-Z0-9_-]+)",
+        r"shorts/([a-zA-Z0-9_-]+)"
+    ]
+
+    for pattern in patterns:
+        match = re.match(pattern, url)
+        if match:
+            return match.group(1)
+
+    return "unknown"
+
+def batch_extract_playlist(event):
+    """
+    Extract transcripts for entire playlist.
+    Triggered: On-demand with playlist URL
+    """
+    playlist_url = event.data.get("playlist_url")
+
+    if not playlist_url:
+        return {"status": "error", "message": "No playlist URL provided"}
+
+    print(f"📚 Batch extracting playlist: {playlist_url}")
+
+    # Get video URLs from playlist
+    result = shell.run([
+        "yt-dlp",
+        "--flat-playlist",
+        "--print", "url",
+        playlist_url
+    ])
+
+    if result.exit_code != 0:
+        return {"status": "failed", "error": result.stderr}
+
+    video_urls = result.stdout.strip().split("\n")
+
+    voice_notify(f"Found {len(video_urls)} videos in playlist. Starting batch extraction.")
+
+    # Extract each video
+    results = []
+    for video_url in video_urls:
+        extraction_result = extract_transcript({"data": {"video_url": video_url}})
+        results.append(extraction_result)
+
+        # Delay between extractions to avoid rate limiting
+        time.sleep(2)
+
+    successful = len([r for r in results if r["status"] in ["success", "cached"]])
+
+    voice_notify(f"Playlist extraction complete: {successful}/{len(video_urls)} successful")
+
+    return {
+        "status": "success",
+        "total_videos": len(video_urls),
+        "successful": successful,
+        "results": results,
+        "timestamp": time.now()
+    }
+
+def clean_old_cache(event):
+    """
+    Clean transcripts older than 90 days.
+    Triggered: Weekly on Sunday at 4 AM
+    """
+    print("🧹 Cleaning old transcript cache...")
+
+    cache_dir = "/Users/marc/Documents/Cline/MCP/youtube-transcript-mcp"
+
+    # Find files older than 90 days
+    result = shell.run([
+        "find", cache_dir,
+        "-name", "full_transcript_*.txt",
+        "-mtime", "+90",
+        "-type", "f"
+    ])
+
+    old_files = result.stdout.strip().split("\n")
+    old_files = [f for f in old_files if f]  # Remove empty strings
+
+    if len(old_files) == 0:
+        print("✅ No old cache files to clean")
+        return {"status": "success", "files_removed": 0}
+
+    # Remove old files
+    for file_path in old_files:
+        shell.run(["rm", file_path])
+
+    voice_notify(f"Cleaned {len(old_files)} old transcript cache files")
+
+    print(f"✅ Removed {len(old_files)} old cache files")
+
+    return {
+        "status": "success",
+        "files_removed": len(old_files),
+        "timestamp": time.now()
+    }
+
+# Listen for extraction requests
+event.listen("extract_transcript", extract_transcript)
+
+# Listen for playlist extraction requests
+event.listen("extract_playlist", batch_extract_playlist)
+
+# Schedule cache cleanup weekly
+schedule.cron("0 4 * * 0", clean_old_cache)

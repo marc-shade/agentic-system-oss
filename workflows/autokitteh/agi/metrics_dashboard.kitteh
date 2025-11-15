@@ -1,0 +1,173 @@
+"""
+AGI Metrics Dashboard Workflow
+Generates daily metrics and performance reports.
+"""
+
+def generate_daily_metrics(event):
+    """
+    Generate comprehensive daily metrics report.
+    Triggered: Daily at 9 AM
+    """
+    print("📊 Generating daily metrics...")
+
+    # Run metrics report script
+    result = shell.run([
+        "/Users/marc/.claude/scripts/agi_metrics_report.sh"
+    ])
+
+    if result.exit_code != 0:
+        voice_notify("Metrics generation failed!")
+        return {"status": "failed", "error": result.stderr}
+
+    # Parse metrics from output
+    metrics = parse_metrics_output(result.stdout)
+
+    # Voice summary
+    voice_notify(
+        f"Daily AGI metrics: {metrics['total_tool_uses']} tool executions, "
+        f"{metrics['success_rate']}% success rate, "
+        f"{metrics['patterns_learned']} new patterns learned"
+    )
+
+    # Store in enhanced memory
+    memory.store({
+        "type": "daily_metrics",
+        "date": time.now().format("YYYY-MM-DD"),
+        "metrics": metrics,
+        "timestamp": time.now()
+    })
+
+    print(f"✅ Metrics generated: {metrics}")
+
+    return {
+        "status": "success",
+        "metrics": metrics,
+        "timestamp": time.now()
+    }
+
+def parse_metrics_output(output):
+    """Parse metrics from shell script output."""
+    metrics = {
+        "total_tool_uses": 0,
+        "success_rate": 0.0,
+        "patterns_learned": 0,
+        "reasoning_sessions": 0,
+        "autonomous_goals": 0
+    }
+
+    lines = output.split("\n")
+    for line in lines:
+        if "Total tool uses:" in line:
+            metrics["total_tool_uses"] = int(line.split(":")[1].strip())
+        elif "Success rate:" in line:
+            metrics["success_rate"] = float(line.split(":")[1].strip().replace("%", ""))
+        elif "Patterns learned:" in line:
+            metrics["patterns_learned"] = int(line.split(":")[1].strip())
+        elif "Reasoning sessions:" in line:
+            metrics["reasoning_sessions"] = int(line.split(":")[1].strip())
+        elif "Autonomous goals:" in line:
+            metrics["autonomous_goals"] = int(line.split(":")[1].strip())
+
+    return metrics
+
+def generate_weekly_summary(event):
+    """
+    Generate comprehensive weekly summary.
+    Triggered: Every Sunday at 6 PM
+    """
+    print("📈 Generating weekly summary...")
+
+    # Read last 7 days of metrics from memory
+    weekly_metrics = memory.search({
+        "type": "daily_metrics",
+        "date_range": time.now().subtract(days=7).format("YYYY-MM-DD")
+    })
+
+    # Aggregate metrics
+    total_uses = sum([m["metrics"]["total_tool_uses"] for m in weekly_metrics])
+    avg_success = sum([m["metrics"]["success_rate"] for m in weekly_metrics]) / len(weekly_metrics)
+    total_patterns = sum([m["metrics"]["patterns_learned"] for m in weekly_metrics])
+    total_reasoning = sum([m["metrics"]["reasoning_sessions"] for m in weekly_metrics])
+    total_goals = sum([m["metrics"]["autonomous_goals"] for m in weekly_metrics])
+
+    summary = {
+        "week_ending": time.now().format("YYYY-MM-DD"),
+        "total_tool_uses": total_uses,
+        "average_success_rate": avg_success,
+        "total_patterns_learned": total_patterns,
+        "total_reasoning_sessions": total_reasoning,
+        "total_autonomous_goals": total_goals,
+        "days_analyzed": len(weekly_metrics)
+    }
+
+    # Voice notification with weekly summary
+    voice_notify(
+        f"Weekly AGI summary: {total_uses} total operations, "
+        f"{avg_success:.1f}% average success rate, "
+        f"{total_patterns} patterns learned, "
+        f"{total_goals} autonomous goals detected"
+    )
+
+    # Store weekly summary
+    memory.store({
+        "type": "weekly_summary",
+        "summary": summary,
+        "timestamp": time.now()
+    })
+
+    print(f"✅ Weekly summary: {summary}")
+
+    return {
+        "status": "success",
+        "summary": summary,
+        "timestamp": time.now()
+    }
+
+def alert_on_performance_degradation(event):
+    """
+    Monitor for performance degradation and alert.
+    Triggered: Every 2 hours
+    """
+    print("⚠️ Checking for performance degradation...")
+
+    # Read patterns file
+    patterns_file = "/Users/marc/.claude/memory/semantic/patterns.json"
+    patterns = file.read_json(patterns_file)
+
+    alerts = []
+
+    for pattern in patterns:
+        tool = pattern.get("tool")
+        success_rate = pattern.get("success_rate", 1.0)
+
+        # Alert if success rate drops below 60%
+        if success_rate < 0.60:
+            alerts.append({
+                "tool": tool,
+                "success_rate": success_rate,
+                "severity": "high" if success_rate < 0.40 else "medium"
+            })
+
+    if len(alerts) > 0:
+        for alert in alerts:
+            voice_notify(
+                f"Performance alert: {alert['tool']} success rate at "
+                f"{alert['success_rate']*100:.1f}%"
+            )
+
+    print(f"✅ Performance check: {len(alerts)} alerts")
+
+    return {
+        "status": "success",
+        "alerts": alerts,
+        "timestamp": time.now()
+    }
+
+# Schedule daily metrics at 9 AM
+schedule.cron("0 9 * * *", generate_daily_metrics)
+
+# Schedule weekly summary every Sunday at 6 PM
+schedule.cron("0 18 * * 0", generate_weekly_summary)
+
+# Schedule performance monitoring every 2 hours
+schedule.cron("0 */2 * * *", alert_on_performance_degradation)

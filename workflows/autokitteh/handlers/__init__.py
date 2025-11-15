@@ -1,0 +1,1 @@
+# AutoKitteh handlers package
