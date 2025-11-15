@@ -1,0 +1,280 @@
+{
+  "knowledgeAwareCoordinationWorkflows": {
+    "version": "3.0.0",
+    "description": "Advanced coordination patterns leveraging MCP Resources for intelligent swarm behavior",
+    "coreWorkflowPatterns": {
+      "discovery_driven_architecture": {
+        "description": "Architectural decisions driven by knowledge discovery",
+        "participants": ["🦉 Knowledge-Aware Architect", "🐙 Trend Researcher", "🐘 Memory Shepherd"],
+        "workflow": [
+          {
+            "step": 1,
+            "agent": "🦉 Architect",
+            "action": "Browse memory://projects for architectural context",
+            "output": "Current architectural landscape understanding"
+          },
+          {
+            "step": 2,
+            "agent": "🦉 Architect", 
+            "action": "Search memory://search/architecture for proven patterns",
+            "output": "Architectural pattern catalog"
+          },
+          {
+            "step": 3,
+            "agent": "🐙 Researcher",
+            "action": "Browse memory://insights for emerging architectural trends",
+            "output": "Trend analysis and gap identification"
+          },
+          {
+            "step": 4,
+            "agent": "🦉 Architect",
+            "action": "Create architectural entities building on discovered foundations",
+            "output": "Knowledge-informed architectural design"
+          },
+          {
+            "step": 5,
+            "agent": "🐘 Memory Shepherd",
+            "action": "Create relationships linking new architecture to existing patterns",
+            "output": "Integrated architectural knowledge graph"
+          }
+        ],
+        "success_criteria": [
+          "Architecture builds on existing proven patterns",
+          "No duplicate architectural patterns created",
+          "Clear relationships established to existing knowledge",
+          "Architectural decisions documented for future reuse"
+        ]
+      },
+      "rapid_knowledge_synthesis": {
+        "description": "Fast development through intelligent knowledge reuse",
+        "participants": ["🐆 Rapid Prototyper", "🦋 Whimsy Injector", "🐘 Memory Shepherd"],
+        "workflow": [
+          {
+            "step": 1,
+            "agent": "🐆 Prototyper",
+            "action": "Search memory://search/{technology} for implementation patterns",
+            "output": "Reusable implementation patterns catalog"
+          },
+          {
+            "step": 2,
+            "agent": "🦋 Whimsy Injector",
+            "action": "Browse memory://search/ux for delightful design patterns",
+            "output": "Creative enhancement opportunities"
+          },
+          {
+            "step": 3,
+            "agent": "🐆 Prototyper",
+            "action": "Rapidly implement by combining existing patterns",
+            "output": "Accelerated prototype with proven foundations"
+          },
+          {
+            "step": 4,
+            "agent": "🦋 Whimsy Injector",
+            "action": "Inject creative elements building on UX patterns",
+            "output": "Delightful user experience layer"
+          },
+          {
+            "step": 5,
+            "agent": "🐘 Memory Shepherd",
+            "action": "Document new synthesis patterns for future reuse",
+            "output": "Enhanced knowledge graph with synthesis patterns"
+          }
+        ],
+        "success_criteria": [
+          "Development time reduced through pattern reuse",
+          "Creative elements enhance rather than disrupt",
+          "New synthesis patterns documented",
+          "Quality maintained through proven foundations"
+        ]
+      },
+      "team_performance_optimization": {
+        "description": "Continuous team improvement through memory analytics",
+        "participants": ["🦁 Studio Coach", "🐘 Memory Shepherd", "🐙 Trend Researcher"],
+        "workflow": [
+          {
+            "step": 1,
+            "agent": "🐘 Memory Shepherd",
+            "action": "Analyze memory://insights for team performance patterns",
+            "output": "Performance analytics and collaboration metrics"
+          },
+          {
+            "step": 2,
+            "agent": "🦁 Studio Coach",
+            "action": "Browse memory://projects for high-performing project patterns",
+            "output": "Excellence benchmarks and success patterns"
+          },
+          {
+            "step": 3,
+            "agent": "🐙 Researcher",
+            "action": "Search memory://search/optimization for improvement strategies",
+            "output": "Research-backed optimization recommendations"
+          },
+          {
+            "step": 4,
+            "agent": "🦁 Studio Coach",
+            "action": "Create coaching entities with personalized guidance",
+            "output": "Tailored performance improvement strategies"
+          },
+          {
+            "step": 5,
+            "agent": "🐘 Memory Shepherd",
+            "action": "Track improvement metrics and optimize knowledge sharing",
+            "output": "Continuous improvement feedback loop"
+          }
+        ],
+        "success_criteria": [
+          "Team performance measurably improved",
+          "Knowledge sharing patterns optimized",
+          "Individual agent capabilities enhanced",
+          "Coaching effectiveness documented"
+        ]
+      }
+    },
+    "coordinationProtocols": {
+      "memory_resource_handoff": {
+        "description": "Seamless agent handoffs using memory resources",
+        "protocol": {
+          "preparation_phase": {
+            "outgoing_agent": [
+              "Create handoff entity with current context",
+              "Link to relevant memory://projects context",
+              "Document progress and next steps",
+              "Create relationships to supporting knowledge"
+            ]
+          },
+          "discovery_phase": {
+            "incoming_agent": [
+              "Browse memory://search/{handoff_context}",
+              "Review memory://relations for full context understanding",
+              "Analyze memory://insights for relevant patterns",
+              "Identify knowledge gaps requiring attention"
+            ]
+          },
+          "integration_phase": {
+            "incoming_agent": [
+              "Update handoff entity with acceptance and understanding",
+              "Create new entities addressing identified gaps",
+              "Establish relationships connecting to ongoing work",
+              "Document handoff learnings for future optimization"
+            ]
+          }
+        }
+      },
+      "knowledge_graph_collaboration": {
+        "description": "Agents collaborate through shared knowledge graph evolution",
+        "protocol": {
+          "discovery_collaboration": {
+            "pattern": "Agents discover each other's work through memory browsing",
+            "actions": [
+              "Agent A creates entities with clear, discoverable observations",
+              "Agent B browses memory://entities to discover relevant work",
+              "Agent B creates complementary entities building on Agent A's foundation",
+              "Both agents establish relationships connecting their contributions"
+            ]
+          },
+          "pattern_sharing": {
+            "pattern": "Agents share successful patterns through knowledge documentation",
+            "actions": [
+              "Agent documents successful pattern as reusable entity",
+              "Other agents discover pattern via memory://search/{domain}",
+              "Agents adapt pattern to their specific contexts",
+              "Adaptations documented as pattern variations"
+            ]
+          },
+          "collective_intelligence": {
+            "pattern": "Multiple agents contribute to comprehensive knowledge domains",
+            "actions": [
+              "Agents contribute specialized knowledge to shared domains",
+              "Memory Shepherd optimizes relationships for discoverability", 
+              "Agents leverage collective knowledge for enhanced capabilities",
+              "Knowledge graph evolves to support emergent intelligence"
+            ]
+          }
+        }
+      }
+    },
+    "emergentBehaviors": {
+      "knowledge_amplification": {
+        "description": "Agent capabilities amplified through knowledge graph leverage",
+        "mechanisms": [
+          "Agents access expertise beyond their individual capabilities",
+          "Patterns emerge from collective knowledge contributions",
+          "Knowledge compounds across agent interactions",
+          "Specialized knowledge becomes accessible to all agents"
+        ]
+      },
+      "adaptive_specialization": {
+        "description": "Agents develop specialized expertise based on knowledge patterns",
+        "mechanisms": [
+          "Agents identify knowledge domains with high value/low coverage",
+          "Specialization evolves based on successful pattern applications",
+          "Memory analytics guide expertise development",
+          "Cross-pollination prevents over-specialization"
+        ]
+      },
+      "swarm_learning": {
+        "description": "Collective learning through shared knowledge evolution",
+        "mechanisms": [
+          "Successful patterns propagate through memory browsing",
+          "Failed approaches documented to prevent repetition",
+          "Knowledge quality improves through collective validation",
+          "Learning accelerates through pattern reuse"
+        ]
+      }
+    },
+    "performanceMetrics": {
+      "knowledge_reuse_rate": {
+        "description": "Percentage of new entities that build on existing knowledge",
+        "target": "> 70%",
+        "measurement": "Track entity relationships to existing knowledge"
+      },
+      "discovery_efficiency": {
+        "description": "Time to find relevant existing knowledge",
+        "target": "< 30 seconds average",
+        "measurement": "Memory resource access patterns and timing"
+      },
+      "knowledge_compound_rate": {
+        "description": "Rate at which knowledge builds on itself",
+        "target": "Exponential growth in relationship density",
+        "measurement": "Relationship creation rate vs entity creation rate"
+      },
+      "agent_capability_amplification": {
+        "description": "Improvement in agent performance through knowledge access",
+        "target": "25% improvement in task success rate",
+        "measurement": "Compare performance with/without memory resource access"
+      }
+    },
+    "futureEvolutionPaths": {
+      "prompts_integration": {
+        "description": "Evolution toward MCP Prompts integration",
+        "preparation": [
+          "Knowledge graph provides context for dynamic prompt generation",
+          "Agent templates become prompt composition templates",
+          "Memory patterns guide prompt optimization strategies",
+          "Relationship networks enable prompt chaining workflows"
+        ],
+        "anticipated_benefits": [
+          "Context-aware prompt generation",
+          "Adaptive prompt optimization based on knowledge patterns",
+          "Collaborative prompt development through knowledge sharing",
+          "Prompt templates that leverage collective intelligence"
+        ]
+      },
+      "sampling_integration": {
+        "description": "Evolution toward MCP Sampling integration",
+        "preparation": [
+          "Memory insights inform sampling strategy optimization",
+          "Knowledge patterns guide intelligent sampling decisions",
+          "Agent performance data enables adaptive sampling",
+          "Relationship networks support coordinated sampling"
+        ],
+        "anticipated_benefits": [
+          "Intelligent sampling based on knowledge patterns",
+          "Adaptive sampling strategies driven by performance data",
+          "Collaborative sampling coordination across agents",
+          "Sampling optimization through collective learning"
+        ]
+      }
+    }
+  }
+}
