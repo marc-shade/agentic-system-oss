@@ -25,9 +25,9 @@ detect_platform() {
         return 0
     fi
 
-    if command -v openai &> /dev/null; then
-        echo -e "${GREEN}✓ OpenAI Code detected${NC}"
-        export CLI_PLATFORM="openai-code"
+    if command -v codex &> /dev/null; then
+        echo -e "${GREEN}✓ OpenAI Codex detected${NC}"
+        export CLI_PLATFORM="openai-codex"
         export CLI_CONFIG="$HOME/.openai.json"
         return 0
     fi
@@ -43,7 +43,7 @@ detect_platform() {
     echo ""
     echo "Supported platforms:"
     echo "  - Claude Code: https://code.claude.com"
-    echo "  - OpenAI Code: (install via pip)"
+    echo "  - OpenAI Codex: https://github.com/openai/openai-codex"
     echo "  - Gemini CLI: (install via npm)"
     exit 1
 }

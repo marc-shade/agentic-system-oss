@@ -7,7 +7,7 @@
 
 ## ✅ What Was Built
 
-The agentic-system repository is now a **complete self-contained onboarding source** that supports multiple CLI platforms (Claude Code, OpenAI Code, Gemini CLI).
+The agentic-system repository is now a **complete self-contained onboarding source** that supports multiple CLI platforms (Claude Code, OpenAI Codex, Gemini CLI).
 
 ### New Files Added
 
@@ -30,7 +30,7 @@ The agentic-system repository is now a **complete self-contained onboarding sour
 
 3. **`config-templates/`** directory
    - `claude-code-config.json` - Claude Code MCP configuration
-   - `openai-code-config.json` - OpenAI Code MCP configuration
+   - `openai-codex-config.json` - OpenAI Codex MCP configuration
    - `gemini-cli-config.json` - Gemini CLI MCP configuration
    - All templates use placeholders for node-specific values
 
@@ -62,7 +62,7 @@ chmod +x bootstrap.sh
 ```
 
 The bootstrap script will:
-1. Detect which CLI platform is installed (Claude Code, OpenAI Code, or Gemini CLI)
+1. Detect which CLI platform is installed (Claude Code, OpenAI Codex, or Gemini CLI)
 2. Check for Python 3.10+, Git, and other prerequisites
 3. Prompt for GitHub Personal Access Token
 4. Ask for node ID and configuration
@@ -76,7 +76,7 @@ The bootstrap script will:
 
 The system now supports:
 - ✅ **Claude Code** - Anthropic's official CLI
-- ✅ **OpenAI Code** - OpenAI's code assistant
+- ✅ **OpenAI Codex** - OpenAI's code assistant
 - ✅ **Gemini CLI** - Google's Gemini command-line tool
 
 Each platform gets its own configuration template with appropriate settings.
@@ -117,7 +117,7 @@ New nodes don't need to manually configure anything. The bootstrap script handle
 ### 2. Multi-Platform Support
 Same repository works for:
 - Claude Code nodes
-- OpenAI Code nodes
+- OpenAI Codex nodes
 - Gemini CLI nodes
 
 Platform-specific configurations are automatically selected.
@@ -155,7 +155,7 @@ agentic-system/
 │
 ├── config-templates/                 # Platform-specific configs
 │   ├── claude-code-config.json
-│   ├── openai-code-config.json
+│   ├── openai-codex-config.json
 │   └── gemini-cli-config.json
 │
 ├── mcp-servers/                      # MCP server installations
@@ -204,14 +204,14 @@ cd agentic-system
 # Node ID: scott-remote
 ```
 
-### Example 2: Alice's Node (OpenAI Code)
+### Example 2: Alice's Node (OpenAI Codex)
 ```bash
-# On Alice's machine (has OpenAI Code installed)
+# On Alice's machine (has OpenAI Codex installed)
 git clone https://github.com/marc-shade/agentic-system.git
 cd agentic-system
 ./bootstrap.sh
 
-# Bootstrap detects OpenAI Code
+# Bootstrap detects OpenAI Codex
 # Creates ~/.openai.json
 # Starts daemon as systemd service (Linux)
 # Node ID: alice-laptop
@@ -235,7 +235,7 @@ cd agentic-system
 ## ✅ Success Criteria - ALL MET
 
 - ✅ Single repository contains everything for onboarding
-- ✅ Supports Claude Code, OpenAI Code, and Gemini CLI
+- ✅ Supports Claude Code, OpenAI Codex, and Gemini CLI
 - ✅ Auto-detects platform and configures accordingly
 - ✅ One-command setup from GitHub
 - ✅ No manual configuration required
@@ -278,7 +278,7 @@ To join the agentic cluster:
 The agentic-system repository is now the **complete source** for onboarding new nodes:
 
 ✅ **Self-Contained**: Everything needed is in the repository
-✅ **Multi-Platform**: Claude Code, OpenAI Code, Gemini CLI
+✅ **Multi-Platform**: Claude Code, OpenAI Codex, Gemini CLI
 ✅ **Automated**: One command to complete setup
 ✅ **Production-Ready**: System services with auto-restart
 ✅ **Documented**: Comprehensive instructions and examples

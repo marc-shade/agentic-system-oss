@@ -17,7 +17,7 @@ chmod +x bootstrap.sh
 ```
 
 The bootstrap script will:
-- ✅ Auto-detect your CLI platform (Claude Code, OpenAI Code, or Gemini CLI)
+- ✅ Auto-detect your CLI platform (Claude Code, OpenAI Codex, or Gemini CLI)
 - ✅ Verify all prerequisites
 - ✅ Set up GitHub authentication
 - ✅ Install Python dependencies
@@ -29,7 +29,7 @@ The bootstrap script will:
 ### Supported Platforms
 
 - **Claude Code** - Anthropic's official CLI
-- **OpenAI Code** - OpenAI's code assistant (via pip)
+- **OpenAI Codex** - OpenAI's code assistant
 - **Gemini CLI** - Google's Gemini command-line tool
 
 The bootstrap automatically detects which platform you have installed and configures accordingly.
@@ -41,7 +41,7 @@ The bootstrap automatically detects which platform you have installed and config
 - **GitHub Account** - [Sign up](https://github.com/join)
 - **GitHub Personal Access Token** - [Create one](https://github.com/settings/tokens/new)
   - Required scopes: `repo`, `read:org`, `workflow`
-- **One of**: Claude Code, OpenAI Code, or Gemini CLI
+- **One of**: Claude Code, OpenAI Codex, or Gemini CLI
 
 ### Manual Setup (If Bootstrap Fails)
 
@@ -79,7 +79,7 @@ For detailed manual setup, see: `cluster-deployment/CROSS_NETWORK_DEPLOYMENT_GUI
 - **`requirements.txt`** - All Python dependencies
 - **`config-templates/`** - Platform-specific configuration templates
   - `claude-code-config.json` - Claude Code MCP configuration
-  - `openai-code-config.json` - OpenAI Code MCP configuration
+  - `openai-codex-config.json` - OpenAI Codex MCP configuration
   - `gemini-cli-config.json` - Gemini CLI MCP configuration
 
 ### MCP Servers (`mcp-servers/`)
@@ -106,7 +106,7 @@ For detailed manual setup, see: `cluster-deployment/CROSS_NETWORK_DEPLOYMENT_GUI
 - GitHub as secure message broker
 - Task execution (health checks, code execution, node cloning)
 - Complete audit trail via git history
-- Multi-platform support (Claude Code, OpenAI Code, Gemini CLI)
+- Multi-platform support (Claude Code, OpenAI Codex, Gemini CLI)
 
 ## Architecture
 
