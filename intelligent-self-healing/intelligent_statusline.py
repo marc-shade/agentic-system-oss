@@ -262,6 +262,9 @@ class IntelligentStatusLine:
         # Health monitoring integration (from autonomous health system)
         data['health_status'] = self._check_health_monitoring()
 
+        # Claude Code weekly usage tracking
+        data['claude_usage'] = self._check_claude_usage()
+
         return data
 
     def _check_recent_errors(self) -> int:
@@ -627,6 +630,69 @@ class IntelligentStatusLine:
         except (json.JSONDecodeError, KeyError, Exception):
             return default_status
 
+    def _check_claude_usage(self) -> Dict[str, Any]:
+        """
+        Check Claude Code weekly usage from Anthropic API
+        Shows usage percentage and reset time
+        """
+        try:
+            # Try to get usage from Anthropic API
+            import anthropic
+            from datetime import datetime, timezone
+
+            api_key = os.environ.get("ANTHROPIC_API_KEY")
+            if not api_key:
+                return {'available': False}
+
+            # Use Anthropic SDK to get organization usage
+            # Note: This requires the organization API endpoint
+            client = anthropic.Anthropic(api_key=api_key)
+
+            # Try to get usage data (this may require specific permissions)
+            # For now, we'll use a cached file approach if API doesn't support direct usage query
+            cache_file = Path.home() / ".claude" / ".usage_cache.json"
+
+            # Check if we have recent cached data (within last 5 minutes)
+            if cache_file.exists():
+                mod_time = cache_file.stat().st_mtime
+                age_seconds = datetime.now().timestamp() - mod_time
+
+                if age_seconds < 300:  # 5 minutes
+                    with open(cache_file, 'r') as f:
+                        usage_data = json.load(f)
+                        return usage_data
+
+            # If no cache or stale, try to fetch (requires running /usage command)
+            # For initial implementation, we'll use a placeholder
+            # The actual data will be populated by a hook when /usage is run
+
+            return {
+                'available': False,
+                'message': 'Run /usage to populate'
+            }
+
+        except Exception:
+            return {'available': False}
+
+    def _format_usage_bar(self, percentage: int, width: int = 10) -> str:
+        """
+        Create a compact progress bar for usage display
+
+        Args:
+            percentage: Usage percentage (0-100)
+            width: Width of progress bar in characters
+
+        Returns:
+            Compact progress bar string like "36% ██████░░░░"
+        """
+        filled = int((percentage / 100.0) * width)
+        empty = width - filled
+
+        # Use block characters for compact display
+        bar = "█" * filled + "░" * empty
+
+        return f"{percentage}% {bar}"
+
     def ai_prioritize_display(self, data: Dict[str, Any]) -> List[Tuple[str, str, int]]:
         """
         Use Claude AI to intelligently prioritize statusline content
@@ -654,15 +720,19 @@ Prioritization Rules:
 8. Background services running: Low priority (priority 3)
 
 MANDATORY ITEMS (include ALL of these):
-1. health_status: Show based on overall health:
+1. claude_usage: If available, show weekly usage with compact progress bar (e.g., "36% ██████░░░░")
+   - Priority 1 if usage > 80% (warning level)
+   - Priority 2 if usage 50-80% (normal)
+   - Priority 3 if usage < 50% (plenty remaining)
+2. health_status: Show based on overall health:
    - critical_failures: Show "🚨 {{check_name}} {{failures}}x fail" (priority 0)
    - degraded: Show "⚠️ {{count}} unhealthy" (priority 1)
    - healthy: Show "✅ All healthy" (priority 2)
-2. memory_status: ALWAYS show display field (e.g., "🧠🔄11" if active, "🧠💤11" if idle)
+3. memory_status: ALWAYS show display field (e.g., "🧠🔄11" if active, "🧠💤11" if idle)
    - Priority 1 if active (🔄) or recent_pull (📥)
    - Priority 2 if idle (💤)
-3. mcp_count: ALWAYS show (e.g., "🔌 7mcp") with priority 2
-3. agent_count with normal priority (2) if > 0 (e.g., "🤖 18agents")
+4. mcp_count: ALWAYS show (e.g., "🔌 7mcp") with priority 2
+5. agent_count with normal priority (2) if > 0 (e.g., "🤖 18agents")
 4. claude_running: show "💻 active" if true with priority 2 (NOT 🧠, that's memory!)
 5. temporal_running: show "⏰" if true with priority 3
 6. autokitteh_running: show "🐈" if true with priority 3
@@ -740,6 +810,38 @@ Priority meanings:
     def _rule_based_prioritize(self, data: Dict[str, Any]) -> List[Tuple[str, str, int]]:
         """Production rule-based prioritization (fallback when AI unavailable)"""
         items = []
+
+        # Claude Code weekly usage (show if available)
+        claude_usage = data.get('claude_usage', {})
+        if claude_usage.get('available'):
+            percentage = claude_usage.get('percentage', 0)
+            reset_date = claude_usage.get('reset_date', '')
+
+            # Create compact progress bar
+            usage_bar = self._format_usage_bar(percentage, width=10)
+
+            # Add reset info if available (compress the date)
+            if reset_date:
+                try:
+                    # Parse reset date and format compactly (e.g., "11/19 3pm")
+                    from datetime import datetime
+                    reset_dt = datetime.fromisoformat(reset_date.replace('Z', '+00:00'))
+                    reset_compact = reset_dt.strftime("%m/%d %I%p").lower().replace(' 0', ' ')
+                    usage_display = f"{usage_bar} rst {reset_compact}"
+                except Exception:
+                    usage_display = usage_bar
+            else:
+                usage_display = usage_bar
+
+            # Priority based on usage level
+            if percentage >= 80:
+                priority = 1  # Warning - high usage
+            elif percentage >= 50:
+                priority = 2  # Normal
+            else:
+                priority = 3  # Plenty remaining
+
+            items.append(('💳', usage_display, priority))
 
         # CRITICAL: Health monitoring system (highest priority)
         health_status = data.get('health_status', {})
