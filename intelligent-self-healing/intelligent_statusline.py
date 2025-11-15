@@ -756,19 +756,13 @@ Priority meanings:
         # Normal: MCP configuration (ALWAYS show running/total)
         mcp_count = data.get('mcp_count', 0)
         mcp_running = data.get('mcp_running', 0)
-        expected_mcp_min = 6
-        expected_mcp_max = 10
 
-        # Format: "running/total mcp" (e.g., "7/12 mcp")
+        # Format: "running/total mcp" (e.g., "7/12mcp")
         mcp_display = f"{mcp_running}/{mcp_count}mcp"
 
-        # Warning if too few/many configured OR if running count is significantly low
-        if mcp_count < expected_mcp_min:
-            items.append(('⚠️', f"{mcp_display} low!", 1))  # Warning - too few configured
-        elif mcp_count > expected_mcp_max:
-            items.append(('⚠️', f"{mcp_display} high!", 1))  # Warning - too many configured
-        elif mcp_running < (mcp_count - 3):  # More than 3 servers not running
-            items.append(('⚠️', f"{mcp_display} degraded!", 1))  # Warning - many servers down
+        # Show warning icon if significantly degraded (more than 3 servers down)
+        if mcp_running < (mcp_count - 3):
+            items.append(('⚠️', mcp_display, 1))  # Warning icon for degraded state
         else:
             items.append(('🔌', mcp_display, 2))  # Normal - show running/total
 
