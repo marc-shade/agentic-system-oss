@@ -14,38 +14,87 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-# Detect CLI platform
-detect_platform() {
-    echo "Detecting CLI platform..."
+# Check all required platforms
+check_all_platforms() {
+    echo "Checking for all required CLI platforms..."
+    echo ""
 
+    PLATFORMS_FOUND=0
+    PLATFORMS_MISSING=()
+
+    # Check Claude Code (primary orchestrator)
     if command -v claude-code &> /dev/null; then
         echo -e "${GREEN}✓ Claude Code detected${NC}"
-        export CLI_PLATFORM="claude-code"
-        export CLI_CONFIG="$HOME/.claude.json"
-        return 0
+        export HAS_CLAUDE_CODE=true
+        PLATFORMS_FOUND=$((PLATFORMS_FOUND + 1))
+    else
+        echo -e "${RED}✗ Claude Code not found${NC}"
+        export HAS_CLAUDE_CODE=false
+        PLATFORMS_MISSING+=("Claude Code")
     fi
 
+    # Check Ollama
+    if command -v ollama &> /dev/null; then
+        echo -e "${GREEN}✓ Ollama detected${NC}"
+        export HAS_OLLAMA=true
+        PLATFORMS_FOUND=$((PLATFORMS_FOUND + 1))
+    else
+        echo -e "${YELLOW}⚠ Ollama not found${NC}"
+        export HAS_OLLAMA=false
+        PLATFORMS_MISSING+=("Ollama")
+    fi
+
+    # Check OpenAI Codex
     if command -v codex &> /dev/null; then
         echo -e "${GREEN}✓ OpenAI Codex detected${NC}"
-        export CLI_PLATFORM="openai-codex"
-        export CLI_CONFIG="$HOME/.openai.json"
-        return 0
+        export HAS_CODEX=true
+        PLATFORMS_FOUND=$((PLATFORMS_FOUND + 1))
+    else
+        echo -e "${YELLOW}⚠ OpenAI Codex not found${NC}"
+        export HAS_CODEX=false
+        PLATFORMS_MISSING+=("OpenAI Codex")
     fi
 
+    # Check Gemini CLI
     if command -v gemini &> /dev/null; then
         echo -e "${GREEN}✓ Gemini CLI detected${NC}"
-        export CLI_PLATFORM="gemini-cli"
-        export CLI_CONFIG="$HOME/.gemini.json"
-        return 0
+        export HAS_GEMINI=true
+        PLATFORMS_FOUND=$((PLATFORMS_FOUND + 1))
+    else
+        echo -e "${YELLOW}⚠ Gemini CLI not found${NC}"
+        export HAS_GEMINI=false
+        PLATFORMS_MISSING+=("Gemini CLI")
     fi
 
-    echo -e "${RED}✗ No supported CLI platform detected${NC}"
     echo ""
-    echo "Supported platforms:"
-    echo "  - Claude Code: https://code.claude.com"
-    echo "  - OpenAI Codex: https://github.com/openai/openai-codex"
-    echo "  - Gemini CLI: (install via npm)"
-    exit 1
+    echo "Platforms found: $PLATFORMS_FOUND/4"
+
+    if [ "$HAS_CLAUDE_CODE" = false ]; then
+        echo ""
+        echo -e "${RED}✗ Claude Code is required as the primary orchestrator${NC}"
+        echo "Install from: https://code.claude.com"
+        exit 1
+    fi
+
+    if [ ${#PLATFORMS_MISSING[@]} -gt 0 ]; then
+        echo ""
+        echo -e "${YELLOW}⚠ Missing platforms detected${NC}"
+        echo "The following platforms are recommended but not required:"
+        for platform in "${PLATFORMS_MISSING[@]}"; do
+            echo "  - $platform"
+        done
+        echo ""
+        echo "Installation instructions:"
+        echo "  - Ollama: https://ollama.ai/download"
+        echo "  - OpenAI Codex: https://github.com/openai/openai-codex"
+        echo "  - Gemini CLI: npm install -g @google/generative-ai-cli"
+        echo ""
+        read -p "Continue with partial setup? (y/n): " -n 1 -r
+        echo
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            exit 1
+        fi
+    fi
 }
 
 # Check prerequisites
@@ -82,14 +131,24 @@ check_prerequisites() {
     fi
 }
 
-# Get GitHub credentials
-setup_github_auth() {
+# Setup authentication for all platforms
+setup_all_auth() {
     echo ""
-    echo "GitHub Authentication Setup"
-    echo "============================="
+    echo "Multi-Platform Authentication Setup"
+    echo "====================================="
 
+    # Determine shell profile
+    if [[ "$SHELL" == *"zsh"* ]]; then
+        PROFILE="$HOME/.zshrc"
+    else
+        PROFILE="$HOME/.bashrc"
+    fi
+
+    # 1. GitHub Authentication (required for cluster communication)
+    echo ""
+    echo "1. GitHub Authentication"
+    echo "------------------------"
     if [ -z "$GITHUB_PERSONAL_ACCESS_TOKEN" ]; then
-        echo ""
         echo "You need a GitHub Personal Access Token with these scopes:"
         echo "  - repo (full control)"
         echo "  - read:org"
@@ -100,23 +159,128 @@ setup_github_auth() {
         read -p "Enter your GitHub Personal Access Token: " -s GITHUB_PAT
         echo ""
         export GITHUB_PERSONAL_ACCESS_TOKEN="$GITHUB_PAT"
+
+        if ! grep -q "GITHUB_PERSONAL_ACCESS_TOKEN" "$PROFILE" 2>/dev/null; then
+            echo "" >> "$PROFILE"
+            echo "# Agentic System - GitHub Authentication" >> "$PROFILE"
+            echo "export GITHUB_PERSONAL_ACCESS_TOKEN=\"$GITHUB_PERSONAL_ACCESS_TOKEN\"" >> "$PROFILE"
+        fi
+        echo -e "${GREEN}✓ GitHub authentication configured${NC}"
     else
         echo -e "${GREEN}✓ GITHUB_PERSONAL_ACCESS_TOKEN already set${NC}"
     fi
 
-    # Save to shell profile for persistence
-    if [[ "$SHELL" == *"zsh"* ]]; then
-        PROFILE="$HOME/.zshrc"
-    else
-        PROFILE="$HOME/.bashrc"
+    # 2. Ollama Authentication (optional, runs locally without auth by default)
+    if [ "$HAS_OLLAMA" = true ]; then
+        echo ""
+        echo "2. Ollama Configuration"
+        echo "-----------------------"
+        echo -e "${GREEN}✓ Ollama runs locally without authentication${NC}"
+        echo "  Host: ${OLLAMA_HOST:-http://localhost:11434}"
+
+        # Optionally set OLLAMA_HOST if user wants to change it
+        if [ -z "$OLLAMA_HOST" ]; then
+            export OLLAMA_HOST="http://localhost:11434"
+            if ! grep -q "OLLAMA_HOST" "$PROFILE" 2>/dev/null; then
+                echo "export OLLAMA_HOST=\"http://localhost:11434\"" >> "$PROFILE"
+            fi
+        fi
     fi
 
-    if ! grep -q "GITHUB_PERSONAL_ACCESS_TOKEN" "$PROFILE" 2>/dev/null; then
-        echo "" >> "$PROFILE"
-        echo "# Agentic System - GitHub Authentication" >> "$PROFILE"
-        echo "export GITHUB_PERSONAL_ACCESS_TOKEN=\"$GITHUB_PERSONAL_ACCESS_TOKEN\"" >> "$PROFILE"
-        echo -e "${GREEN}✓ Added to $PROFILE${NC}"
+    # 3. OpenAI Codex Authentication
+    if [ "$HAS_CODEX" = true ]; then
+        echo ""
+        echo "3. OpenAI Codex Authentication"
+        echo "-------------------------------"
+
+        # Check if already authenticated
+        if codex login status &> /dev/null; then
+            echo -e "${GREEN}✓ OpenAI Codex already authenticated${NC}"
+        else
+            echo "Choose authentication method:"
+            echo "  1) ChatGPT OAuth (recommended - auto-configured)"
+            echo "  2) API Key (manual setup)"
+            read -p "Select method (1-2): " -n 1 -r CODEX_AUTH_METHOD
+            echo ""
+
+            if [[ $CODEX_AUTH_METHOD == "1" ]]; then
+                echo "Opening browser for ChatGPT OAuth..."
+                codex login
+                echo -e "${GREEN}✓ OpenAI Codex authenticated via OAuth${NC}"
+            else
+                echo ""
+                echo "Get your API key from: https://platform.openai.com/api-keys"
+                read -p "Enter your OpenAI API key: " -s OPENAI_KEY
+                echo ""
+                export OPENAI_API_KEY="$OPENAI_KEY"
+                codex login --api-key "$OPENAI_KEY"
+
+                if ! grep -q "OPENAI_API_KEY" "$PROFILE" 2>/dev/null; then
+                    echo "export OPENAI_API_KEY=\"$OPENAI_API_KEY\"" >> "$PROFILE"
+                fi
+                echo -e "${GREEN}✓ OpenAI Codex authenticated via API key${NC}"
+            fi
+        fi
     fi
+
+    # 4. Gemini CLI Authentication
+    if [ "$HAS_GEMINI" = true ]; then
+        echo ""
+        echo "4. Gemini CLI Authentication"
+        echo "-----------------------------"
+
+        echo "Choose authentication method:"
+        echo "  1) Google Cloud ADC (recommended for Google Cloud users)"
+        echo "  2) API Key (simpler, for direct Gemini API access)"
+        read -p "Select method (1-2): " -n 1 -r GEMINI_AUTH_METHOD
+        echo ""
+
+        if [[ $GEMINI_AUTH_METHOD == "1" ]]; then
+            echo "Setting up Application Default Credentials..."
+
+            if command -v gcloud &> /dev/null; then
+                gcloud auth application-default login
+
+                read -p "Enter your Google Cloud Project ID: " GCP_PROJECT
+                read -p "Enter your Google Cloud Location [us-central1]: " GCP_LOCATION
+                GCP_LOCATION=${GCP_LOCATION:-us-central1}
+
+                export GOOGLE_CLOUD_PROJECT="$GCP_PROJECT"
+                export GOOGLE_CLOUD_LOCATION="$GCP_LOCATION"
+
+                if ! grep -q "GOOGLE_CLOUD_PROJECT" "$PROFILE" 2>/dev/null; then
+                    echo "export GOOGLE_CLOUD_PROJECT=\"$GCP_PROJECT\"" >> "$PROFILE"
+                    echo "export GOOGLE_CLOUD_LOCATION=\"$GCP_LOCATION\"" >> "$PROFILE"
+                fi
+                echo -e "${GREEN}✓ Gemini CLI authenticated via ADC${NC}"
+            else
+                echo -e "${YELLOW}⚠ gcloud CLI not found. Install from: https://cloud.google.com/sdk/docs/install${NC}"
+                echo "Falling back to API key method..."
+                GEMINI_AUTH_METHOD="2"
+            fi
+        fi
+
+        if [[ $GEMINI_AUTH_METHOD == "2" ]]; then
+            echo ""
+            echo "Get your API key from: https://aistudio.google.com/app/apikey"
+            read -p "Enter your Gemini API key: " -s GEMINI_KEY
+            echo ""
+            export GEMINI_API_KEY="$GEMINI_KEY"
+
+            # Create .gemini/.env file for persistent config
+            mkdir -p "$HOME/.gemini"
+            echo "GEMINI_API_KEY=$GEMINI_KEY" > "$HOME/.gemini/.env"
+
+            if ! grep -q "GEMINI_API_KEY" "$PROFILE" 2>/dev/null; then
+                echo "export GEMINI_API_KEY=\"$GEMINI_API_KEY\"" >> "$PROFILE"
+            fi
+            echo -e "${GREEN}✓ Gemini CLI authenticated via API key${NC}"
+        fi
+    fi
+
+    echo ""
+    echo -e "${GREEN}✓ All authentication configured${NC}"
+    echo "Environment variables saved to: $PROFILE"
 }
 
 # Get node configuration

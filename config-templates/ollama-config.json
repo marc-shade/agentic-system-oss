@@ -1,0 +1,32 @@
+{
+  "host": "{{OLLAMA_HOST}}",
+  "models": {
+    "default": "llama2",
+    "code": "codellama",
+    "vision": "llava"
+  },
+  "mcp_integration": {
+    "enabled": true,
+    "servers": {
+      "enhanced-memory": {
+        "command": "python3",
+        "args": [
+          "{{INSTALL_DIR}}/mcp-servers/enhanced-memory-mcp/server.py"
+        ],
+        "env": {
+          "NODE_ID": "{{NODE_ID}}"
+        }
+      },
+      "agent-runtime": {
+        "command": "python3",
+        "args": [
+          "{{INSTALL_DIR}}/mcp-servers/agent-runtime-mcp/server.py"
+        ],
+        "env": {
+          "NODE_ID": "{{NODE_ID}}"
+        }
+      }
+    }
+  },
+  "comment": "Note: MCP integration with Ollama may require additional configuration or custom proxy."
+}

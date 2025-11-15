@@ -2,68 +2,99 @@
 
 **24/7 Autonomous Agentic System - Complete Self-Onboarding for Multiple Platforms**
 
-## 🚀 Automated Bootstrap (Recommended)
+## 🚀 Claude Code Orchestrated Onboarding (Recommended)
 
-This repository contains **everything** needed to join the agentic cluster network. The bootstrap script automatically detects your CLI platform and sets up your complete node environment.
+This repository contains **everything** needed to join the agentic cluster network. The onboarding process is orchestrated by Claude Code, which will guide you through authentication and setup via voice interaction.
 
-### One-Command Setup
+### AI-Assisted Setup (Claude Code Required)
 
 ```bash
-# Clone and bootstrap in one go
+# 1. Clone the repository
 git clone https://github.com/marc-shade/agentic-system.git
 cd agentic-system
-chmod +x bootstrap.sh
-./bootstrap.sh
+
+# 2. Start Claude Code onboarding (if Claude Code is installed)
+chmod +x onboard-with-claude.sh
+./onboard-with-claude.sh
 ```
 
-The bootstrap script will:
-- ✅ Auto-detect your CLI platform (Claude Code, OpenAI Codex, or Gemini CLI)
-- ✅ Verify all prerequisites
-- ✅ Set up GitHub authentication
-- ✅ Install Python dependencies
-- ✅ Install and configure MCP servers
-- ✅ Configure platform-specific settings
-- ✅ Install and start the cluster daemon
-- ✅ Create system services for auto-start
+**Claude Code will**:
+- 🎤 Communicate with you via voice
+- 🔍 Check which platforms you have installed
+- 🤖 **Automatically install** missing infrastructure (Ollama, Temporal, AutoKitteh, Qdrant)
+- 📋 Guide you through manual installations if needed (OpenAI Codex, Gemini CLI)
+- 🔐 Walk you through authentication for each platform
+- ⚙️ Configure MCP servers across all platforms automatically
+- ✅ Verify everything is working
 
-### Supported Platforms
+**You will**:
+- Follow Claude Code's voice instructions
+- Install any missing platforms when prompted
+- Complete OAuth flows or provide API keys
+- Confirm when steps are done
 
-- **Claude Code** - Anthropic's official CLI
-- **OpenAI Codex** - OpenAI's code assistant
-- **Gemini CLI** - Google's Gemini command-line tool
+### System Requirements
 
-The bootstrap automatically detects which platform you have installed and configures accordingly.
+Your system needs multiple components. Claude Code will **automatically install** most of them:
+
+**AI Platforms** (Primary orchestrators):
+- ✅ **Claude Code** - Primary orchestrator (must be installed first)
+- ✅ **Ollama** - Local LLM server (auto-installed)
+- ⚠️ **OpenAI Codex** - OpenAI's code assistant (optional, manual)
+- ⚠️ **Gemini CLI** - Google's AI (auto-installed if npm available)
+
+**Infrastructure** (Auto-installed by Claude Code):
+- ✅ **Qdrant** - Vector database for memory
+- ✅ **Temporal** - Workflow engine
+- ✅ **AutoKitteh** - Event-driven workflows
+- ✅ **Monitoring** - Prometheus, Loki, Grafana (optional)
+
+**📖 Complete Requirements**: See `SYSTEM_REQUIREMENTS.md` for detailed component list and installation methods
 
 ### Prerequisites
 
+**Required**:
 - **Python 3.10+** - [Download](https://www.python.org/)
 - **Git** - [Download](https://git-scm.com/)
 - **GitHub Account** - [Sign up](https://github.com/join)
 - **GitHub Personal Access Token** - [Create one](https://github.com/settings/tokens/new)
-  - Required scopes: `repo`, `read:org`, `workflow`
-- **One of**: Claude Code, OpenAI Codex, or Gemini CLI
+  - Scopes: `repo`, `read:org`, `workflow`
 
-### Manual Setup (If Bootstrap Fails)
+**AI Platforms** (all required):
+- **Claude Code** - [Download](https://code.claude.com)
+- **Ollama** - [Download](https://ollama.ai/download)
+- **OpenAI Codex** - [Installation Guide](https://developers.openai.com/codex/cli/)
+- **Gemini CLI** - `npm install -g @google/generative-ai-cli`
 
-If the automatic bootstrap doesn't work on your system:
+**Authentication Credentials**:
+- OpenAI API key (for Codex) - [Get one](https://platform.openai.com/api-keys)
+- Gemini API key (for Gemini CLI) - [Get one](https://aistudio.google.com/app/apikey)
+- OR Google Cloud credentials (for Gemini with ADC)
 
-1. **Clone repository**:
+### Manual Setup (Without Claude Code)
+
+If you don't have Claude Code or prefer manual setup:
+
+1. **Check platform status**:
 ```bash
-git clone https://github.com/marc-shade/agentic-system.git
-cd agentic-system
+./check-platforms.sh
 ```
 
-2. **Install Python dependencies**:
+2. **Install missing platforms** (follow instructions from check script)
+
+3. **Run traditional bootstrap**:
 ```bash
-pip3 install -r requirements.txt
+./bootstrap.sh  # Interactive authentication setup
 ```
 
-3. **Configure MCP servers**:
-- Choose template from `config-templates/` for your platform
-- Copy to appropriate location (`~/.claude.json`, `~/.openai.json`, etc.)
-- Replace placeholders with your actual values
+4. **Configure MCP servers**:
+```bash
+export NODE_ID="your-node-id"
+export CLUSTER_REPO="marc-shade/agentic-cluster-comms"
+./configure-all-mcps.sh
+```
 
-4. **Start daemon**:
+5. **Start cluster daemon**:
 ```bash
 cd cluster-deployment
 export GITHUB_PERSONAL_ACCESS_TOKEN="your_token_here"
@@ -71,6 +102,10 @@ export GITHUB_PERSONAL_ACCESS_TOKEN="your_token_here"
 ```
 
 For detailed manual setup, see: `cluster-deployment/CROSS_NETWORK_DEPLOYMENT_GUIDE.md`
+
+### For Claude Code (Onboarding Guide)
+
+If you are Claude Code orchestrating an onboarding, see: `claude-onboarding-guide.md`
 
 ## What's Included
 
