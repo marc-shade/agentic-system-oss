@@ -1,0 +1,45 @@
+{
+  "mcpServers": {
+    "enhanced-memory": {
+      "command": "python3",
+      "args": [
+        "{{INSTALL_DIR}}/mcp-servers/enhanced-memory-mcp/server.py"
+      ],
+      "env": {
+        "NODE_ID": "{{NODE_ID}}"
+      },
+      "disabled": false
+    },
+    "agent-runtime": {
+      "command": "python3",
+      "args": [
+        "{{INSTALL_DIR}}/mcp-servers/agent-runtime-mcp/server.py"
+      ],
+      "env": {
+        "NODE_ID": "{{NODE_ID}}"
+      },
+      "disabled": false
+    },
+    "cluster-communication": {
+      "command": "python3",
+      "args": [
+        "{{INSTALL_DIR}}/cluster-deployment/github_node_daemon.py",
+        "--node-id",
+        "{{NODE_ID}}",
+        "--repo",
+        "{{CLUSTER_REPO}}",
+        "--poll-interval",
+        "{{POLL_INTERVAL}}"
+      ],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "{{GITHUB_TOKEN}}"
+      },
+      "disabled": false
+    }
+  },
+  "globalShortcut": "CommandOrControl+Shift+.",
+  "maxTokens": 200000,
+  "parallelToolCalls": true,
+  "cachingStrategy": "aggressive",
+  "loggingLevel": "info"
+}
