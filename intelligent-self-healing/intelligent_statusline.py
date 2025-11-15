@@ -259,6 +259,9 @@ class IntelligentStatusLine:
         # Enhanced memory system activity
         data['memory_status'] = self._check_memory_activity()
 
+        # Health monitoring integration (from autonomous health system)
+        data['health_status'] = self._check_health_monitoring()
+
         return data
 
     def _check_recent_errors(self) -> int:
@@ -552,6 +555,78 @@ class IntelligentStatusLine:
         except Exception:
             return {"status": "error", "display": "🧠❌"}
 
+    def _check_health_monitoring(self) -> Dict[str, Any]:
+        """
+        Check autonomous health monitoring system status
+        Reads from health_history.json written by self-healing agents
+        """
+        health_file = Path('/Volumes/SSDRAID0/agentic-system/logs/health_history.json')
+
+        default_status = {
+            'overall': 'unknown',
+            'unhealthy_count': 0,
+            'critical_failures': [],
+            'checks': {}
+        }
+
+        if not health_file.exists():
+            return default_status
+
+        try:
+            with open(health_file, 'r') as f:
+                health_history = json.load(f)
+
+            if not health_history:
+                return default_status
+
+            # Get latest checks (last 20 entries)
+            recent_checks = health_history[-20:]
+
+            # Group by check type to get latest status for each
+            latest_by_type = {}
+            for check in recent_checks:
+                check_name = check.get('check')
+                if check_name:
+                    latest_by_type[check_name] = check
+
+            # Analyze health status
+            unhealthy = []
+            critical = []
+
+            for check_name, check_data in latest_by_type.items():
+                status = check_data.get('status', 'unknown')
+                consecutive_failures = check_data.get('consecutive_failures', 0)
+
+                if status != 'healthy':
+                    unhealthy.append(check_name)
+
+                    # Critical if 3+ consecutive failures
+                    if consecutive_failures >= 3:
+                        critical.append({
+                            'check': check_name,
+                            'failures': consecutive_failures,
+                            'message': check_data.get('message', 'Unknown issue')
+                        })
+
+            # Determine overall health
+            if critical:
+                overall = 'critical'
+            elif unhealthy:
+                overall = 'degraded'
+            else:
+                overall = 'healthy'
+
+            return {
+                'overall': overall,
+                'unhealthy_count': len(unhealthy),
+                'critical_failures': critical,
+                'checks': latest_by_type,
+                'unhealthy_services': unhealthy
+            }
+
+        except (json.JSONDecodeError, KeyError, Exception):
+            return default_status
+
     def ai_prioritize_display(self, data: Dict[str, Any]) -> List[Tuple[str, str, int]]:
         """
         Use Claude AI to intelligently prioritize statusline content
@@ -569,18 +644,24 @@ System Data:
 {json.dumps(data, indent=2)}
 
 Prioritization Rules:
-1. Errors/critical issues: Always show first (priority 0)
-2. Resource warnings (memory, storage): High priority (priority 1)
-3. Active work (training, workflows, active_skill): High priority (priority 1)
-4. Service status changes: Important if down (priority 1)
-5. Normal operations (agents, Claude with hooks, MCP): Medium priority (priority 2)
-6. Background services running: Low priority (priority 3)
+1. CRITICAL HEALTH FAILURES: health_status.critical_failures - Always show first (priority 0)
+2. Errors/critical issues: Always show first (priority 0)
+3. DEGRADED HEALTH: health_status.overall == 'degraded' - High priority (priority 1)
+4. Resource warnings (memory, storage): High priority (priority 1)
+5. Active work (training, workflows, active_skill): High priority (priority 1)
+6. Service status changes: Important if down (priority 1)
+7. Normal operations (agents, Claude with hooks, MCP): Medium priority (priority 2)
+8. Background services running: Low priority (priority 3)
 
 MANDATORY ITEMS (include ALL of these):
-1. memory_status: ALWAYS show display field (e.g., "🧠🔄11" if active, "🧠💤11" if idle)
+1. health_status: Show based on overall health:
+   - critical_failures: Show "🚨 {{check_name}} {{failures}}x fail" (priority 0)
+   - degraded: Show "⚠️ {{count}} unhealthy" (priority 1)
+   - healthy: Show "✅ All healthy" (priority 2)
+2. memory_status: ALWAYS show display field (e.g., "🧠🔄11" if active, "🧠💤11" if idle)
    - Priority 1 if active (🔄) or recent_pull (📥)
    - Priority 2 if idle (💤)
-2. mcp_count: ALWAYS show (e.g., "🔌 7mcp") with priority 2
+3. mcp_count: ALWAYS show (e.g., "🔌 7mcp") with priority 2
 3. agent_count with normal priority (2) if > 0 (e.g., "🤖 18agents")
 4. claude_running: show "💻 active" if true with priority 2 (NOT 🧠, that's memory!)
 5. temporal_running: show "⏰" if true with priority 3
@@ -659,6 +740,27 @@ Priority meanings:
     def _rule_based_prioritize(self, data: Dict[str, Any]) -> List[Tuple[str, str, int]]:
         """Production rule-based prioritization (fallback when AI unavailable)"""
         items = []
+
+        # CRITICAL: Health monitoring system (highest priority)
+        health_status = data.get('health_status', {})
+        overall_health = health_status.get('overall', 'unknown')
+        critical_failures = health_status.get('critical_failures', [])
+        unhealthy_count = health_status.get('unhealthy_count', 0)
+
+        # Show critical failures first
+        if critical_failures:
+            for failure in critical_failures[:2]:  # Show max 2 critical failures
+                check_name = failure.get('check', 'Unknown')
+                failures = failure.get('failures', 0)
+                items.append(('🚨', f"{check_name} {failures}x fail", 0))
+        elif overall_health == 'degraded' and unhealthy_count > 0:
+            # Show degraded status
+            items.append(('⚠️', f"{unhealthy_count} unhealthy", 1))
+        elif overall_health == 'healthy':
+            # Only show "all healthy" if there were recent checks
+            checks = health_status.get('checks', {})
+            if checks:
+                items.append(('✅', 'All healthy', 2))
 
         # Critical: Dynamic self-healing status
         self_healing = data.get('self_healing', {})
