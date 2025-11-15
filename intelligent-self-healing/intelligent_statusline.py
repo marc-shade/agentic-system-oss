@@ -87,19 +87,26 @@ class IntelligentStatusLine:
             else:
                 data['claude_sessions'] = 0
 
-            # Check for Claude process using ps (more reliable than pgrep)
-            result = subprocess.run(
-                ['ps', '-ax'],
-                capture_output=True,
-                text=True,
-                timeout=2
-            )
-            # Look for process ending with " claude" (exact match to avoid false positives)
-            claude_running = any(
-                line.strip().endswith(' claude')
-                for line in result.stdout.split('\n')
-            )
-            data['claude_running'] = claude_running
+            # Check for Claude Code activity via session file (more reliable)
+            session_file = Path('/tmp/claude_session_start.json')
+            if session_file.exists():
+                # Check if session file is recent (within last 24 hours)
+                mod_time = session_file.stat().st_mtime
+                age = datetime.now().timestamp() - mod_time
+                data['claude_running'] = age < 86400  # 24 hours
+            else:
+                # Fallback: check for .claude directory processes
+                result = subprocess.run(
+                    ['ps', '-ax'],
+                    capture_output=True,
+                    text=True,
+                    timeout=2
+                )
+                claude_running = any(
+                    '.claude' in line
+                    for line in result.stdout.split('\n')
+                )
+                data['claude_running'] = claude_running
         except Exception:
             data['claude_sessions'] = 0
             data['claude_running'] = False
