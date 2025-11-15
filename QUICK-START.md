@@ -140,10 +140,13 @@ Based on what you already have, the system may install:
 - Temporal (workflow engine) - if not running
 - AutoKitteh (event orchestration) - if not running
 
-**MCP Servers** (merged with existing):
-- enhanced-memory-mcp (4-tier memory)
-- agent-runtime-mcp (persistent tasks)
-- ember-mcp (quality enforcement)
+**Claude Code Configuration** (merged with existing):
+- Intelligent statusline (real-time system status)
+- MCP servers:
+  - enhanced-memory-mcp (4-tier memory)
+  - agent-runtime-mcp (persistent tasks)
+  - ember-mcp (quality enforcement)
+- Hooks, skills, and agents
 
 **Monitoring** (optional):
 - Prometheus, Loki, Grafana

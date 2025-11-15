@@ -325,7 +325,65 @@ speak "MCP configuration complete. All your AI platforms can now access shared m
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
-echo "🎯 STEP 6: Start Cluster Daemon"
+echo "🎯 STEP 6: Statusline Configuration"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
+
+speak "Now I'll set up the intelligent statusline so you can see system status in real-time."
+
+# Copy statusline files if they don't exist
+if [ ! -f "$HOME/.claude/agentic-statusline.sh" ]; then
+    echo "📋 Installing statusline files..."
+
+    # Copy main statusline launcher
+    cp "$REPO_DIR/config-templates/agentic-statusline.sh" "$HOME/.claude/" 2>/dev/null || cat > "$HOME/.claude/agentic-statusline.sh" <<'STATUSLINE_EOF'
+#!/bin/bash
+# Intelligent Agentic System Statusline
+export LANG=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
+export LC_CTYPE=en_US.UTF-8
+
+INTELLIGENT_STATUSLINE="$REPO_DIR/intelligent-self-healing/intelligent_statusline.py"
+
+if [ -f "$INTELLIGENT_STATUSLINE" ] && [ -x "$INTELLIGENT_STATUSLINE" ]; then
+    OUTPUT=$(timeout 3 python3 "$INTELLIGENT_STATUSLINE" 2>/dev/null)
+    EXIT_CODE=$?
+
+    if [ $EXIT_CODE -eq 0 ] && [ -n "$OUTPUT" ]; then
+        echo "$OUTPUT"
+        exit 0
+    fi
+fi
+
+# Fallback statusline
+AGENT_COUNT=$(ps aux | grep -i 'python.*agent' | grep -v grep | wc -l | xargs)
+CLAUDE_STATUS="idle"
+if pgrep -f "claude-code" > /dev/null 2>&1; then
+    CLAUDE_STATUS="running"
+fi
+MCP_COUNT=$(grep -c '"command":' ~/.claude.json 2>/dev/null || echo 0)
+
+echo "🤖 ${AGENT_COUNT}agents | 🧠 ${CLAUDE_STATUS} | 🔌 ${MCP_COUNT}mcp"
+STATUSLINE_EOF
+
+    chmod +x "$HOME/.claude/agentic-statusline.sh"
+
+    # Update path in statusline to use actual repo location
+    sed -i '' "s|REPO_DIR=.*|REPO_DIR=\"$REPO_DIR\"|" "$HOME/.claude/agentic-statusline.sh"
+
+    echo "  ✅ Statusline launcher installed"
+else
+    echo "✅ Statusline launcher already exists (preserving your version)"
+fi
+
+# The statusline configuration is added by merge-mcp-config.py automatically
+
+speak "Statusline configured. You'll now see real-time system status in your Claude Code interface."
+
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
+echo "🎯 STEP 7: Start Cluster Daemon"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 echo "Claude Code should now:"
@@ -342,7 +400,7 @@ echo "   speak \"Cluster daemon is running. Your node can now communicate with o
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
-echo "🎯 STEP 7: Final Verification"
+echo "🎯 STEP 8: Final Verification"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 echo "Claude Code should now:"

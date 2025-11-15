@@ -1,0 +1,17 @@
+{
+	"ulid": "01KA3SMJNW4S7726AN5TWEWP0R",
+	"minTime": 1763200812203,
+	"maxTime": 1763208000000,
+	"stats": {
+		"numSamples": 2400,
+		"numSeries": 5,
+		"numChunks": 21
+	},
+	"compaction": {
+		"level": 1,
+		"sources": [
+			"01KA3SMJNW4S7726AN5TWEWP0R"
+		]
+	},
+	"version": 1
+}

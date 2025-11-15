@@ -146,6 +146,17 @@ def main():
         for server in conflicts_project:
             print(f"     - {server}")
 
+    # Add statusline configuration if not present
+    if "statusLine" not in merged_user:
+        print()
+        print("📊 Adding intelligent statusline configuration...")
+        merged_user["statusLine"] = {
+            "type": "command",
+            "command": str(Path.home() / ".claude" / "agentic-statusline.sh"),
+            "padding": 0
+        }
+        print("  ✅ Statusline configured")
+
     # Write merged configurations
     print()
     print("💾 Saving merged configurations...")
