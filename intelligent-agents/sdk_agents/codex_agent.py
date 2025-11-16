@@ -3,6 +3,9 @@
 Codex Agent - OpenAI Codex-powered intelligent agent
 Uses local Codex binary for AI-powered decision making
 
+Integrated with Comprehensive Cluster State for full cluster awareness.
+Can query all nodes, services, software, network topology in real-time.
+
 Similar to OllamaAgent but uses Codex instead of Ollama
 Provides multi-provider support for intelligent agents
 """
@@ -10,10 +13,21 @@ Provides multi-provider support for intelligent agents
 import json
 import logging
 import subprocess
+import sys
 from typing import Dict, List, Any, Optional
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
+
+# Add cluster-deployment to path for comprehensive state access
+sys.path.insert(0, str(Path(__file__).parent.parent.parent / "cluster-deployment"))
+
+try:
+    from comprehensive_cluster_state import ComprehensiveClusterState, get_complete_state
+    CLUSTER_STATE_AVAILABLE = True
+except ImportError:
+    logger.warning("Comprehensive cluster state not available")
+    CLUSTER_STATE_AVAILABLE = False
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -48,23 +62,34 @@ class CodexAgent:
         self,
         purpose: AgentPurpose,
         tools: List[Dict[str, Any]],
-        codex_bin: str = None
+        codex_bin: str = None,
+        use_cluster_state: bool = True
     ):
         """
         Initialize Codex-powered agent
-        
+
         Args:
             purpose: Agent's primary purpose
             tools: Available tools the agent can use
             codex_bin: Path to codex-exec binary
+            use_cluster_state: Enable comprehensive cluster state access
         """
         self.purpose = purpose
         self.tools = tools
         self.codex_bin = codex_bin or self._find_codex_binary()
-        
+
+        # Initialize cluster state access
+        self.cluster_state = None
+        if use_cluster_state and CLUSTER_STATE_AVAILABLE:
+            try:
+                self.cluster_state = ComprehensiveClusterState()
+                logger.info("Cluster state access enabled")
+            except Exception as e:
+                logger.warning(f"Could not initialize cluster state: {e}")
+
         if not self.codex_bin:
             raise RuntimeError("Codex binary not found. Install from https://github.com/openai/codex")
-        
+
         logger.info(f"Initialized {purpose.value} agent with Codex at {self.codex_bin}")
     
     def _find_codex_binary(self) -> Optional[str]:
@@ -289,6 +314,109 @@ Think step by step:
                 "action": decision.action,
                 "error": str(e)
             }
+
+    # === Cluster State Query Methods ===
+
+    def get_cluster_state(self) -> Dict[str, Any]:
+        """Get complete cluster state"""
+        if not self.cluster_state:
+            return {"error": "Cluster state not available"}
+
+        try:
+            return self.cluster_state.get_complete_cluster_state()
+        except Exception as e:
+            logger.error(f"Failed to get cluster state: {e}")
+            return {"error": str(e)}
+
+    def query_services(self, service_name: str = None, port: int = None,
+                       node_id: str = None) -> List[Dict]:
+        """Query services across cluster"""
+        if not self.cluster_state:
+            return []
+
+        try:
+            return self.cluster_state.query_services(
+                service_name=service_name,
+                port=port,
+                node_id=node_id
+            )
+        except Exception as e:
+            logger.error(f"Failed to query services: {e}")
+            return []
+
+    def query_software(self, package_name: str = None,
+                       package_type: str = None,
+                       node_id: str = None) -> List[Dict]:
+        """Query installed software across cluster"""
+        if not self.cluster_state:
+            return []
+
+        try:
+            return self.cluster_state.query_software(
+                package_name=package_name,
+                package_type=package_type,
+                node_id=node_id
+            )
+        except Exception as e:
+            logger.error(f"Failed to query software: {e}")
+            return []
+
+    def get_network_topology(self) -> Dict[str, Any]:
+        """Get complete network topology"""
+        if not self.cluster_state:
+            return {}
+
+        try:
+            return self.cluster_state.get_network_map()
+        except Exception as e:
+            logger.error(f"Failed to get network topology: {e}")
+            return {}
+
+    def audit_cluster_packages(self) -> Dict[str, Any]:
+        """
+        Audit all packages across cluster for vulnerabilities
+
+        Returns summary of security concerns by node
+        """
+        if not self.cluster_state:
+            return {"error": "Cluster state not available"}
+
+        try:
+            cluster = self.cluster_state.get_complete_cluster_state()
+            audit_results = {}
+
+            for node_id, node_info in cluster["nodes"].items():
+                packages = node_info.get("software", [])
+
+                # Build audit prompt for Codex
+                package_list = "\n".join([
+                    f"- {pkg['package_name']} {pkg['version']} ({pkg['package_type']})"
+                    for pkg in packages[:100]  # Limit to avoid token overflow
+                ])
+
+                prompt = f"""Security audit for node {node_id}:
+
+Installed packages:
+{package_list}
+
+Identify any packages with known vulnerabilities or security concerns.
+Respond in JSON format:
+{{
+  "vulnerable_packages": ["package names"],
+  "security_concerns": ["descriptions"],
+  "recommendations": ["actions to take"]
+}}
+"""
+
+                # Use Codex to audit
+                response = self._call_codex(prompt)
+                audit_results[node_id] = self._parse_decision(response)
+
+            return audit_results
+
+        except Exception as e:
+            logger.error(f"Cluster package audit failed: {e}")
+            return {"error": str(e)}
 
 
 def main():

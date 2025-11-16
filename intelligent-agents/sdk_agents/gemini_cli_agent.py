@@ -3,6 +3,9 @@
 Gemini CLI Agent - Google Gemini-powered intelligent agent
 Uses local Gemini CLI binary (v0.15.0) for AI-powered decision making
 
+Integrated with Comprehensive Cluster State for full cluster awareness.
+Can query all nodes, services, software, network topology in real-time.
+
 Provides autonomous decision-making using Google Gemini 2.5 Pro
 with 1M token context window via the official Gemini CLI
 """
@@ -10,10 +13,21 @@ with 1M token context window via the official Gemini CLI
 import json
 import logging
 import subprocess
+import sys
 from typing import Dict, List, Any, Optional
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
+
+# Add cluster-deployment to path for comprehensive state access
+sys.path.insert(0, str(Path(__file__).parent.parent.parent / "cluster-deployment"))
+
+try:
+    from comprehensive_cluster_state import ComprehensiveClusterState, get_complete_state
+    CLUSTER_STATE_AVAILABLE = True
+except ImportError:
+    logger.warning("Comprehensive cluster state not available")
+    CLUSTER_STATE_AVAILABLE = False
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -55,23 +69,34 @@ class GeminiCLIAgent:
         self,
         purpose: AgentPurpose,
         tools: List[Dict[str, Any]],
-        gemini_bin: str = None
+        gemini_bin: str = None,
+        use_cluster_state: bool = True
     ):
         """
         Initialize Gemini CLI-powered agent
-        
+
         Args:
             purpose: Agent's primary purpose
             tools: Available tools the agent can use
             gemini_bin: Path to gemini binary
+            use_cluster_state: Enable comprehensive cluster state access
         """
         self.purpose = purpose
         self.tools = tools
         self.gemini_bin = gemini_bin or self._find_gemini_binary()
-        
+
+        # Initialize cluster state access
+        self.cluster_state = None
+        if use_cluster_state and CLUSTER_STATE_AVAILABLE:
+            try:
+                self.cluster_state = ComprehensiveClusterState()
+                logger.info("Cluster state access enabled")
+            except Exception as e:
+                logger.warning(f"Could not initialize cluster state: {e}")
+
         if not self.gemini_bin:
             raise RuntimeError("Gemini CLI not found. Install: npm install -g @google/gemini-cli")
-        
+
         logger.info(f"Initialized {purpose.value} agent with Gemini CLI at {self.gemini_bin}")
     
     def _find_gemini_binary(self) -> Optional[str]:
@@ -282,6 +307,96 @@ Output ONLY the JSON, nothing else.
                 "action": decision.action,
                 "error": str(e)
             }
+
+    # === Cluster State Query Methods ===
+
+    def get_cluster_state(self) -> Dict[str, Any]:
+        """Get complete cluster state"""
+        if not self.cluster_state:
+            return {"error": "Cluster state not available"}
+
+        try:
+            return self.cluster_state.get_complete_cluster_state()
+        except Exception as e:
+            logger.error(f"Failed to get cluster state: {e}")
+            return {"error": str(e)}
+
+    def query_services(self, service_name: str = None, port: int = None,
+                       node_id: str = None) -> List[Dict]:
+        """Query services across cluster"""
+        if not self.cluster_state:
+            return []
+
+        try:
+            return self.cluster_state.query_services(
+                service_name=service_name,
+                port=port,
+                node_id=node_id
+            )
+        except Exception as e:
+            logger.error(f"Failed to query services: {e}")
+            return []
+
+    def get_network_topology(self) -> Dict[str, Any]:
+        """Get complete network topology"""
+        if not self.cluster_state:
+            return {}
+
+        try:
+            return self.cluster_state.get_network_map()
+        except Exception as e:
+            logger.error(f"Failed to get network topology: {e}")
+            return {}
+
+    def analyze_cluster_performance(self) -> Dict[str, Any]:
+        """
+        Analyze cluster performance and identify bottlenecks
+
+        Uses Gemini's fast inference to analyze network topology
+        and service distribution
+        """
+        if not self.cluster_state:
+            return {"error": "Cluster state not available"}
+
+        try:
+            # Get complete topology
+            network = self.cluster_state.get_network_map()
+            cluster = self.cluster_state.get_complete_cluster_state()
+
+            # Build analysis prompt for Gemini
+            topology_summary = json.dumps({
+                "total_nodes": len(cluster.get("nodes", {})),
+                "total_services": sum(len(node.get("services", []))
+                                     for node in cluster.get("nodes", {}).values()),
+                "network_interfaces": network.get("interfaces", {}),
+                "listening_ports": network.get("listening_ports", {})
+            }, indent=2)
+
+            prompt = f"""Analyze this distributed system topology for performance bottlenecks:
+
+{topology_summary}
+
+Identify:
+1. Service concentration issues (too many services on one node)
+2. Network bottlenecks (overloaded interfaces)
+3. Port conflicts or unusual configurations
+4. Load balancing opportunities
+
+Respond in JSON format ONLY:
+{{
+  "bottlenecks": ["list of issues found"],
+  "recommendations": ["suggested improvements"],
+  "health_score": 0.0-1.0
+}}
+"""
+
+            # Use Gemini to analyze
+            response = self._call_gemini(prompt)
+            return self._parse_decision(response)
+
+        except Exception as e:
+            logger.error(f"Cluster performance analysis failed: {e}")
+            return {"error": str(e)}
 
 
 def main():

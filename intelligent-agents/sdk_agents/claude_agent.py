@@ -2,15 +2,29 @@
 """
 Claude Agent - Intelligent agent powered by Anthropic Claude SDK
 Replaces dumb polling scripts with AI-powered reasoning
+
+Integrated with Comprehensive Cluster State for full cluster awareness.
+Can query all nodes, services, software, network topology in real-time.
 """
 
 import os
 import json
 import asyncio
+import sys
 from typing import List, Dict, Any, Optional, Callable
 from dataclasses import dataclass
 from datetime import datetime
+from pathlib import Path
 from anthropic import Anthropic, AsyncAnthropic
+
+# Add cluster-deployment to path for comprehensive state access
+sys.path.insert(0, str(Path(__file__).parent.parent.parent / "cluster-deployment"))
+
+try:
+    from comprehensive_cluster_state import ComprehensiveClusterState, get_complete_state
+    CLUSTER_STATE_AVAILABLE = True
+except ImportError:
+    CLUSTER_STATE_AVAILABLE = False
 
 
 @dataclass
@@ -47,7 +61,8 @@ class ClaudeAgent:
         purpose: AgentPurpose,
         tools: List[Dict[str, Any]],
         api_key: Optional[str] = None,
-        model: str = "claude-sonnet-4-20250514"
+        model: str = "claude-sonnet-4-20250514",
+        use_cluster_state: bool = True
     ):
         self.purpose = purpose
         self.tools = tools
@@ -57,6 +72,15 @@ class ClaudeAgent:
         self.decision_history = []
         self.running = False
         self.iteration_count = 0
+
+        # Initialize cluster state access
+        self.cluster_state = None
+        if use_cluster_state and CLUSTER_STATE_AVAILABLE:
+            try:
+                self.cluster_state = ComprehensiveClusterState()
+                print("✅ Cluster state access enabled")
+            except Exception as e:
+                print(f"⚠️  Could not initialize cluster state: {e}")
 
     async def reason(self, observations: Dict[str, Any]) -> AgentDecision:
         """
@@ -307,3 +331,117 @@ Decide what action to take (if any) and explain your reasoning."""
     def stop(self):
         """Stop the agent gracefully"""
         self.running = False
+
+    # === Cluster State Query Methods ===
+
+    def get_cluster_state(self) -> Dict[str, Any]:
+        """Get complete cluster state"""
+        if not self.cluster_state:
+            return {"error": "Cluster state not available"}
+
+        try:
+            return self.cluster_state.get_complete_cluster_state()
+        except Exception as e:
+            print(f"❌ Failed to get cluster state: {e}")
+            return {"error": str(e)}
+
+    def query_services(self, service_name: str = None, port: int = None,
+                       node_id: str = None) -> List[Dict]:
+        """Query services across cluster"""
+        if not self.cluster_state:
+            return []
+
+        try:
+            return self.cluster_state.query_services(
+                service_name=service_name,
+                port=port,
+                node_id=node_id
+            )
+        except Exception as e:
+            print(f"❌ Failed to query services: {e}")
+            return []
+
+    def query_software(self, package_name: str = None,
+                       package_type: str = None,
+                       node_id: str = None) -> List[Dict]:
+        """Query installed software across cluster"""
+        if not self.cluster_state:
+            return []
+
+        try:
+            return self.cluster_state.query_software(
+                package_name=package_name,
+                package_type=package_type,
+                node_id=node_id
+            )
+        except Exception as e:
+            print(f"❌ Failed to query software: {e}")
+            return []
+
+    def get_network_topology(self) -> Dict[str, Any]:
+        """Get complete network topology"""
+        if not self.cluster_state:
+            return {}
+
+        try:
+            return self.cluster_state.get_network_map()
+        except Exception as e:
+            print(f"❌ Failed to get network topology: {e}")
+            return {}
+
+    async def orchestrate_cluster_task(self, task_description: str) -> Dict[str, Any]:
+        """
+        Orchestrate a task across the cluster
+
+        Uses Claude's reasoning to decide:
+        - Which nodes should execute the task
+        - In what order
+        - With what parameters
+
+        This is what Claude Code sessions will use for cluster-aware decisions
+        """
+        if not self.cluster_state:
+            return {"error": "Cluster state not available"}
+
+        try:
+            # Get complete cluster state
+            cluster = self.cluster_state.get_complete_cluster_state()
+
+            # Build orchestration prompt
+            prompt = f"""You are orchestrating a distributed task across a cluster.
+
+Task: {task_description}
+
+Available nodes and their capabilities:
+{json.dumps(cluster, indent=2)}
+
+Decide:
+1. Which node(s) should execute this task?
+2. In what order?
+3. What are the parameters for each?
+4. What could go wrong and how to mitigate?
+
+Respond in JSON format with your orchestration plan.
+"""
+
+            response = await self.client.messages.create(
+                model=self.model,
+                max_tokens=2048,
+                messages=[{"role": "user", "content": prompt}]
+            )
+
+            # Extract orchestration plan
+            plan_text = ""
+            for block in response.content:
+                if hasattr(block, 'text'):
+                    plan_text += block.text
+
+            return {
+                "task": task_description,
+                "plan": plan_text,
+                "cluster_state": cluster
+            }
+
+        except Exception as e:
+            print(f"❌ Cluster orchestration failed: {e}")
+            return {"error": str(e)}
