@@ -163,6 +163,33 @@ User: "Run these 5 tests in parallel"
    - Node capabilities
 5. **Results return** to you transparently
 
+## Advanced Integration Options
+
+Beyond direct tool use, you can leverage Claude Code's native features:
+
+### Skills
+Create reusable skills that wrap cluster operations:
+```python
+# .claude/skills/cluster_build.py
+def cluster_build(project_path):
+    """Build project using cluster resources"""
+    return cluster_bash(f"cd {project_path} && make build")
+```
+
+### Hooks
+Use hooks to automatically suggest cluster execution:
+```json
+{
+  "PostToolUse": {
+    "hook": "detect_heavy_bash.sh",
+    "description": "Suggest cluster execution for heavy commands"
+  }
+}
+```
+
+### tmux Sessions
+Run distributed workflows across tmux sessions on different nodes for long-running operations.
+
 ## Benefits
 
 ✅ **Zero configuration** - Works automatically once MCP server installed
