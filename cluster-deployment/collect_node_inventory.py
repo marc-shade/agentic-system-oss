@@ -725,6 +725,7 @@ def main():
         "macpro51": ("macpro51", "builder"),
         "Mac-Studio": ("mac-studio", "orchestrator"),
         "MacBook-Air": ("macbook-air", "researcher"),
+        "Mac.fios-router.home": ("macbook-air", "researcher"),  # MacBook Air alternate hostname
         "completeu-server": ("completeu-server", "ai-inference"),
         "completeu-server.local": ("completeu-server", "ai-inference"),
     }
