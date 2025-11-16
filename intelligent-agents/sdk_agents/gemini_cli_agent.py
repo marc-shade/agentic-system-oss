@@ -24,6 +24,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent / "cluster-deployment
 
 try:
     from comprehensive_cluster_state import ComprehensiveClusterState, get_complete_state
+    from cluster_state_aggregator import ClusterStateAggregator
     CLUSTER_STATE_AVAILABLE = True
 except ImportError:
     logger.warning("Comprehensive cluster state not available")
@@ -87,10 +88,12 @@ class GeminiCLIAgent:
 
         # Initialize cluster state access
         self.cluster_state = None
+        self.cluster_aggregator = None
         if use_cluster_state and CLUSTER_STATE_AVAILABLE:
             try:
                 self.cluster_state = ComprehensiveClusterState()
-                logger.info("Cluster state access enabled")
+                self.cluster_aggregator = ClusterStateAggregator()
+                logger.info("Cluster state access enabled (local + aggregated)")
             except Exception as e:
                 logger.warning(f"Could not initialize cluster state: {e}")
 
@@ -311,14 +314,19 @@ Output ONLY the JSON, nothing else.
     # === Cluster State Query Methods ===
 
     def get_cluster_state(self) -> Dict[str, Any]:
-        """Get complete cluster state"""
-        if not self.cluster_state:
-            return {"error": "Cluster state not available"}
+        """
+        Get complete cluster state from all nodes
+
+        Uses cluster state aggregator to query all reachable nodes
+        and merge into unified view.
+        """
+        if not self.cluster_aggregator:
+            return {"error": "Cluster state aggregator not available"}
 
         try:
-            return self.cluster_state.get_complete_cluster_state()
+            return self.cluster_aggregator.get_unified_cluster_state()
         except Exception as e:
-            logger.error(f"Failed to get cluster state: {e}")
+            logger.error(f"Failed to get aggregated cluster state: {e}")
             return {"error": str(e)}
 
     def query_services(self, service_name: str = None, port: int = None,
