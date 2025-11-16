@@ -79,7 +79,8 @@ class ClusterStateAggregator:
             Dict with node's complete state, or None if unreachable
         """
         try:
-            # SQL query to get complete node state
+            # SQL query to get complete node state (schema-tolerant)
+            # Try with memory_total_gb first, fall back to older schema
             query = """
             SELECT
                 n.node_id,
@@ -88,7 +89,6 @@ class ClusterStateAggregator:
                 n.os_type,
                 n.architecture,
                 n.cpu_count,
-                n.memory_total_gb,
                 n.python_version
             FROM nodes n
             WHERE n.node_id = (SELECT node_id FROM nodes LIMIT 1);
@@ -115,8 +115,8 @@ class ClusterStateAggregator:
                 return None
 
             values = result.stdout.strip().split('|')
-            if len(values) < 8:
-                logger.warning(f"Incomplete data from {node_id}")
+            if len(values) < 7:
+                logger.warning(f"Incomplete data from {node_id}: got {len(values)} values")
                 return None
 
             node_data = {
@@ -126,8 +126,8 @@ class ClusterStateAggregator:
                 "os_type": values[3],
                 "architecture": values[4],
                 "cpu_count": int(values[5]) if values[5] else 0,
-                "memory_total_gb": float(values[6]) if values[6] else 0.0,
-                "python_version": values[7]
+                "python_version": values[6],
+                "memory_total_gb": 0.0  # Not available in older schemas
             }
 
             # Get services count
