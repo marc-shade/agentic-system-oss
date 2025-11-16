@@ -1,0 +1,205 @@
+"""
+YouTube Video Analysis Workflow
+Analyzes video content and generates insights.
+"""
+
+def analyze_video(event):
+    """
+    Analyze video content using Claude Code agent.
+    Triggered: After transcript extraction
+    """
+    video_id = event.data.get("video_id")
+    video_url = event.data.get("video_url")
+
+    if not video_id:
+        return {"status": "error", "message": "No video ID provided"}
+
+    print(f"🔍 Analyzing video: {video_id}")
+
+    # Read transcript
+    transcript_path = f"/Users/marc/Documents/Cline/MCP/youtube-transcript-mcp/full_transcript_{video_id}.txt"
+
+    if not file.exists(transcript_path):
+        return {
+            "status": "error",
+            "message": "Transcript not found",
+            "video_id": video_id
+        }
+
+    transcript = file.read(transcript_path)
+
+    # Store analysis request
+    analysis_request = {
+        "video_id": video_id,
+        "video_url": video_url,
+        "transcript_length": len(transcript),
+        "timestamp": time.now()
+    }
+
+    memory.store({
+        "type": "video_analysis_request",
+        "data": analysis_request
+    })
+
+    voice_notify(f"Starting analysis of video {video_id}")
+
+    # This would trigger Claude Code analysis via youtube-analyst agent
+    # For now, we'll create a marker file for Claude Code to process
+
+    analysis_queue_file = f"/Users/marc/.claude/youtube_analysis_queue/{video_id}.json"
+    file.write_json(analysis_queue_file, analysis_request)
+
+    print(f"✅ Analysis queued: {analysis_queue_file}")
+
+    return {
+        "status": "queued",
+        "video_id": video_id,
+        "queue_file": analysis_queue_file,
+        "timestamp": time.now()
+    }
+
+def batch_analyze_topics(event):
+    """
+    Analyze videos by topic categories.
+    Triggered: On-demand for topic research
+    """
+    topic = event.data.get("topic")
+
+    if not topic:
+        return {"status": "error", "message": "No topic provided"}
+
+    print(f"📊 Batch analyzing videos for topic: {topic}")
+
+    # Search memory for videos matching topic
+    videos = memory.search({
+        "type": "transcript_extraction",
+        "topic": topic
+    })
+
+    if len(videos) == 0:
+        voice_notify(f"No videos found for topic: {topic}")
+        return {
+            "status": "no_videos",
+            "topic": topic
+        }
+
+    voice_notify(f"Found {len(videos)} videos on topic {topic}. Starting batch analysis.")
+
+    # Analyze each video
+    results = []
+    for video in videos:
+        analysis = analyze_video({
+            "data": {
+                "video_id": video["video_id"],
+                "video_url": video["video_url"]
+            }
+        })
+        results.append(analysis)
+
+    successful = len([r for r in results if r["status"] == "queued"])
+
+    voice_notify(f"Batch analysis complete: {successful}/{len(videos)} queued")
+
+    return {
+        "status": "success",
+        "topic": topic,
+        "total_videos": len(videos),
+        "queued": successful,
+        "timestamp": time.now()
+    }
+
+def generate_video_summary_report(event):
+    """
+    Generate comprehensive summary report of analyzed videos.
+    Triggered: Weekly on Monday at 10 AM
+    """
+    print("📋 Generating video summary report...")
+
+    # Get all analysis records from past week
+    analyses = memory.search({
+        "type": "video_analysis_request",
+        "date_range": time.now().subtract(days=7).format("YYYY-MM-DD")
+    })
+
+    if len(analyses) == 0:
+        print("✅ No video analyses in past week")
+        return {"status": "no_data"}
+
+    # Generate report
+    report = {
+        "week_ending": time.now().format("YYYY-MM-DD"),
+        "total_videos_analyzed": len(analyses),
+        "total_transcript_length": sum([a["transcript_length"] for a in analyses]),
+        "average_transcript_length": sum([a["transcript_length"] for a in analyses]) / len(analyses),
+        "videos": [{"video_id": a["video_id"], "url": a["video_url"]} for a in analyses]
+    }
+
+    # Store report
+    report_file = f"/Users/marc/.claude/reports/youtube_summary_{time.now().format('YYYY-MM-DD')}.json"
+    file.write_json(report_file, report)
+
+    voice_notify(
+        f"Weekly YouTube report: {report['total_videos_analyzed']} videos analyzed, "
+        f"average length {report['average_transcript_length']} characters"
+    )
+
+    print(f"✅ Report generated: {report_file}")
+
+    return {
+        "status": "success",
+        "report": report,
+        "report_file": report_file,
+        "timestamp": time.now()
+    }
+
+def detect_trending_topics(event):
+    """
+    Detect trending topics from analyzed videos.
+    Triggered: Daily at 8 PM
+    """
+    print("📈 Detecting trending topics...")
+
+    # Get all transcript extractions from past 30 days
+    extractions = memory.search({
+        "type": "transcript_extraction",
+        "date_range": time.now().subtract(days=30).format("YYYY-MM-DD")
+    })
+
+    if len(extractions) < 5:
+        print("✅ Not enough data for trend detection")
+        return {"status": "insufficient_data", "count": len(extractions)}
+
+    # This would use NLP to extract topics
+    # For now, we'll just count video IDs
+
+    trending = {
+        "period": "30_days",
+        "total_videos": len(extractions),
+        "analysis_date": time.now().format("YYYY-MM-DD")
+    }
+
+    memory.store({
+        "type": "trending_topics",
+        "data": trending,
+        "timestamp": time.now()
+    })
+
+    print(f"✅ Trending analysis complete: {len(extractions)} videos")
+
+    return {
+        "status": "success",
+        "trending": trending,
+        "timestamp": time.now()
+    }
+
+# Listen for analysis requests
+event.listen("analyze_video", analyze_video)
+
+# Listen for batch topic analysis
+event.listen("batch_analyze_topics", batch_analyze_topics)
+
+# Schedule weekly report on Monday at 10 AM
+schedule.cron("0 10 * * 1", generate_video_summary_report)
+
+# Schedule trending detection daily at 8 PM
+schedule.cron("0 20 * * *", detect_trending_topics)

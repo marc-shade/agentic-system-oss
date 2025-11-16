@@ -1,0 +1,27 @@
+{
+  "item_id": "http://arxiv.org/abs/2401.10253v3",
+  "source_type": "research_paper",
+  "source_id": "http://arxiv.org/abs/2401.10253v3",
+  "title": "Hybrid-Task Meta-Learning: A GNN Approach for Scalable and Transferable Bandwidth Allocation",
+  "concepts": [],
+  "techniques": [],
+  "insights": [
+    "In this paper, we develop a deep learning-based bandwidth allocation policy\nthat is: 1) scalable with the number of users and 2) transferable to different\ncommunication scenarios, such as non-stationa"
+  ],
+  "authors": [
+    "Xin Hao",
+    "Changyang She",
+    "Phee Lep Yeoh",
+    "Yuhong Liu",
+    "Branka Vucetic",
+    "Yonghui Li"
+  ],
+  "created_at": "2023-12-23T04:25:12+00:00",
+  "citations": 0,
+  "confidence_score": 0.8,
+  "related_items": [],
+  "tags": [
+    "cs.NI",
+    "cs.LG"
+  ]
+}

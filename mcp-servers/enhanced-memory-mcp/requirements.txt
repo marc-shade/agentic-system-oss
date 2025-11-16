@@ -1,0 +1,17 @@
+# Enhanced Memory MCP Server Requirements
+
+# Primary implementation (server.py) - uses standard library + extensions
+# Standard library: sqlite3, zlib, hashlib, json, logging, pathlib, datetime, pickle
+
+# FastMCP implementation - for better MCP protocol compliance
+fastmcp
+
+# Code execution security (Anthropic pattern - added 2025-11-08)
+RestrictedPython>=8.1  # Safe Python code compilation
+psutil>=7.0.0          # Resource monitoring and limits
+
+# RAG Tier 1 Strategy Dependencies (Week 1 implementation - 2025-11-09)
+sentence-transformers>=5.1.0  # Re-ranking with cross-encoder (Day 1-2)
+redis>=7.0.0                   # Cache layer for re-ranking and adaptive routing (Day 8-10)
+qdrant-client>=1.7.0          # Hybrid search with BM25 + Vector (Day 3-4)
+anthropic>=0.40.0             # Claude API for contextual prefix generation (Day 5-7)

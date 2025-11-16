@@ -1,0 +1,21 @@
+{
+  "item_id": "http://arxiv.org/abs/2508.12168v1",
+  "source_type": "research_paper",
+  "source_id": "http://arxiv.org/abs/2508.12168v1",
+  "title": "Several Issues Regarding Data Governance in AGI",
+  "concepts": [],
+  "techniques": [],
+  "insights": [
+    "The rapid advancement of artificial intelligence has positioned data\ngovernance as a critical concern for responsible AI development. While\nframeworks exist for conventional AI systems, the potential "
+  ],
+  "authors": [
+    "Masayuki Hatta"
+  ],
+  "created_at": "2025-08-16T21:52:22+00:00",
+  "citations": 0,
+  "confidence_score": 0.8,
+  "related_items": [],
+  "tags": [
+    "cs.CY"
+  ]
+}

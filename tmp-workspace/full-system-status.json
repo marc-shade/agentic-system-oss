@@ -1,0 +1,51 @@
+{
+  "node": "macpro51",
+  "role": "Builder",
+  "platform": "Linux Fedora 43",
+  "hardware": {
+    "cpu": "Dual Intel Xeon X5680 (24 threads @ 3.33 GHz)",
+    "ram_gb": 126,
+    "storage_gb": 930,
+    "raid": "NVMe RAID10"
+  },
+  "running_services": {
+    "qdrant": "RUNNING (PID 174789)",
+    "temporal": "RUNNING (PID 405704, port 7233, UI 8233)",
+    "autokitteh": "RUNNING (PID 485974)",
+    "temporal_workers": "RUNNING (PID 507242)",
+    "prometheus": "NOT FOUND",
+    "loki": "NOT FOUND",
+    "grafana": "NOT FOUND"
+  },
+  "databases": {
+    "cluster": "EXISTS",
+    "temporal": "EXISTS",
+    "qdrant": "EXISTS",
+    "mcp": "EXISTS",
+    "postgres": "EXISTS",
+    "redis": "EXISTS"
+  },
+  "mcp_servers_configured": [
+    "enhanced-memory",
+    "agent-runtime",
+    "safla",
+    "agi-mcp",
+    "research-paper",
+    "video-transcript",
+    "ember"
+  ],
+  "cluster_config": {
+    "enabled": true,
+    "orchestrator": "marcs-mac-studio.local",
+    "heartbeat_interval": 30,
+    "discovery": "avahi"
+  },
+  "ai_binaries": {
+    "codex-exec": "INSTALLED (v0.0.0)",
+    "gemini": "INSTALLED (v0.15.0)",
+    "api_keys": {
+      "openai": "CONFIGURED",
+      "google": "CONFIGURED"
+    }
+  }
+}

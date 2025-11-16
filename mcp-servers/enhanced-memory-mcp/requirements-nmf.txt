@@ -1,0 +1,37 @@
+# Neural Memory Fabric Dependencies
+
+# Core FastMCP (already installed)
+# fastmcp
+
+# Vector Database - Qdrant (replaces ChromaDB)
+qdrant-client>=1.7.0
+
+# Graph Database (optional)
+neo4j>=5.15.0
+
+# Cache (optional)
+redis>=5.0.1
+
+# Configuration
+pyyaml>=6.0.1
+
+# Embedding Providers
+# Google Gemini
+google-generativeai>=0.3.0
+
+# OpenAI
+openai>=1.0.0
+
+# Local MLX (Apple Silicon only)
+mlx>=0.0.10
+sentence-transformers>=2.2.2
+
+# Ollama (local, requires Ollama installed)
+httpx>=0.25.0
+
+# Additional providers (optional)
+# voyageai>=0.1.0
+# cohere>=4.0.0
+
+# Utilities
+python-dateutil>=2.8.2

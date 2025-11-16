@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔥 Ember Controller</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background: #1a1a1a;
+            color: #ff8800;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 3em;
+            margin: 0;
+            text-shadow: 0 0 20px #ff8800;
+        }
+
+        .status {
+            background: #2a2a2a;
+            border: 2px solid #ff8800;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .stat {
+            background: #1a1a1a;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 0.8em;
+            opacity: 0.7;
+        }
+
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+        }
+
+        .mood {
+            text-align: center;
+            font-size: 1.5em;
+            padding: 10px;
+            background: #1a1a1a;
+            border-radius: 5px;
+            margin-top: 15px;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .btn {
+            background: #ff8800;
+            color: #1a1a1a;
+            border: none;
+            padding: 20px;
+            font-size: 1.2em;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Courier New', monospace;
+        }
+
+        .btn:hover {
+            background: #ffaa00;
+            transform: scale(1.05);
+            box-shadow: 0 0 20px #ff8800;
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .btn-feed {
+            background: #00ff88;
+        }
+
+        .btn-feed:hover {
+            background: #00ffaa;
+            box-shadow: 0 0 20px #00ff88;
+        }
+
+        .btn-play {
+            background: #8800ff;
+        }
+
+        .btn-play:hover {
+            background: #aa00ff;
+            box-shadow: 0 0 20px #8800ff;
+        }
+
+        .btn-clean {
+            background: #0088ff;
+        }
+
+        .btn-clean:hover {
+            background: #00aaff;
+            box-shadow: 0 0 20px #0088ff;
+        }
+
+        .btn-pet {
+            background: #ff0088;
+        }
+
+        .btn-pet:hover {
+            background: #ff00aa;
+            box-shadow: 0 0 20px #ff0088;
+        }
+
+        .message {
+            text-align: center;
+            margin-top: 20px;
+            padding: 10px;
+            background: #2a2a2a;
+            border-radius: 5px;
+            min-height: 30px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .message.show {
+            opacity: 1;
+        }
+
+        .controller-status {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.9em;
+            opacity: 0.7;
+        }
+
+        .led-indicator {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            margin: 0 auto 10px;
+            box-shadow: 0 0 20px currentColor;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔥 EMBER 🔥</h1>
+            <p>Your Arduino Tamagotchi</p>
+        </div>
+
+        <div class="status">
+            <div class="led-indicator" id="led"></div>
+
+            <div class="stats">
+                <div class="stat">
+                    <div class="stat-label">HUNGER</div>
+                    <div class="stat-value" id="hunger">--</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-label">ENERGY</div>
+                    <div class="stat-value" id="energy">--</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-label">HAPPY</div>
+                    <div class="stat-value" id="happiness">--</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-label">CLEAN</div>
+                    <div class="stat-value" id="cleanliness">--</div>
+                </div>
+            </div>
+
+            <div class="mood" id="mood">Loading...</div>
+        </div>
+
+        <div class="controls">
+            <button class="btn btn-feed" onclick="handleButton('feed')">
+                🍖 FEED<br><small>(A Button)</small>
+            </button>
+            <button class="btn btn-play" onclick="handleButton('play')">
+                🎮 PLAY<br><small>(B Button)</small>
+            </button>
+            <button class="btn btn-clean" onclick="handleButton('clean')">
+                🧼 CLEAN<br><small>(X Button)</small>
+            </button>
+            <button class="btn btn-pet" onclick="handleButton('pet')">
+                💕 PET<br><small>(Y Button)</small>
+            </button>
+        </div>
+
+        <div class="message" id="message"></div>
+
+        <div class="controller-status" id="controller-status">
+            Press any gamepad button to connect
+        </div>
+    </div>
+
+    <script>
+        let gamepadConnected = false;
+
+        // Update status from server
+        async function updateStatus() {
+            try {
+                const response = await fetch('/api/ember/status');
+                const data = await response.json();
+
+                document.getElementById('hunger').textContent = data.hunger;
+                document.getElementById('energy').textContent = data.energy;
+                document.getElementById('happiness').textContent = data.happiness;
+                document.getElementById('cleanliness').textContent = data.cleanliness;
+                document.getElementById('mood').textContent = data.mood;
+
+                // Update LED color based on mood
+                const led = document.getElementById('led');
+                const moodColors = {
+                    'Happy': '#ff8800',
+                    'Content': '#ffaa00',
+                    'Hungry': '#ff6600',
+                    'Tired': '#cc4400',
+                    'CRITICAL': '#ff0000',
+                    'Neutral': '#888888'
+                };
+                led.style.backgroundColor = moodColors[data.mood] || '#ff8800';
+
+            } catch (error) {
+                console.error('Failed to update status:', error);
+            }
+        }
+
+        // Handle button press
+        async function handleButton(action) {
+            showMessage(`${action.toUpperCase()}...`);
+
+            try {
+                const response = await fetch(`/api/ember/${action}`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+
+                showMessage(data.message || `${action} complete!`);
+                await updateStatus();
+
+            } catch (error) {
+                showMessage(`Error: ${error.message}`);
+            }
+        }
+
+        // Show temporary message
+        function showMessage(text) {
+            const message = document.getElementById('message');
+            message.textContent = text;
+            message.classList.add('show');
+
+            setTimeout(() => {
+                message.classList.remove('show');
+            }, 3000);
+        }
+
+        // Gamepad support
+        window.addEventListener('gamepadconnected', (e) => {
+            gamepadConnected = true;
+            document.getElementById('controller-status').textContent =
+                `🎮 Gamepad connected: ${e.gamepad.id}`;
+        });
+
+        window.addEventListener('gamepaddisconnected', () => {
+            gamepadConnected = false;
+            document.getElementById('controller-status').textContent =
+                'Gamepad disconnected';
+        });
+
+        // Poll gamepad buttons
+        function pollGamepad() {
+            if (!gamepadConnected) return;
+
+            const gamepads = navigator.getGamepads();
+            const gp = gamepads[0];
+
+            if (!gp) return;
+
+            // Nintendo controller button mapping (may vary)
+            // Button 0 = A (Feed)
+            // Button 1 = B (Play)
+            // Button 2 = X (Clean)
+            // Button 3 = Y (Pet)
+
+            if (gp.buttons[0].pressed && !window.aPressed) {
+                window.aPressed = true;
+                handleButton('feed');
+            } else if (!gp.buttons[0].pressed) {
+                window.aPressed = false;
+            }
+
+            if (gp.buttons[1].pressed && !window.bPressed) {
+                window.bPressed = true;
+                handleButton('play');
+            } else if (!gp.buttons[1].pressed) {
+                window.bPressed = false;
+            }
+
+            if (gp.buttons[2].pressed && !window.xPressed) {
+                window.xPressed = true;
+                handleButton('clean');
+            } else if (!gp.buttons[2].pressed) {
+                window.xPressed = false;
+            }
+
+            if (gp.buttons[3].pressed && !window.yPressed) {
+                window.yPressed = true;
+                handleButton('pet');
+            } else if (!gp.buttons[3].pressed) {
+                window.yPressed = false;
+            }
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            const keyMap = {
+                'a': 'feed',
+                'b': 'play',
+                'x': 'clean',
+                'y': 'pet'
+            };
+
+            const action = keyMap[e.key.toLowerCase()];
+            if (action) {
+                e.preventDefault();
+                handleButton(action);
+            }
+        });
+
+        // Start polling
+        setInterval(pollGamepad, 100);
+
+        // Update status every 5 seconds
+        updateStatus();
+        setInterval(updateStatus, 5000);
+    </script>
+</body>
+</html>

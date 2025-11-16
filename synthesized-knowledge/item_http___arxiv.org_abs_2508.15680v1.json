@@ -1,0 +1,24 @@
+{
+  "item_id": "http://arxiv.org/abs/2508.15680v1",
+  "source_type": "research_paper",
+  "source_id": "http://arxiv.org/abs/2508.15680v1",
+  "title": "Futurity as Infrastructure: A Techno-Philosophical Interpretation of the AI Lifecycle",
+  "concepts": [],
+  "techniques": [],
+  "insights": [
+    "This paper argues that a techno-philosophical reading of the EU AI Act\nprovides insight into the long-term dynamics of data in AI systems,\nspecifically, how the lifecycle from ingestion to deployment "
+  ],
+  "authors": [
+    "Mark Cote",
+    "Susana Aires"
+  ],
+  "created_at": "2025-08-21T16:00:13+00:00",
+  "citations": 0,
+  "confidence_score": 0.8,
+  "related_items": [],
+  "tags": [
+    "cs.AI",
+    "cs.HC",
+    "I.2.6; I.2.11; K.4.1; K.6.0"
+  ]
+}

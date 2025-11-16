@@ -1,0 +1,22 @@
+service:
+  host: 127.0.0.1
+  http_port: 6333
+  grpc_port: 6334
+
+storage:
+  # Hot tier storage on SSDRAID0 for maximum performance
+  storage_path: /mnt/agentic-system/databases/qdrant
+
+  # Performance optimizations for SSD
+  performance:
+    max_search_threads: 4
+
+  # Enable on-disk payload storage for large datasets
+  on_disk_payload: true
+
+# Logging configuration
+log_level: INFO
+
+# Enable service API for health checks
+service_api:
+  enabled: true

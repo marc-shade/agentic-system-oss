@@ -1,0 +1,61 @@
+version: v2
+
+project:
+  name: autonomous_system
+
+  triggers:
+    # === System Health Monitoring ===
+    - name: health_check_1m
+      event_type: schedule
+      schedule: "* * * * *"
+      call: handlers/system_health_handlers.py:check_all_services
+
+    - name: health_report_6h
+      event_type: schedule
+      schedule: "0 */6 * * *"
+      call: handlers/system_health_handlers.py:generate_health_report
+
+    # === Ember Monitoring ===
+    - name: ember_check_2m
+      event_type: schedule
+      schedule: "*/2 * * * *"
+      call: handlers/ember_handlers.py:check_ember_status
+
+    - name: ember_violations_2m
+      event_type: schedule
+      schedule: "*/2 * * * *"
+      call: handlers/ember_handlers.py:check_violations
+
+    # === Self-Healing System ===
+    - name: self_healing_5m
+      event_type: schedule
+      schedule: "*/5 * * * *"
+      call: handlers/self_healing_handlers.py:check_config_integrity
+
+    - name: manual_heal
+      event_type: webhook
+      call: handlers/self_healing_handlers.py:check_config_integrity
+      webhook:
+        path: /heal
+
+    # === Overnight Automation ===
+    - name: overnight_automation
+      event_type: schedule
+      schedule: "0 22 * * *"
+      call: handlers/overnight_handlers.py:orchestrate_overnight_automation
+
+    # === Claude Performance Monitoring ===
+    - name: claude_perf_15m
+      event_type: schedule
+      schedule: "*/15 * * * *"
+      call: handlers/claude_monitor_handlers.py:monitor_claude_execution
+
+    - name: claude_patterns_1h
+      event_type: schedule
+      schedule: "0 * * * *"
+      call: handlers/claude_monitor_handlers.py:analyze_patterns
+
+    - name: claude_learning_6h
+      event_type: schedule
+      schedule: "0 */6 * * *"
+      call: handlers/claude_monitor_handlers.py:deep_learning

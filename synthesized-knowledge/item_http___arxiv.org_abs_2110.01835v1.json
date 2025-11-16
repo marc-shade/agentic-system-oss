@@ -1,0 +1,21 @@
+{
+  "item_id": "http://arxiv.org/abs/2110.01835v1",
+  "source_type": "research_paper",
+  "source_id": "http://arxiv.org/abs/2110.01835v1",
+  "title": "Compression, The Fermi Paradox and Artificial Super-Intelligence",
+  "concepts": [],
+  "techniques": [],
+  "insights": [
+    "The following briefly discusses possible difficulties in communication with and control of an AGI (artificial general intelligence), building upon an explanation of The Fermi Paradox and preceding wor"
+  ],
+  "authors": [
+    "Michael Timothy Bennett"
+  ],
+  "created_at": "2021-10-05T06:17:02+00:00",
+  "citations": 0,
+  "confidence_score": 0.8,
+  "related_items": [],
+  "tags": [
+    "cs.AI"
+  ]
+}

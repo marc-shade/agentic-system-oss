@@ -1,0 +1,94 @@
+{
+  "timestamp": "2025-11-12T16:05:25.780027",
+  "code_hash": "55d37ff1",
+  "syntax": {
+    "gate_name": "syntax",
+    "status": "pass",
+    "severity": "critical",
+    "score": 1.0,
+    "message": "Syntax valid",
+    "details": {},
+    "execution_time_ms": 1.639
+  },
+  "types": {
+    "gate_name": "types",
+    "status": "warn",
+    "severity": "low",
+    "score": 1.0,
+    "message": "0 type issues found",
+    "details": {
+      "error_count": 0,
+      "errors": []
+    },
+    "execution_time_ms": 6.521
+  },
+  "security": {
+    "gate_name": "security",
+    "status": "pass",
+    "severity": "low",
+    "score": 1.0,
+    "message": "No security issues found",
+    "details": {},
+    "execution_time_ms": 4.791
+  },
+  "complexity": {
+    "gate_name": "complexity",
+    "status": "pass",
+    "severity": "low",
+    "score": 1.0,
+    "message": "Complexity acceptable (max=6, avg=2.9)",
+    "details": {
+      "functions": 12,
+      "classes": 0,
+      "lines": 252,
+      "max_complexity": 6,
+      "avg_complexity": 2.9166666666666665,
+      "complexities": [
+        {
+          "name": "process_items",
+          "complexity": 3
+        },
+        {
+          "name": "calculate_total",
+          "complexity": 2
+        },
+        {
+          "name": "filter_and_square",
+          "complexity": 3
+        },
+        {
+          "name": "find_max_value",
+          "complexity": 4
+        },
+        {
+          "name": "merge_and_sort",
+          "complexity": 6
+        }
+      ]
+    },
+    "execution_time_ms": 1.814
+  },
+  "style": {
+    "gate_name": "style",
+    "status": "fail",
+    "severity": "medium",
+    "score": 0.5,
+    "message": "Style score 0.50 below threshold 0.7",
+    "details": {
+      "errors": 0,
+      "warnings": 0,
+      "conventions": 0
+    },
+    "execution_time_ms": 5.511
+  },
+  "all_gates_passed": true,
+  "critical_failures": [],
+  "high_failures": [],
+  "warnings": [
+    "types: 0 type issues found",
+    "style: Style score 0.50 below threshold 0.7"
+  ],
+  "overall_score": 0.95,
+  "deployment_approved": true,
+  "reasoning": "APPROVED: All gates passed (score=0.95) with 2 warnings"
+}

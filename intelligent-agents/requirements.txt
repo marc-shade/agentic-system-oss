@@ -1,0 +1,18 @@
+# AI Agent Framework Dependencies
+
+# Core AI SDKs
+anthropic>=0.40.0
+openai>=1.60.0
+google-generativeai>=0.8.3
+
+# System monitoring
+psutil>=6.1.0
+
+# Arduino integration (from existing system)
+pyserial>=3.5
+
+# Async support
+asyncio-mqtt>=0.16.2
+
+# Utilities
+python-dotenv>=1.0.0

@@ -1,0 +1,266 @@
+{
+  "display": {
+    "rotation_interval_seconds": 5,
+    "critical_display_duration_seconds": 30,
+    "warning_display_duration_seconds": 10,
+    "lcd_width": 16,
+    "lcd_height": 2
+  },
+  "priorities": {
+    "P0_CRITICAL": {
+      "level": 0,
+      "interrupt": true,
+      "led_color": [255, 0, 0],
+      "audio_alert": true,
+      "conditions": [
+        "mcp_server_down",
+        "temporal_workflow_failed",
+        "autokitteh_deployment_error",
+        "error_rate_above_10_percent",
+        "ember_critical_violation",
+        "storage_below_5_percent",
+        "database_corruption"
+      ]
+    },
+    "P1_WARNING": {
+      "level": 1,
+      "interrupt": true,
+      "led_color": [255, 165, 0],
+      "audio_alert": false,
+      "conditions": [
+        "error_rate_5_to_10_percent",
+        "ember_warning",
+        "performance_degraded_2x",
+        "memory_above_80_percent",
+        "workflow_delayed",
+        "voice_mode_degraded"
+      ]
+    },
+    "P2_INFO": {
+      "level": 2,
+      "interrupt": false,
+      "led_color": [0, 0, 255],
+      "audio_alert": false,
+      "conditions": [
+        "mlx_training_active",
+        "workflow_completed",
+        "task_queue_activity",
+        "ember_mood_change"
+      ]
+    },
+    "P3_BACKGROUND": {
+      "level": 3,
+      "interrupt": false,
+      "led_color": [0, 255, 0],
+      "audio_alert": false,
+      "conditions": [
+        "system_idle",
+        "statistics_update",
+        "uptime_milestone"
+      ]
+    }
+  },
+  "data_sources": {
+    "temporal": {
+      "enabled": true,
+      "endpoint": "http://localhost:8233",
+      "check_interval_seconds": 30,
+      "workflows_to_monitor": [
+        "infrastructure-health",
+        "overnight-automation",
+        "ai-agent-monitoring",
+        "claude-deep-learning"
+      ]
+    },
+    "autokitteh": {
+      "enabled": true,
+      "check_interval_seconds": 30,
+      "deployments_to_monitor": [
+        "claude_performance_monitor",
+        "self_healing",
+        "ember_monitoring",
+        "overnight_automation"
+      ]
+    },
+    "mcp_servers": {
+      "enabled": true,
+      "check_interval_seconds": 15,
+      "servers": [
+        "enhanced-memory",
+        "voice-mode",
+        "arduino-surface",
+        "agent-runtime-mcp",
+        "sequential-thinking"
+      ]
+    },
+    "system_metrics": {
+      "enabled": true,
+      "check_interval_seconds": 10,
+      "metrics": [
+        "storage_usage",
+        "memory_usage",
+        "cpu_usage",
+        "database_sizes"
+      ]
+    },
+    "voice_mode": {
+      "enabled": true,
+      "check_interval_seconds": 20,
+      "statistics_file": "/tmp/voice_statistics.json"
+    },
+    "mlx_training": {
+      "enabled": true,
+      "check_interval_seconds": 5,
+      "log_files": [
+        "/mnt/agentic-system/arduino-surface/logs/*.log"
+      ]
+    },
+    "ember_status": {
+      "enabled": false,
+      "check_interval_seconds": 15,
+      "pet_state_file": "/Users/marc/.claude/pets/claude-pet-state.json"
+    },
+    "error_logs": {
+      "enabled": true,
+      "check_interval_seconds": 10,
+      "log_files": [
+        "/mnt/agentic-system/arduino-surface/logs/*.log",
+        "/tmp/temporal*.log",
+        "/tmp/autokitteh.log"
+      ]
+    }
+  },
+  "display_rotation": {
+    "default_screens": [
+      {
+        "id": "system_status",
+        "priority": 3,
+        "line1": "System Status   ",
+        "line2": "All OK          ",
+        "condition": "all_healthy"
+      },
+      {
+        "id": "temporal_status",
+        "priority": 3,
+        "line1": "Temporal Works  ",
+        "line2": "{active_count} Active",
+        "data_source": "temporal"
+      },
+      {
+        "id": "autokitteh_status",
+        "priority": 3,
+        "line1": "AutoKitteh      ",
+        "line2": "{deploy_count} Running",
+        "data_source": "autokitteh"
+      },
+      {
+        "id": "mcp_servers",
+        "priority": 3,
+        "line1": "MCP Servers     ",
+        "line2": "{online}/{total} Online",
+        "data_source": "mcp_servers"
+      },
+      {
+        "id": "memory_status",
+        "priority": 3,
+        "line1": "Memory Usage    ",
+        "line2": "{entity_count} entities",
+        "data_source": "mcp_servers.enhanced-memory"
+      },
+      {
+        "id": "voice_mode",
+        "priority": 3,
+        "line1": "Voice Mode      ",
+        "line2": "TTS/STT {status}",
+        "data_source": "voice_mode"
+      },
+      {
+        "id": "ember_status",
+        "priority": 3,
+        "line1": "Ember {mood}    ",
+        "line2": "{state1}|{state2}",
+        "data_source": "ember_status"
+      },
+      {
+        "id": "storage_status",
+        "priority": 3,
+        "line1": "Storage: RAID0  ",
+        "line2": "{used}/{total} OK",
+        "data_source": "system_metrics"
+      }
+    ],
+    "training_screen": {
+      "id": "mlx_training",
+      "priority": 2,
+      "line1": "MLX Training    ",
+      "line2": "E{epoch}/{total} {pct}%",
+      "data_source": "mlx_training",
+      "override_rotation": true
+    },
+    "error_screens": {
+      "mcp_down": {
+        "priority": 0,
+        "line1": "ALERT: MCP DOWN ",
+        "line2": "{server_name}   "
+      },
+      "workflow_failed": {
+        "priority": 0,
+        "line1": "WORKFLOW FAILED ",
+        "line2": "{workflow_name} "
+      },
+      "high_error_rate": {
+        "priority": 0,
+        "line1": "ERROR RATE HIGH ",
+        "line2": "{error_rate}%   "
+      },
+      "storage_critical": {
+        "priority": 0,
+        "line1": "STORAGE CRITICAL",
+        "line2": "{percent_free}% Free"
+      }
+    }
+  },
+  "led_behavior": {
+    "all_healthy": {
+      "color": [0, 255, 0],
+      "mode": "solid"
+    },
+    "processing": {
+      "color": [0, 0, 255],
+      "mode": "slow_pulse"
+    },
+    "training": {
+      "color": [0, 255, 255],
+      "mode": "fast_pulse"
+    },
+    "warning": {
+      "color": [255, 165, 0],
+      "mode": "solid"
+    },
+    "critical": {
+      "color": [255, 0, 0],
+      "mode": "flash"
+    },
+    "idle": {
+      "color": [128, 0, 128],
+      "mode": "solid"
+    }
+  },
+  "thresholds": {
+    "error_rate_warning": 0.05,
+    "error_rate_critical": 0.10,
+    "memory_warning": 0.80,
+    "memory_critical": 0.95,
+    "storage_warning": 0.10,
+    "storage_critical": 0.05,
+    "performance_degradation_factor": 2.0,
+    "workflow_delay_minutes": 10
+  },
+  "logging": {
+    "level": "INFO",
+    "file": "/mnt/agentic-system/arduino-surface/logs/display-agent.log",
+    "max_size_mb": 10,
+    "backup_count": 5,
+    "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  }
+}

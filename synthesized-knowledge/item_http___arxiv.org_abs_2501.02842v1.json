@@ -1,0 +1,24 @@
+{
+  "item_id": "http://arxiv.org/abs/2501.02842v1",
+  "source_type": "research_paper",
+  "source_id": "http://arxiv.org/abs/2501.02842v1",
+  "title": "Foundations of GenIR",
+  "concepts": [],
+  "techniques": [],
+  "insights": [
+    "The chapter discusses the foundational impact of modern generative AI models on information access (IA) systems. In contrast to traditional AI, the large-scale training and superior data modeling of g"
+  ],
+  "authors": [
+    "Qingyao Ai",
+    "Jingtao Zhan",
+    "Yiqun Liu"
+  ],
+  "created_at": "2025-01-06T08:38:29+00:00",
+  "citations": 0,
+  "confidence_score": 0.8,
+  "related_items": [],
+  "tags": [
+    "cs.IR",
+    "cs.LG"
+  ]
+}

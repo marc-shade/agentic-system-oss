@@ -1,0 +1,49 @@
+{
+  "name": "web-worker-orchestrator",
+  "version": "0.1.0",
+  "description": "Distribute code tasks to Claude Code on the web for parallel autonomous execution",
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/src/orchestrator.js",
+    "dev": "ts-node src/orchestrator.ts",
+    "logs": "tail -f logs/orchestrator.log",
+    "status": "node dist/src/commands/status.js",
+    "sessions": "node dist/src/commands/sessions.js",
+    "results": "node dist/src/commands/results.js",
+    "test-routing": "node dist/src/commands/test-routing.js",
+    "session": "node dist/src/commands/session.js",
+    "cost-analysis": "node dist/src/commands/cost-analysis.js",
+    "memory-status": "node dist/src/commands/memory-status.js",
+    "lint": "eslint src/**/*.ts",
+    "type-check": "tsc --noEmit",
+    "test": "jest"
+  },
+  "keywords": [
+    "agentic",
+    "automation",
+    "distributed-computing",
+    "claude-code",
+    "orchestration"
+  ],
+  "author": "Marc Shade",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.3.1",
+    "fetch": "^1.1.0",
+    "typescript": "^5.3.3"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.6",
+    "@typescript-eslint/eslint-plugin": "^6.16.0",
+    "@typescript-eslint/parser": "^6.16.0",
+    "eslint": "^8.56.0",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.1",
+    "ts-node": "^10.9.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

@@ -1,0 +1,79 @@
+{
+  "phases": [
+    {
+      "name": "Script to AI Agent Migration",
+      "start_date": "2025-01-06T08:00:00",
+      "end_date": null,
+      "status": "active",
+      "description": "Converting dumb polling scripts to intelligent AI-powered agents using Claude, Codex, and Gemini SDKs",
+      "goals": [
+        "Replace polling loops with reasoning loops",
+        "Add AI SDK integrations (Anthropic, OpenAI, Google)",
+        "Transform monitoring scripts into intelligent agents",
+        "Enable headless CLI operations",
+        "Implement evolution-aware protection"
+      ],
+      "expected_changes": [
+        "New intelligent-agents directory structure",
+        "Import anthropic SDK for Claude agents",
+        "Import openai SDK for Codex agents",
+        "Import google.generativeai SDK for Gemini agents",
+        "New async def reason() methods replacing polling",
+        "New AgentPurpose classes defining agent missions",
+        "New AgentDecision dataclasses for decision tracking",
+        "Replacement of simple polling loops with intelligent reasoning",
+        "Addition of tool definitions for SDK function calling",
+        "Creation of specialized agents (SystemHealthGuardian, CodeEvolutionProtector)"
+      ],
+      "allow_patterns": [
+        "from anthropic import",
+        "from openai import",
+        "import google.generativeai",
+        "async def reason(",
+        "class.*Agent.*:",
+        "@dataclass",
+        "AgentPurpose",
+        "AgentDecision",
+        "await.*reason(",
+        "intelligent-agents/",
+        "AsyncAnthropic",
+        "AsyncOpenAI",
+        "GenerativeModel",
+        "def get_system_prompt(",
+        "def gather_observations(",
+        "def execute_decision(",
+        "calculate_next_interval"
+      ],
+      "block_patterns": [
+        "eval(",
+        "exec(",
+        "os.system(",
+        "subprocess.call.*shell=True",
+        "__import__\\(",
+        "pickle.loads",
+        "input\\(.*exec",
+        "compile\\(.*exec"
+      ],
+      "key_files": [
+        "intelligent-agents/sdk_agents/claude_agent.py",
+        "intelligent-agents/sdk_agents/codex_agent.py",
+        "intelligent-agents/sdk_agents/gemini_agent.py",
+        "intelligent-agents/specialized/system_health_guardian.py",
+        "intelligent-agents/specialized/code_evolution_protector.py"
+      ],
+      "validation_criteria": [
+        "All agents must have async def reason() method",
+        "All agents must use SDK for LLM calls",
+        "All agents must log decisions for learning",
+        "All agents must adapt their check intervals intelligently",
+        "Protection agents must check evolution context before blocking"
+      ]
+    }
+  ],
+  "metadata": {
+    "version": "1.0",
+    "last_updated": "2025-01-06T08:00:00",
+    "managed_by": "CodeEvolutionProtector agent",
+    "purpose": "Track intentional system evolution phases to prevent protection systems from reverting progress"
+  }
+}

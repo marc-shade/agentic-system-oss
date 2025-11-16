@@ -1,0 +1,76 @@
+{
+  "mode": "production",
+  "knowledge_acquisition": {
+    "use_real_sources": true,
+    "research_papers": {
+      "enabled": true,
+      "queries": [
+        "recursive self-improvement AI",
+        "autonomous AGI systems",
+        "meta-learning optimization",
+        "self-modifying code",
+        "artificial general intelligence"
+      ],
+      "max_results_per_query": 2
+    },
+    "video_transcripts": {
+      "enabled": true,
+      "queries": [
+        "AGI optimization techniques",
+        "recursive self-improvement",
+        "autonomous AI systems"
+      ],
+      "max_results_per_query": 1
+    },
+    "fallback_to_simulated": true
+  },
+  "target_files": {
+    "practice_targets": [
+      "intelligent-agents/sample_module.py"
+    ],
+    "production_targets": [
+      "autonomous_recursive_agi_loop.py",
+      "intelligent-agents/darwin_godel_machine.py",
+      "intelligent-agents/auto_implementation_engine.py",
+      "intelligent-agents/knowledge_synthesis_engine.py",
+      "intelligent-agents/self_evaluation_system.py",
+      "intelligent-agents/sandbox_testing_environment.py",
+      "intelligent-agents/multi_agent_coordinator.py",
+      "intelligent-agents/agi_orchestrator.py",
+      "intelligent-agents/scheduled_health_monitor.py",
+      "intelligent-agents/skill_evolution_system.py"
+    ],
+    "use_production_targets": false,
+    "rollout_schedule": {
+      "phase": "preparation",
+      "monitoring_start": "2025-11-10T12:00:00",
+      "enable_after_hours": 24,
+      "criteria": {
+        "min_successful_cycles": 3,
+        "min_success_rate": 0.9,
+        "max_safety_incidents": 0,
+        "min_performance_gain": 0.05
+      }
+    },
+    "comment": "Phase 1: Full Self-Bootstrap - All 10 core system files ready. Will enable after 24h successful operation."
+  },
+  "safety": {
+    "sandbox_required": true,
+    "git_rollback_enabled": true,
+    "confidence_threshold": 0.7,
+    "regression_threshold_percent": 10.0,
+    "max_improvements_per_cycle": 3
+  },
+  "timing": {
+    "cycle_delay_seconds": 3600,
+    "min_knowledge_items": 5
+  },
+  "monitoring": {
+    "log_level": "INFO",
+    "prometheus_enabled": true,
+    "grafana_enabled": true
+  },
+  "enable_llm_detection": true,
+  "enable_quality_gates": true,
+  "enable_rag_integration": true
+}

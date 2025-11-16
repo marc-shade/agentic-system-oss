@@ -1,0 +1,36 @@
+[Unit]
+Description=Builder Node API Server
+After=network.target redis.service
+Wants=redis.service
+
+[Service]
+Type=simple
+User=marc
+Group=marc
+WorkingDirectory=/home/marc/agentic-system/services
+
+# Environment
+Environment="REDIS_HOST=localhost"
+Environment="REDIS_PORT=6379"
+Environment="PYTHONUNBUFFERED=1"
+
+# Execute
+ExecStart=/usr/bin/python3 /home/marc/agentic-system/services/builder-node-api.py
+
+# Restart policy
+Restart=always
+RestartSec=10
+
+# Logging
+StandardOutput=append:/home/marc/agentic-system/logs/builder-api-service.log
+StandardError=append:/home/marc/agentic-system/logs/builder-api-service.log
+
+# Security
+NoNewPrivileges=true
+PrivateTmp=true
+
+# Resource limits
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target

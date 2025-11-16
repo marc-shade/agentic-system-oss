@@ -1,0 +1,142 @@
+"""
+AGI Autonomous Goal Detection Workflow
+Analyzes patterns and detects improvement opportunities.
+"""
+
+def detect_goals(event):
+    """
+    Detect autonomous improvement goals from patterns.
+    Triggered: Every 6 hours
+    """
+    print("🎯 Detecting autonomous goals...")
+
+    # Run goal detection
+    result = shell.run([
+        "python3",
+        "/Users/marc/.claude/scripts/autonomous_goal_detection.py"
+    ])
+
+    if result.exit_code != 0:
+        voice_notify(f"Goal detection failed: {result.stderr}")
+        return {"status": "failed", "error": result.stderr}
+
+    # Read generated goals
+    goals_file = "/Users/marc/.claude/memory/semantic/autonomous_goals.json"
+    goals_data = file.read_json(goals_file)
+
+    total_goals = goals_data.get("total_opportunities", 0)
+    top_goals = goals_data.get("top_goals", [])
+
+    if total_goals > 0:
+        # Voice notify top priority goal
+        if len(top_goals) > 0:
+            top_goal = top_goals[0]
+            voice_notify(
+                f"New autonomous goal detected: {top_goal['description']} "
+                f"with priority {top_goal['priority']}"
+            )
+
+    print(f"✅ Goal detection complete: {total_goals} opportunities found")
+
+    return {
+        "status": "success",
+        "total_goals": total_goals,
+        "top_priority": top_goals[0] if top_goals else None,
+        "timestamp": time.now()
+    }
+
+def execute_autonomous_goal(event):
+    """
+    Execute a high-priority autonomous goal.
+    Triggered: On-demand when goals exceed priority threshold
+    """
+    goal = event.data.get("goal")
+
+    if not goal:
+        return {"status": "error", "message": "No goal provided"}
+
+    print(f"🚀 Executing autonomous goal: {goal['description']}")
+
+    voice_notify(f"Starting autonomous goal execution: {goal['description']}")
+
+    # Depending on goal type, execute appropriate action
+    goal_type = goal.get("type")
+
+    if goal_type == "error_reduction":
+        return execute_error_reduction_goal(goal)
+    elif goal_type == "knowledge_gap":
+        return execute_knowledge_gap_goal(goal)
+    elif goal_type == "performance":
+        return execute_performance_goal(goal)
+    else:
+        return {"status": "unknown_goal_type", "type": goal_type}
+
+def execute_error_reduction_goal(goal):
+    """Execute an error reduction goal."""
+    tool = goal.get("tool")
+    error = goal.get("error_preview")
+
+    # Log the goal execution attempt
+    memory.store({
+        "type": "goal_execution",
+        "goal_type": "error_reduction",
+        "tool": tool,
+        "error": error,
+        "timestamp": time.now(),
+        "status": "attempted"
+    })
+
+    voice_notify(f"Analyzing {tool} errors: {error}")
+
+    # This would trigger a Claude Code session to investigate
+    # For now, just log the attempt
+
+    return {
+        "status": "queued_for_investigation",
+        "tool": tool,
+        "error": error
+    }
+
+def execute_knowledge_gap_goal(goal):
+    """Execute a knowledge gap filling goal."""
+    domain = goal.get("domain")
+
+    memory.store({
+        "type": "goal_execution",
+        "goal_type": "knowledge_gap",
+        "domain": domain,
+        "timestamp": time.now(),
+        "status": "attempted"
+    })
+
+    voice_notify(f"Researching knowledge gap in: {domain}")
+
+    return {
+        "status": "queued_for_research",
+        "domain": domain
+    }
+
+def execute_performance_goal(goal):
+    """Execute a performance improvement goal."""
+    tool = goal.get("tool")
+
+    memory.store({
+        "type": "goal_execution",
+        "goal_type": "performance",
+        "tool": tool,
+        "timestamp": time.now(),
+        "status": "attempted"
+    })
+
+    voice_notify(f"Optimizing performance for: {tool}")
+
+    return {
+        "status": "queued_for_optimization",
+        "tool": tool
+    }
+
+# Schedule goal detection every 6 hours
+schedule.cron("0 */6 * * *", detect_goals)
+
+# Listen for manual goal execution triggers
+event.listen("execute_goal", execute_autonomous_goal)

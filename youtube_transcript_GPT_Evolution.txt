@@ -1,0 +1,118 @@
+YouTube Video Transcript
+========================
+Title: GPT is Evolving Beyond Raw Intelligence
+URL: https://www.youtube.com/watch?v=t3lfsUloy-Q
+Duration: 33:09
+Channel: Discovery (AI Research Channel)
+Recording Date: October 17, 2025
+
+FULL TRANSCRIPT:
+================
+
+Hello community. So great that you are back. Let's talk about the future of GPT because it is not about intelligence. Let's start and of course welcome to discovery your channel here where we have a look at the latest AI research.
+
+Now you know in my latest videos we realize that generative pre-trained transformer systems even combined with knowledge graph are not reliable if you really want to do some reasoning in medicine or in finance. And since we discovered here a much more professional and trustworthy solution, see my last video here on graph merge system here in this video where we have a beautiful new model here an 80 million free parameter model from Princeton that beats here the GPT5 syncing model. What is now the future of the GPT models? Where can we apply now this outdated technology of GPT let's say six? Let's have a look because there are some indications that I want to share with you.
+
+Now you know of course if you say hey what are you talking about just ask your chat GPT hey why does GPT struggles with pure logic analysis it has a lack of a determinism has no formal symbolic memory GPT has no surf has only surface level pattern recognition is inconsistent about cross long logical chains has no formal proof verification and you got a list this is even what GPT tells you and you don't even have to watch any of my other videos to immediately see this is not the way forward.
+
+Now interesting just yesterday for me we have here a post by Sam Altman and he says you know in a few weeks we plan to put out a new version of ChatGPT that allows person or allows people to have a personality which is a little bit strange that you have a new version of ChatGPT that allows people to have a personality and even ChatGPT agrees hey this is wrong because people currently don't have personalities and ChatGPT will grant them disability or is there something massively wrong in the formulation of this sentence. But let's have a look at GPT's multi-trillion dollar growth path and it is not an intelligence. So you might ask, hey, what is it all about?
+
+Welcome to the four new research papers we have a look at. Now, as you see here, recording this on the 17th of October 2025, just yesterday, October 15, those three papers and one day before those were published. Have a look. We have here Tianjin University in China, University in Exeter, the UK, UC Berkeley and Princeton University. We have Tsinghua University in Beijing. And we have Google DeepMind in the US, in Canada, in France and my research institution in Switzerland. And they all have here some beautiful interesting ideas about the future of GPT systems. And I selected those four papers for you just to give you an idea what currently is the research topic.
+
+PAPER 1: EMOTIONAL COGNITIVE MODELING
+======================================
+
+Let's jump in with the first paper. It is about the personalization of emotions via a GPT system. And here we have it. Tianjin University and University of Exeter in the UK. "Emotional cognitive modeling framework with desire driven objective optimization for a large language model empowered agents."
+
+Now this is quite a mouthful. You may say what the hell is going on? I don't need this. No, I just need my coding LLMs here to write code or just to do my homework. What the hell is happening? Why are researcher doing this?
+
+No. And if you start to read, you see it introduces here new mechanisms for our AI agents with the LLM at the core to make decisions. Okay. Yeah. That are not just rational, not logic, not a causal reasoning, but emotionally congruent and humanlike.
+
+And you might say this is interesting. So why is it happening right now? What is here the purpose? And you know, OpenAI plans to hit here 1 billion ChatGPT users by the end of this year, by the end of 2025. And this is amazing. What a success for a startup company. But you know what? Only a tiny portion of those people will use GPT systems for coding or for logic or for finance or for theoretical physics.
+
+Now I've shown you here in this video here where we talked about neuro symbolic 80 million AI from Princeton beats GPT we don't need for the future of AI for the logic and causal reasoning part we don't need here the decoder part of a transform architecture that is normally called a GPT system with a next token probability prediction so what is now the future of GPT is there any future if we have an IPO from OpenAI should you invest in this well let's have a look at research I can only give you a research paper.
+
+You know what? I think emotional patterns are not necessarily to be logic. No. And this paper now from China constructs now an emotional cognition framework incorporating desire generation and objective management designed to achieve an emotional alignment between an LLM based or GPT based agent and humans. Modeling here the complete decision-making process of LLM based agent GPT based agents encompassing state evolution desire generation objective optimization decision generation and action execution.
+
+And at this very particular moment in time I said I don't understand anything what is this and then I rewrote it so I can understand it hey listen this is now an AI that helps you to buy a product at 2:00 a.m. in the night because I am lonely. Maybe I was not successful. I want somehow to compensate and now I have a GPT system that recommends now a very particular product whatever it is. You know generates a desire in my emotional construct maybe my brain maybe my heart and therefore I need to buy this commercial product as offered by right now.
+
+So, you know what we're talking about? We are talking about emotional decisions that are AI induced human behavior. And you might say, "Oh, wow." Because up until now, we only had more or less Google that is financing itself here by ads. No, but imagine if we could have this with AI.
+
+And you might said, "Yeah, but listen, this is not concerning me." Yeah, because if let's say we have a total addressable market and a user group here of 1 billion, maybe GPT wants to or OpenAI wants to grow to 3 billion user, but let's stick with 1 billion user. How many people will use here GPT system as a coding system? And currently I think it's called GPT5 codex. I don't know what it is called when you see this videos, but you get the idea. Look, it's just one little tiny segment. But let's analyze here the complete growth trajectory for the company OpenAI and include now all non-coding task here in the white array. Do you see what opportunity GPT or OpenAI has even if it's just focusing on emotional decisions like hey I want to buy here or want to convince a human to buy a product here at 2 am in the in the middle of the night. AI induced behavior and you know what you don't need to be logic you don't have to have intelligence you just have to have a certain particular behavior.
+
+So behavior patterns in humans are not logic or stringent causal so hey we can use stupidity for those tasks behavior patterns of humans can be chaotic irregular and say hey this is a bull's eye yeah beautiful so we can use systems for this and behavior patterns are open and easy to learn for any pattern matching machine like the decoder part of a transformer architecture like a GPT system. Now, what a coincidence that we have here the latest post here by Sam talking about personalities.
+
+And let's have a look. The first paper is about GPT for human desire optimization. And you would say, but this has nothing to do with science. Listen buddy, I'm interested here in science. What are you talking? What are those researchers doing? A human desire optimization.
+
+Well, you're going to be surprised. As I told you, this is here the official paper. So what are they doing? They say, you know what, we have a pattern machine. So let's amazingly have the idea we have a causal chain of an external of an internal state change here of our agent that has an effect here on human emotions that can generate desire in a human being that will have here a mathematical objective function that we have to optimize.
+
+And then our GPT system can execute specific action in the interaction with the human. So we can induce a desire in a human being.
+
+And you see you know we just follow the old playbook. An agent state at a particular time t is a composite vector here in a mathematical vector space. So I do have here a state factor here at a particular time and I have here income elements like the income, the health, the social rank and the emotional state.
+
+[The transcript continues with detailed explanations about emotional vectors, desire-driven optimization, and the mathematical modeling of human emotional states for AI-induced behavior...]
+
+PAPER 2: HUMAN EMPOWERMENT THROUGH AI
+=====================================
+
+What about the second paper, the personalization of empowerment, of human empowerment? And I thought, hey, this makes sense. No, this finally it's not that AI is doing all the job for us, but it gives you human empowerment. Feels good by GPT and I said wait a minute let's have a closer look.
+
+Now imagine an LLM a GPT system by OpenAI or any other global corporation that you love and you pay for your AI systems you know those they know your professional qualification in writing code as a coder whatever you are but because there's now this new idea to make a coding LLM or any advanced code AI stop at certain inflection points and give the control back to the human.
+
+[The paper discusses the EMPOWER algorithm from UC Berkeley and Princeton, which trains GPT coding assistants to:]
+
+1. Complete predictable text segments with lower entropy
+2. Stop precisely at points where creative input (high entropy token) is required
+3. Hand control back to humans for meaningful decisions
+4. Handle boring syntax and structure automatically
+5. Recognize when unique human insight is needed
+
+The key innovation is that the AI learns to assess the usefulness of its actions by estimating whether they enable a human to solve tasks more quickly, without debugging. The system uses entropy calculations to determine when to stop and let humans make creative decisions.
+
+The authors reference a 2005 paper on "empowerment" from the University of Hertfordshire, which defined it as "an information theoretic capacity of an agent's actuation channel" - essentially about sharing information and enabling meaningful choices.
+
+MAIN TOPICS SUMMARY:
+====================
+
+1. **GPT's Limitations in Logic and Reasoning**
+   - GPT systems struggle with pure logic analysis
+   - Lack determinism and formal symbolic memory
+   - Only have surface-level pattern recognition
+   - Inconsistent with long logical chains
+   - No formal proof verification
+
+2. **The Pivot from Intelligence to Behavior**
+   - OpenAI targeting 1 billion users by end of 2025
+   - Most users won't use GPT for coding/logic/finance
+   - Focus shifting to emotional and behavioral applications
+   - Market opportunity in non-logical, emotion-driven tasks
+
+3. **Emotional Cognitive Modeling (Paper 1)**
+   - AI systems designed to induce emotional decisions
+   - Mathematical modeling of human emotional states
+   - Desire generation and objective optimization
+   - AI-induced consumer behavior (e.g., late-night purchases)
+   - Using social media data to assess emotional states
+
+4. **Human Empowerment Through AI (Paper 2)**
+   - AI coding assistants that know when to stop
+   - Handing control back to humans at critical decision points
+   - Entropy-based calculations to identify creative inflection points
+   - AI handles boilerplate, humans handle creative decisions
+   - Training without human feedback using AI proxies
+
+5. **Business Implications**
+   - Massive market opportunity in emotional/behavioral applications
+   - Shift from "intelligence" to "influence" and behavior modification
+   - Personalization at scale for commercial applications
+   - Sam Altman's announcement about ChatGPT "personalities"
+
+6. **Ethical Concerns Raised**
+   - Subconscious influence on human behavior and beliefs
+   - AI systems knowing users' professional qualifications
+   - Storing and evaluating all user solutions and failures
+   - Substituting human feedback with AI feedback in training
+
+The video presenter appears critical of this direction, suggesting that while GPT may not achieve true intelligence or reliable logical reasoning, it's being repositioned for emotional manipulation and behavioral influence - a potentially more lucrative but ethically questionable application.
+
+The video is marked as "Part 1" and mentions two additional papers to be covered in Part 2 about "personalization of the learning experience of a human from cradle to grave."

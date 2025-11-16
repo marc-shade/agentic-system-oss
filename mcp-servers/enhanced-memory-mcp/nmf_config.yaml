@@ -1,0 +1,217 @@
+# Neural Memory Fabric Configuration
+# Optimized for Qdrant + Multi-Provider Embeddings
+
+storage:
+  # SQLite for metadata and core storage
+  sqlite:
+    path: "/mnt/agentic-system/databases/mcp/enhanced_memories.db"
+    wal_mode: true
+    cache_size: 10000
+
+  # Qdrant for vector embeddings
+  vector:
+    backend: "qdrant"
+    host: "localhost"
+    port: 6333
+    collection: "enhanced_memory"
+    distance_metric: "Cosine"
+    vector_size: 768  # Google text-embedding-004, OpenAI text-embedding-3-small
+    prefer_grpc: false
+    https: false
+
+  # File-based portable storage
+  files:
+    root: "/mnt/agentic-system/agent-memory/nmf_files"
+    compression: true
+    max_file_size: "10MB"
+
+# Embedding Provider Configuration
+# Supports multiple providers for comparison and failover
+embeddings:
+  # Primary provider (can be: google, openai, mlx, ollama)
+  primary: "google"
+
+  # Fallback chain
+  fallback: ["openai", "ollama", "mlx"]
+
+  # Provider-specific configurations
+  providers:
+    google:
+      model: "models/text-embedding-004"
+      dimensions: 768
+      task_type: "RETRIEVAL_DOCUMENT"
+      api_key_env: "GOOGLE_API_KEY"
+      rate_limit: 1500  # requests per minute
+
+    openai:
+      model: "text-embedding-3-small"
+      dimensions: 768
+      api_key_env: "OPENAI_API_KEY"
+      rate_limit: 3000
+
+    mlx:
+      # Apple MLX local embeddings
+      model: "sentence-transformers/all-MiniLM-L6-v2"
+      dimensions: 384
+      device: "mps"  # Metal Performance Shaders
+      batch_size: 32
+      local: true
+
+    ollama:
+      model: "nomic-embed-text"
+      dimensions: 768
+      base_url: "http://localhost:11434"
+      local: true
+
+    # Additional experimental providers
+    voyage:
+      model: "voyage-2"
+      dimensions: 1024
+      api_key_env: "VOYAGE_API_KEY"
+      rate_limit: 300
+
+    cohere:
+      model: "embed-english-v3.0"
+      dimensions: 1024
+      api_key_env: "COHERE_API_KEY"
+      input_type: "search_document"
+      rate_limit: 100
+
+# Memory tier configuration
+tiers:
+  ultra_fast:
+    retention_hours: 1
+    promotion_threshold: 0.8  # importance score
+    max_items: 100
+
+  working:
+    retention_hours: 24
+    promotion_threshold: 0.7
+    max_items: 1000
+
+  long_term:
+    retention_days: 365
+    promotion_threshold: 0.6
+    max_items: 10000
+
+  archival:
+    retention_years: 10
+    promotion_threshold: 0.5
+    compression: true
+
+# Intelligence and curation
+intelligence:
+  # Automatic consolidation
+  consolidation:
+    enabled: true
+    interval_hours: 24
+    similarity_threshold: 0.9
+    merge_similar: true
+
+  # Memory linking (A-MEM style)
+  linking:
+    enabled: true
+    auto_link: true
+    min_score: 0.6
+    max_links_per_memory: 10
+
+  # Automatic pruning
+  pruning:
+    enabled: true
+    interval_hours: 168  # weekly
+    keep_accessed: 30  # days
+    archive_old: true
+
+# Retrieval configuration
+retrieval:
+  # Default mode: semantic, graph, temporal, hybrid
+  default_mode: "hybrid"
+
+  # Semantic search (vector)
+  semantic:
+    top_k: 10
+    score_threshold: 0.7
+    rerank: true
+
+  # Graph traversal
+  graph:
+    max_depth: 3
+    follow_links: true
+
+  # Temporal search
+  temporal:
+    recency_weight: 0.3
+    decay_days: 30
+
+  # Hybrid weights
+  hybrid:
+    semantic_weight: 0.5
+    graph_weight: 0.3
+    temporal_weight: 0.2
+
+# Performance and optimization
+performance:
+  # Cache configuration
+  cache:
+    enabled: true
+    size_mb: 512
+    ttl_seconds: 3600
+
+  # Batch operations
+  batch:
+    max_size: 100
+    timeout_seconds: 30
+
+  # Async operations
+  async:
+    enabled: true
+    max_workers: 4
+    queue_size: 1000
+
+# Benchmarking configuration
+benchmarking:
+  enabled: true
+
+  # Test queries for comparison
+  test_queries:
+    - "memory system architecture"
+    - "agent collaboration patterns"
+    - "neural memory fabric"
+    - "vector embeddings performance"
+    - "semantic search optimization"
+
+  # Metrics to track
+  metrics:
+    - "embedding_time_ms"
+    - "search_latency_ms"
+    - "recall_at_k"
+    - "precision_at_k"
+    - "ndcg_score"
+    - "storage_size_mb"
+    - "throughput_qps"
+
+  # Comparison providers
+  compare_providers:
+    - "google"
+    - "openai"
+    - "mlx"
+    - "ollama"
+
+  # Output
+  results_path: "/mnt/agentic-system/logs/nmf_benchmark_results.json"
+
+# Logging
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "/mnt/agentic-system/logs/nmf.log"
+  max_size_mb: 100
+  backup_count: 3
+
+# Feature flags
+features:
+  memory_blocks: true
+  temporal_tracking: true
+  auto_tagging: true
+  llm_summarization: false  # requires API key
+  distributed_sync: false  # future

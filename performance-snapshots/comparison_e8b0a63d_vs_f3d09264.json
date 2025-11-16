@@ -1,0 +1,16 @@
+{
+  "baseline_id": "e8b0a63d",
+  "modified_id": "f3d09264",
+  "execution_time_delta_percent": 7.231636946389887,
+  "memory_delta_percent": 63.64466078491026,
+  "cpu_delta_percent": -100.0,
+  "success_rate_delta": 0.03493997587780873,
+  "error_rate_delta": 0.009845760523587044,
+  "test_pass_rate_delta": -0.06597652284255684,
+  "quality_score_delta": 0.0681221471950223,
+  "overall_improvement": false,
+  "regression_detected": false,
+  "confidence_score": 1.0,
+  "decision": "rollback",
+  "reasoning": "ROLLBACK: Net negative impact. Regressions: Execution time regressed by 7.2%, Test pass rate dropped by -6.6%"
+}

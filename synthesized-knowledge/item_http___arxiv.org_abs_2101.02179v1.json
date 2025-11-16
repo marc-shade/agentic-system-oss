@@ -1,0 +1,22 @@
+{
+  "item_id": "http://arxiv.org/abs/2101.02179v1",
+  "source_type": "research_paper",
+  "source_id": "http://arxiv.org/abs/2101.02179v1",
+  "title": "The case for psychometric artificial general intelligence",
+  "concepts": [],
+  "techniques": [],
+  "insights": [
+    "A short review of the literature on measurement and detection of artificial\ngeneral intelligence is made. Proposed benchmarks and tests for artificial\ngeneral intelligence are critically evaluated aga"
+  ],
+  "authors": [
+    "Mark McPherson"
+  ],
+  "created_at": "2020-12-27T23:45:03+00:00",
+  "citations": 0,
+  "confidence_score": 0.8,
+  "related_items": [],
+  "tags": [
+    "cs.AI",
+    "I.2.0"
+  ]
+}

@@ -1,0 +1,89 @@
+{
+  "timestamp": "2025-11-12T15:45:19.704097",
+  "code_hash": "fc58f46d",
+  "syntax": {
+    "gate_name": "syntax",
+    "status": "pass",
+    "severity": "critical",
+    "score": 1.0,
+    "message": "Syntax valid",
+    "details": {},
+    "execution_time_ms": 0.067
+  },
+  "types": {
+    "gate_name": "types",
+    "status": "warn",
+    "severity": "low",
+    "score": 0.8,
+    "message": "2 type issues found",
+    "details": {
+      "error_count": 2,
+      "errors": [
+        "/mnt/agentic-system/tmp-workspace/tmp3hyhjc70.py:6: error: Function is missing a return type annotation  [no-untyped-def]",
+        "/mnt/agentic-system/tmp-workspace/tmp3hyhjc70.py:12: error: Call to untyped function \"main\" in typed context  [no-untyped-call]"
+      ]
+    },
+    "execution_time_ms": 17174.386
+  },
+  "security": {
+    "gate_name": "security",
+    "status": "pass",
+    "severity": "low",
+    "score": 1.0,
+    "message": "No security issues found",
+    "details": {
+      "high": 0,
+      "medium": 0,
+      "low": 0
+    },
+    "execution_time_ms": 1551.635
+  },
+  "complexity": {
+    "gate_name": "complexity",
+    "status": "pass",
+    "severity": "low",
+    "score": 1.0,
+    "message": "Complexity acceptable (max=1, avg=1.0)",
+    "details": {
+      "functions": 2,
+      "classes": 0,
+      "lines": 13,
+      "max_complexity": 1,
+      "avg_complexity": 1.0,
+      "complexities": [
+        {
+          "name": "calculate_sum",
+          "complexity": 1
+        },
+        {
+          "name": "main",
+          "complexity": 1
+        }
+      ]
+    },
+    "execution_time_ms": 4.447
+  },
+  "style": {
+    "gate_name": "style",
+    "status": "fail",
+    "severity": "medium",
+    "score": 0.5,
+    "message": "Style score 0.50 below threshold 0.7",
+    "details": {
+      "errors": 0,
+      "warnings": 0,
+      "conventions": 1
+    },
+    "execution_time_ms": 683.431
+  },
+  "all_gates_passed": true,
+  "critical_failures": [],
+  "high_failures": [],
+  "warnings": [
+    "types: 2 type issues found",
+    "style: Style score 0.50 below threshold 0.7"
+  ],
+  "overall_score": 0.93,
+  "deployment_approved": true,
+  "reasoning": "APPROVED: All gates passed (score=0.93) with 2 warnings"
+}

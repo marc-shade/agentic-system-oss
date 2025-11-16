@@ -1,0 +1,28 @@
+{
+  "item_id": "http://arxiv.org/abs/2311.02462v5",
+  "source_type": "research_paper",
+  "source_id": "http://arxiv.org/abs/2311.02462v5",
+  "title": "Levels of AGI for Operationalizing Progress on the Path to AGI",
+  "concepts": [],
+  "techniques": [],
+  "insights": [
+    "We propose a framework for classifying the capabilities and behavior of Artificial General Intelligence (AGI) models and their precursors. This framework introduces levels of AGI performance, generali"
+  ],
+  "authors": [
+    "Meredith Ringel Morris",
+    "Jascha Sohl-Dickstein",
+    "Noah Fiedel",
+    "Tris Warkentin",
+    "Allan Dafoe",
+    "Aleksandra Faust",
+    "Clement Farabet",
+    "Shane Legg"
+  ],
+  "created_at": "2023-11-04T17:44:58+00:00",
+  "citations": 0,
+  "confidence_score": 0.8,
+  "related_items": [],
+  "tags": [
+    "cs.AI"
+  ]
+}

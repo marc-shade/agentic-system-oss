@@ -1,0 +1,27 @@
+{
+  "item_id": "http://arxiv.org/abs/2301.08028v4",
+  "source_type": "research_paper",
+  "source_id": "http://arxiv.org/abs/2301.08028v4",
+  "title": "A Tutorial on Meta-Reinforcement Learning",
+  "concepts": [],
+  "techniques": [],
+  "insights": [
+    "While deep reinforcement learning (RL) has fueled multiple high-profile successes in machine learning, it is held back from more widespread adoption by its often poor data efficiency and the limited g"
+  ],
+  "authors": [
+    "Jacob Beck",
+    "Risto Vuorio",
+    "Evan Zheran Liu",
+    "Zheng Xiong",
+    "Luisa Zintgraf",
+    "Chelsea Finn",
+    "Shimon Whiteson"
+  ],
+  "created_at": "2023-01-19T12:01:41+00:00",
+  "citations": 0,
+  "confidence_score": 0.8,
+  "related_items": [],
+  "tags": [
+    "cs.LG"
+  ]
+}

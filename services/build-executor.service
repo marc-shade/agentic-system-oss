@@ -1,0 +1,50 @@
+[Unit]
+Description=Build Executor Service for Builder Node
+Documentation=https://github.com/agentic-system/monitoring
+After=network.target docker.service redis.service
+Requires=docker.service
+Wants=redis.service
+
+[Service]
+Type=simple
+User=marc
+Group=marc
+WorkingDirectory=/home/marc/agentic-system/services
+
+# Environment configuration
+Environment="REDIS_HOST=localhost"
+Environment="REDIS_PORT=6379"
+Environment="REDIS_DB=2"
+Environment="MAX_CONCURRENT_BUILDS=2"
+Environment="PYTHONUNBUFFERED=1"
+
+# Execution
+ExecStart=/home/marc/agentic-system/.venv/bin/python3 /home/marc/agentic-system/services/build_executor.py
+
+# Restart policy
+Restart=on-failure
+RestartSec=10
+StartLimitInterval=300
+StartLimitBurst=5
+
+# Resource limits
+MemoryLimit=4G
+CPUQuota=200%
+TasksMax=100
+
+# Logging
+StandardOutput=append:/home/marc/agentic-system/logs/build_executor.log
+StandardError=append:/home/marc/agentic-system/logs/build_executor.error.log
+SyslogIdentifier=build-executor
+
+# Security
+NoNewPrivileges=true
+PrivateTmp=true
+
+# Graceful shutdown (wait up to 60 seconds for builds to complete)
+TimeoutStopSec=60
+KillMode=mixed
+KillSignal=SIGTERM
+
+[Install]
+WantedBy=multi-user.target

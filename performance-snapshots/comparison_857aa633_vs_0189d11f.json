@@ -1,0 +1,16 @@
+{
+  "baseline_id": "857aa633",
+  "modified_id": "0189d11f",
+  "execution_time_delta_percent": -41.60114031930055,
+  "memory_delta_percent": 0.07739938080495357,
+  "cpu_delta_percent": 0.0,
+  "success_rate_delta": -0.005833986046098194,
+  "error_rate_delta": 0.007000418476203724,
+  "test_pass_rate_delta": -0.01234092006575116,
+  "quality_score_delta": -0.09240766076972795,
+  "overall_improvement": true,
+  "regression_detected": false,
+  "confidence_score": 1.0,
+  "decision": "keep",
+  "reasoning": "KEEP: Improvements confirmed: Execution time improved by 41.6%"
+}

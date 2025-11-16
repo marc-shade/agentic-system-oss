@@ -1,0 +1,98 @@
+{
+  "timestamp": "2025-11-12T15:49:30.870831",
+  "code_hash": "35b60e75",
+  "syntax": {
+    "gate_name": "syntax",
+    "status": "pass",
+    "severity": "critical",
+    "score": 1.0,
+    "message": "Syntax valid",
+    "details": {},
+    "execution_time_ms": 0.085
+  },
+  "types": {
+    "gate_name": "types",
+    "status": "warn",
+    "severity": "low",
+    "score": 0.5,
+    "message": "5 type issues found",
+    "details": {
+      "error_count": 5,
+      "errors": [
+        "tmp-workspace/tmph2nslyfx.py:5: error: Function is missing a type annotation  [no-untyped-def]",
+        "tmp-workspace/tmph2nslyfx.py:11: error: Function is missing a type annotation  [no-untyped-def]",
+        "tmp-workspace/tmph2nslyfx.py:16: error: Function is missing a return type annotation  [no-untyped-def]",
+        "tmp-workspace/tmph2nslyfx.py:18: error: Call to untyped function \"load_user_data\" in typed context  [no-untyped-call]",
+        "tmp-workspace/tmph2nslyfx.py:19: error: Call to untyped function \"execute_user_command\" in typed context  [no-untyped-call]"
+      ]
+    },
+    "execution_time_ms": 420.15999999999997
+  },
+  "security": {
+    "gate_name": "security",
+    "status": "fail",
+    "severity": "critical",
+    "score": 0.4,
+    "message": "1 HIGH severity security issues found",
+    "details": {
+      "high": 1,
+      "medium": 2,
+      "low": 2
+    },
+    "execution_time_ms": 192.441
+  },
+  "complexity": {
+    "gate_name": "complexity",
+    "status": "pass",
+    "severity": "low",
+    "score": 1.0,
+    "message": "Complexity acceptable (max=2, avg=1.3)",
+    "details": {
+      "functions": 3,
+      "classes": 0,
+      "lines": 21,
+      "max_complexity": 2,
+      "avg_complexity": 1.3333333333333333,
+      "complexities": [
+        {
+          "name": "load_user_data",
+          "complexity": 2
+        },
+        {
+          "name": "execute_user_command",
+          "complexity": 1
+        },
+        {
+          "name": "process_data",
+          "complexity": 1
+        }
+      ]
+    },
+    "execution_time_ms": 0.365
+  },
+  "style": {
+    "gate_name": "style",
+    "status": "fail",
+    "severity": "medium",
+    "score": 0.5,
+    "message": "Style score 0.50 below threshold 0.7",
+    "details": {
+      "errors": 0,
+      "warnings": 0,
+      "conventions": 1
+    },
+    "execution_time_ms": 541.5980000000001
+  },
+  "all_gates_passed": false,
+  "critical_failures": [
+    "security: 1 HIGH severity security issues found"
+  ],
+  "high_failures": [],
+  "warnings": [
+    "types: 5 type issues found",
+    "style: Style score 0.50 below threshold 0.7"
+  ],
+  "overall_score": 0.72,
+  "deployment_approved": false,
+  "reasoning": "REJECTED: Critical failures - security: 1 HIGH severity security issues found"
+}

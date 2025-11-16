@@ -1,0 +1,22 @@
+{
+  "item_id": "http://arxiv.org/abs/2110.01831v1",
+  "source_type": "research_paper",
+  "source_id": "http://arxiv.org/abs/2110.01831v1",
+  "title": "The Artificial Scientist: Logicist, Emergentist, and Universalist Approaches to Artificial General Intelligence",
+  "concepts": [],
+  "techniques": [],
+  "insights": [
+    "We attempt to define what is necessary to construct an Artificial Scientist, explore and evaluate several approaches to artificial general intelligence (AGI) which may facilitate this, conclude that a"
+  ],
+  "authors": [
+    "Michael Timothy Bennett",
+    "Yoshihiro Maruyama"
+  ],
+  "created_at": "2021-10-05T05:58:23+00:00",
+  "citations": 0,
+  "confidence_score": 0.8,
+  "related_items": [],
+  "tags": [
+    "cs.AI"
+  ]
+}

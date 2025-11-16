@@ -1,0 +1,24 @@
+{
+  "item_id": "http://arxiv.org/abs/1911.04336v1",
+  "source_type": "research_paper",
+  "source_id": "http://arxiv.org/abs/1911.04336v1",
+  "title": "Fair Meta-Learning: Learning How to Learn Fairly",
+  "concepts": [],
+  "techniques": [],
+  "insights": [
+    "Data sets for fairness relevant tasks can lack examples or be biased\naccording to a specific label in a sensitive attribute. We demonstrate the\nusefulness of weight based meta-learning approaches in s"
+  ],
+  "authors": [
+    "Dylan Slack",
+    "Sorelle Friedler",
+    "Emile Givental"
+  ],
+  "created_at": "2019-11-06T21:43:53+00:00",
+  "citations": 0,
+  "confidence_score": 0.8,
+  "related_items": [],
+  "tags": [
+    "cs.LG",
+    "stat.ML"
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "goalId": "auth_test_001",
+  "name": "JWT Authentication System Implementation",
+  "objective": "Implement complete JWT authentication with refresh tokens, bcrypt hashing, and rate limiting",
+  "main_agent": "Swarm Coder",
+  "estimated_turns": 35,
+  "created": "2025-10-21T11:10:00Z",
+  "constraints": [
+    "MUST use JWT tokens (not sessions)",
+    "Passwords MUST be hashed with bcrypt (min 10 rounds)",
+    "Refresh tokens MUST expire after 7 days",
+    "Access tokens MUST expire after 1 hour",
+    "MUST include rate limiting (5 attempts per 15 minutes)",
+    "DO NOT store passwords in plain text"
+  ],
+  "acceptance_criteria": [
+    "User can register with email/password",
+    "User can login and receive JWT access token",
+    "Token validation middleware works correctly",
+    "Refresh token flow functional (rotation working)",
+    "Rate limiting prevents brute force",
+    "All passwords hashed in database",
+    "Proper error handling and messages"
+  ],
+  "test_mission": true,
+  "framework_validation": "Testing COMPASS three-agent hierarchy and two-loop architecture"
+}

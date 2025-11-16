@@ -1,0 +1,84 @@
+{
+  "timestamp": "2025-11-12T15:48:03.946452",
+  "code_hash": "d49b154e",
+  "syntax": {
+    "gate_name": "syntax",
+    "status": "pass",
+    "severity": "critical",
+    "score": 1.0,
+    "message": "Syntax valid",
+    "details": {},
+    "execution_time_ms": 0.045000000000000005
+  },
+  "types": {
+    "gate_name": "types",
+    "status": "warn",
+    "severity": "low",
+    "score": 0.9,
+    "message": "1 type issues found",
+    "details": {
+      "error_count": 1,
+      "errors": [
+        "tmp-workspace/tmpbdkufgyh.py:1: error: Function is missing a return type annotation  [no-untyped-def]"
+      ]
+    },
+    "execution_time_ms": 270.64300000000003
+  },
+  "security": {
+    "gate_name": "security",
+    "status": "pass",
+    "severity": "low",
+    "score": 1.0,
+    "message": "No security issues found",
+    "details": {
+      "high": 0,
+      "medium": 0,
+      "low": 0
+    },
+    "execution_time_ms": 149.928
+  },
+  "complexity": {
+    "gate_name": "complexity",
+    "status": "pass",
+    "severity": "low",
+    "score": 1.0,
+    "message": "Complexity acceptable (max=1, avg=1.0)",
+    "details": {
+      "functions": 1,
+      "classes": 0,
+      "lines": 1,
+      "max_complexity": 1,
+      "avg_complexity": 1.0,
+      "complexities": [
+        {
+          "name": "bad",
+          "complexity": 1
+        }
+      ]
+    },
+    "execution_time_ms": 0.091
+  },
+  "style": {
+    "gate_name": "style",
+    "status": "fail",
+    "severity": "medium",
+    "score": 0.5,
+    "message": "Style score 0.50 below threshold 0.7",
+    "details": {
+      "errors": 0,
+      "warnings": 0,
+      "conventions": 4
+    },
+    "execution_time_ms": 272.647
+  },
+  "all_gates_passed": true,
+  "critical_failures": [],
+  "high_failures": [],
+  "warnings": [
+    "types: 1 type issues found",
+    "style: Style score 0.50 below threshold 0.7"
+  ],
+  "overall_score": 0.94,
+  "deployment_approved": true,
+  "reasoning": "APPROVED: All gates passed (score=0.94) with 2 warnings"
+}
