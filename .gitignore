@@ -1,0 +1,100 @@
+# Databases
+*.db
+*.sqlite
+*.sqlite3
+databases/
+*.db-journal
+*.db-shm
+*.db-wal
+
+# Logs
+logs/
+*.log
+*.log.*
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+*.pyc
+venv/
+env/
+ENV/
+
+# Temporal
+temporal/data/
+
+# Qdrant
+qdrant/storage/
+
+# Redis data
+dump.rdb
+
+# Monitoring data
+monitoring/*/data/
+monitoring/*/logs/
+
+# Secrets and credentials
+*.key
+*.pem
+*.cert
+*.crt
+secrets/
+.env
+.env.*
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.bak
+*.backup
+*.old
+
+# Node modules
+node_modules/
+
+# MCP server data
+mcp-servers/*/data/
+mcp-servers/*/*.db
+
+# Cluster runtime data
+cluster-deployment/*.db
+
+# Keep these directories but ignore their runtime contents
+!databases/.gitkeep
+!logs/.gitkeep
