@@ -197,7 +197,15 @@ class NodeInventoryCollector:
         seen = set()  # (port, protocol) tracking
 
         # Get all listening connections
-        for conn in psutil.net_connections(kind='inet'):
+        try:
+            connections = psutil.net_connections(kind='inet')
+        except (psutil.AccessDenied, PermissionError) as e:
+            # macOS requires special permissions for network connections
+            print(f"⚠️  Warning: Cannot access network connections (macOS permissions): {e}")
+            print("   Service detection will be limited. Consider running with elevated permissions.")
+            connections = []
+
+        for conn in connections:
             # Only listening sockets
             if conn.status != psutil.CONN_LISTEN:
                 continue
