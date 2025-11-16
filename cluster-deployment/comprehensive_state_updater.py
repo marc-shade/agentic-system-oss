@@ -57,6 +57,7 @@ class ComprehensiveStateUpdater:
             "mac-studio": "192.168.1.157",
             "macbook-air": "192.168.1.76",
             "macpro51": "192.168.1.154",
+            "completeu-server": "192.168.1.186",
         }
 
     def start(self):
@@ -147,6 +148,8 @@ def main():
         "macpro51": ("macpro51", "builder"),
         "Mac-Studio": ("mac-studio", "orchestrator"),
         "MacBook-Air": ("macbook-air", "researcher"),
+        "completeu-server": ("completeu-server", "ai-inference"),
+        "completeu-server.local": ("completeu-server", "ai-inference"),
     }
 
     node_id, role = node_map.get(hostname, (hostname, "worker"))
