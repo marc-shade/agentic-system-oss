@@ -46,7 +46,7 @@ class ClusterStateAggregator:
         # Known nodes and their IPs
         self.known_nodes = {
             "macpro51": {
-                "ip": "192.168.1.154",
+                "ip": "192.168.1.183",  # Updated from 192.168.1.154 (DHCP changed)
                 "user": "marc",
                 "db_path": "/mnt/agentic-system/databases/cluster/comprehensive_state.db"
             },

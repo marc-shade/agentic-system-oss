@@ -56,7 +56,7 @@ class ComprehensiveStateUpdater:
         self.known_nodes = {
             "mac-studio": "192.168.1.157",
             "macbook-air": "192.168.1.76",
-            "macpro51": "192.168.1.154",
+            "macpro51": "192.168.1.183",  # Updated from 192.168.1.154 (DHCP changed)
             "completeu-server": "192.168.1.186",
         }
 
