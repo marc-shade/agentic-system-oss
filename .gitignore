@@ -4,6 +4,7 @@ caveman-compression/
 chatterbox-server/
 claude-flow/
 mcp-servers/nuclei-mcp/
+mcp-servers/SAFLA/
 openai-edge-tts/
 
 # Temporary workspace
