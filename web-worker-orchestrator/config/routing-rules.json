@@ -1,0 +1,214 @@
+{
+  "rules": [
+    {
+      "id": "deterministic_schedule",
+      "name": "Deterministic Schedule Tasks",
+      "condition": {
+        "schedule": { "exists": true }
+      },
+      "route": "temporal",
+      "priority": 1,
+      "description": "Use Temporal for time-based schedules (cron)",
+      "examples": [
+        "Run security scan every night at 2 AM",
+        "Generate weekly report Friday 6 PM",
+        "Monthly cost analysis on 1st of month"
+      ]
+    },
+    {
+      "id": "event_driven",
+      "name": "Event-Driven Tasks",
+      "condition": {
+        "trigger": { "exists": true }
+      },
+      "route": "autokitteh",
+      "priority": 2,
+      "description": "Use AutoKitteh for event-driven reactions",
+      "examples": [
+        "Run tests when PR is created",
+        "Deploy when tag is pushed",
+        "Alert when error threshold exceeded"
+      ]
+    },
+    {
+      "id": "highly_parallelizable",
+      "name": "Highly Parallelizable Tasks",
+      "condition": {
+        "repos_count": { "gte": 5 },
+        "parallelizable": true
+      },
+      "route": "claude_web",
+      "spawnWorkers": "ceil(repos_count / 10)",
+      "priority": 3,
+      "description": "Spawn multiple workers for parallel repository processing",
+      "examples": [
+        "Add TypeScript to 50 repos → 5 workers",
+        "Security scan 100 apps → 10 workers",
+        "Update dependencies in 30 repos → 3 workers"
+      ],
+      "costOptimization": {
+        "enabled": true,
+        "parallelizationFactor": "5-10x faster than serial"
+      }
+    },
+    {
+      "id": "long_running",
+      "name": "Long-Running Tasks",
+      "condition": {
+        "estimatedDurationHours": { "gte": 2 }
+      },
+      "route": "claude_web",
+      "priority": 4,
+      "description": "Run long tasks in cloud to avoid blocking local machine",
+      "examples": [
+        "ML model training (3-4 hours)",
+        "Full test suite for large repo (2+ hours)",
+        "Data processing pipeline (4+ hours)"
+      ],
+      "resourceBenefit": "Zero local machine consumption"
+    },
+    {
+      "id": "no_local_files",
+      "name": "No Local Files Required",
+      "condition": {
+        "requiresLocalFiles": false
+      },
+      "route": "claude_web",
+      "priority": 5,
+      "description": "Tasks that don't need local checkout can run in isolated VM",
+      "examples": [
+        "Research and documentation generation",
+        "API analysis from public endpoints",
+        "Code analysis of repositories without local state"
+      ]
+    },
+    {
+      "id": "security_and_compliance",
+      "name": "Security & Compliance Scanning",
+      "condition": {
+        "type": {
+          "in": [
+            "security_scan",
+            "compliance_audit",
+            "vulnerability_check"
+          ]
+        }
+      },
+      "route": "claude_web",
+      "spawnWorkers": "5-10",
+      "priority": 3,
+      "schedule": "nightly at 2 AM",
+      "description": "Run security scans across all repos in parallel",
+      "parallelization": {
+        "enabled": true,
+        "defaultWorkers": 5,
+        "maxWorkers": 10,
+        "reposPerWorker": 10
+      }
+    },
+    {
+      "id": "code_generation",
+      "name": "Code Generation Tasks",
+      "condition": {
+        "type": {
+          "in": [
+            "test_generation",
+            "type_definition_generation",
+            "documentation_generation"
+          ]
+        }
+      },
+      "route": "claude_web",
+      "spawnWorkers": "ceil(repos_count / 5)",
+      "priority": 4,
+      "description": "Batch code generation across multiple repositories",
+      "examples": [
+        "Generate unit tests for 15 repos → 3 workers",
+        "Auto-generate API docs for 20 repos → 4 workers",
+        "Add TypeScript types to 25 repos → 5 workers"
+      ]
+    },
+    {
+      "id": "data_processing",
+      "name": "Data Processing Pipelines",
+      "condition": {
+        "type": "data_processing",
+        "estimatedDurationHours": { "gte": 1 }
+      },
+      "route": "claude_web",
+      "priority": 4,
+      "description": "Run data ETL in cloud, avoid local machine saturation",
+      "examples": [
+        "Log aggregation and analysis",
+        "Dataset cleaning and transformation",
+        "ML training data preparation"
+      ]
+    },
+    {
+      "id": "immediate_feedback",
+      "name": "Tasks Requiring Immediate Feedback",
+      "condition": {
+        "requiresImmediateFeedback": true
+      },
+      "route": "local_cli",
+      "priority": 10,
+      "description": "Interactive debugging and steering needed",
+      "examples": [
+        "Fix critical production bug",
+        "Debug complex issue with code inspection",
+        "Rapid prototyping with iteration"
+      ]
+    },
+    {
+      "id": "single_repo_fix",
+      "name": "Single Repository Fixes",
+      "condition": {
+        "type": "single_repo_fix",
+        "repos_count": { "lte": 1 },
+        "estimatedDurationHours": { "lt": 2 }
+      },
+      "route": "local_cli",
+      "priority": 9,
+      "description": "Quick single-repo fixes use local CLI",
+      "examples": [
+        "Fix typo in single repo",
+        "Update package.json for one project",
+        "Quick hotfix"
+      ]
+    }
+  ],
+  "workerConfiguration": {
+    "maxConcurrentWorkers": 10,
+    "defaultWorkerCount": 5,
+    "reposPerWorker": 10,
+    "creditBudgetPerMonth": 1000,
+    "costOptimization": {
+      "enabled": true,
+      "warnThreshold": 800,
+      "stopThreshold": 950
+    }
+  },
+  "priorityLevels": {
+    "1": "Always use Temporal (deterministic schedules)",
+    "2": "Always use AutoKitteh (event-driven)",
+    "3": "Prefer Claude Web (parallelizable, cost-effective)",
+    "4": "Strongly prefer Claude Web (long-running, cloud-based)",
+    "5": "Consider Claude Web (no local files needed)",
+    "9": "Use Local CLI (single repo, quick)",
+    "10": "Must use Local CLI (requires immediate feedback)"
+  },
+  "costOptimization": {
+    "securityScanParallelization": {
+      "enabled": true,
+      "reposPerWorker": 10,
+      "estimatedTimeReduction": "5-10x",
+      "estimatedCostPerScan": 15
+    },
+    "multiRepoOperations": {
+      "enabled": true,
+      "parallelizationThreshold": 5,
+      "estimatedTimeReduction": "3-10x",
+      "serialToParallelSavings": "90%"
+    }
+  }
+}

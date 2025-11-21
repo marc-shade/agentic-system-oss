@@ -101,7 +101,11 @@ class AutoImplementationEngine:
     5. Deploys or rolls back based on results
     """
 
+<<<<<<< HEAD
     def __init__(self, base_path: str = "/Volumes/SSDRAID0/agentic-system"):
+=======
+    def __init__(self, base_path: str = "/mnt/agentic-system"):
+>>>>>>> origin/main
         """Initialize auto-implementation engine."""
         self.base_path = Path(base_path)
         self.implementations_dir = self.base_path / "implementations"

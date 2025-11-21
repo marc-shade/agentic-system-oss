@@ -136,7 +136,11 @@ class ContextSynthesisEngine:
 
         # Example: Search for relevant files
         # In production, would use actual file search
+<<<<<<< HEAD
         base_path = Path("/Volumes/SSDRAID0/agentic-system")
+=======
+        base_path = Path("/mnt/agentic-system")
+>>>>>>> origin/main
 
         # Search for relevant files (simplified)
         for file_path in base_path.rglob("*.py"):

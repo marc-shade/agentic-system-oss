@@ -1,0 +1,19 @@
+{
+  "build_id": "d3513e22-415e-4ed6-b3b3-48d0d7be4571",
+  "project_id": "verification",
+  "build_number": 1,
+  "node_id": "macpro51",
+  "status": "running",
+  "start_time": "2025-11-14T16:12:00.797551",
+  "end_time": null,
+  "duration_seconds": null,
+  "git_commit": null,
+  "git_branch": null,
+  "build_type": "release",
+  "build_command": null,
+  "exit_code": null,
+  "artifacts_count": 0,
+  "artifacts_size_bytes": 0,
+  "tags": [],
+  "webhook_url": null
+}

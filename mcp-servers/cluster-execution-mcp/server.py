@@ -106,8 +106,12 @@ class ClusterExecutionServer:
                 continue
 
             try:
+<<<<<<< HEAD
                 # BatchMode prevents password prompts, StrictHostKeyChecking prevents host key prompts
                 cmd = f"ssh -o ConnectTimeout=2 -o BatchMode=yes -o StrictHostKeyChecking=no marc@{node_info['ip']} 'python3 -c \"import psutil, os; print(psutil.cpu_percent()); print(psutil.virtual_memory().percent); print(os.getloadavg()[0])\"'"
+=======
+                cmd = f"ssh -o ConnectTimeout=2 {node_info['ip']} 'python3 -c \"import psutil, os; print(psutil.cpu_percent()); print(psutil.virtual_memory().percent); print(os.getloadavg()[0])\"'"
+>>>>>>> origin/main
                 result = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=5)
 
                 if result.returncode == 0:
@@ -251,6 +255,7 @@ class ClusterExecutionServer:
 
         return results
 
+<<<<<<< HEAD
     def get_tmux_sessions(self) -> Dict:
         """Get all tmux sessions across cluster for AI agent observability"""
         sessions = {
@@ -372,6 +377,8 @@ class ClusterExecutionServer:
                 "success": False
             }
 
+=======
+>>>>>>> origin/main
 
 # Create MCP server
 app = Server("cluster-execution")
@@ -516,6 +523,7 @@ Returns list of results, one per command, with execution details.""",
                 },
                 "required": ["commands"]
             }
+<<<<<<< HEAD
         ),
         Tool(
             name="tmux_sessions",
@@ -581,6 +589,8 @@ Returns session content and metadata.""",
                 },
                 "required": ["node_id", "session_name"]
             }
+=======
+>>>>>>> origin/main
         )
     ]
 
@@ -667,6 +677,7 @@ STDERR:
 
             return [TextContent(type="text", text=output)]
 
+<<<<<<< HEAD
         elif name == "tmux_sessions":
             sessions = cluster.get_tmux_sessions()
 
@@ -716,6 +727,8 @@ Error: {result.get('error', 'Unknown error')}"""
 
             return [TextContent(type="text", text=output)]
 
+=======
+>>>>>>> origin/main
         else:
             return [TextContent(type="text", text=f"Unknown tool: {name}")]
 

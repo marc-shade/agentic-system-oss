@@ -51,7 +51,11 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Database path
+<<<<<<< HEAD
 DB_PATH = Path("/Volumes/SSDRAID0/agentic-system/databases/darwin_godel.db")
+=======
+DB_PATH = Path("/mnt/agentic-system/databases/darwin_godel.db")
+>>>>>>> origin/main
 
 
 class ModificationType(Enum):
@@ -412,6 +416,7 @@ class DarwinGodelMachine:
 
         return complexity
 
+<<<<<<< HEAD
     def _estimate_improvement(self, code_before: str, code_after: str,
                              use_pysr: bool = True) -> float:
         """
@@ -458,6 +463,14 @@ class DarwinGodelMachine:
                 # Fall through to original heuristic
 
         # Original heuristic (fallback)
+=======
+    def _estimate_improvement(self, code_before: str, code_after: str) -> float:
+        """Estimate performance improvement (0.0-1.0)"""
+        # Simplified estimation based on code size and complexity
+        size_ratio = len(code_before) / max(len(code_after), 1)
+
+        # Assume shorter, simpler code is better (within reason)
+>>>>>>> origin/main
         if 0.8 <= size_ratio <= 1.2:
             # Similar size - minimal change
             return 0.05

@@ -1,0 +1,16 @@
+{
+  "baseline_id": "d35f4818",
+  "modified_id": "e627bcda",
+  "execution_time_delta_percent": 19.142997026624155,
+  "memory_delta_percent": 8.88666999500749,
+  "cpu_delta_percent": 0.0,
+  "success_rate_delta": 0.03412918565069312,
+  "error_rate_delta": 0.050990616397383316,
+  "test_pass_rate_delta": 0.0006963326362972033,
+  "quality_score_delta": 0.14922335555629962,
+  "overall_improvement": false,
+  "regression_detected": false,
+  "confidence_score": 1.0,
+  "decision": "rollback",
+  "reasoning": "ROLLBACK: Net negative impact. Regressions: Execution time regressed by 19.1%, Error rate increased by 5.1%"
+}

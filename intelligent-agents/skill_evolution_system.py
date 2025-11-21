@@ -42,8 +42,13 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Paths
+<<<<<<< HEAD
 DB_PATH = Path("/Volumes/SSDRAID0/agentic-system/databases/skill_evolution.db")
 SKILLS_PATH = Path("/Volumes/SSDRAID0/agentic-system/skills")
+=======
+DB_PATH = Path("/mnt/agentic-system/databases/skill_evolution.db")
+SKILLS_PATH = Path("/mnt/agentic-system/skills")
+>>>>>>> origin/main
 
 
 class SkillStatus(Enum):
@@ -530,6 +535,7 @@ class SkillEvolutionSystem:
                 "min_required": min_samples
             }
 
+<<<<<<< HEAD
         # Compare performance using PySR-discovered equation (or fallback to heuristic)
         try:
             from equation_integration import get_integrator
@@ -562,6 +568,11 @@ class SkillEvolutionSystem:
             # Fallback to original 50/50 weights
             score_a = (metric_a.success_rate * 0.5 + metric_a.avg_quality_score * 0.5)
             score_b = (metric_b.success_rate * 0.5 + metric_b.avg_quality_score * 0.5)
+=======
+        # Compare performance (simple comparison - would use proper statistical tests)
+        score_a = (metric_a.success_rate * 0.5 + metric_a.avg_quality_score * 0.5)
+        score_b = (metric_b.success_rate * 0.5 + metric_b.avg_quality_score * 0.5)
+>>>>>>> origin/main
 
         difference = abs(score_a - score_b)
         confidence = min(1.0, difference * 5)  # Simplified confidence calculation

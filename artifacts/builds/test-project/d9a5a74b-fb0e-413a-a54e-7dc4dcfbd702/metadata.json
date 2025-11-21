@@ -1,0 +1,22 @@
+{
+  "build_id": "d9a5a74b-fb0e-413a-a54e-7dc4dcfbd702",
+  "project_id": "test-project",
+  "build_number": 1,
+  "node_id": "macpro51",
+  "status": "success",
+  "start_time": "2025-11-14T16:10:48.452158",
+  "end_time": "2025-11-14T16:10:49.473261",
+  "duration_seconds": 1,
+  "git_commit": "abc123def456",
+  "git_branch": "main",
+  "build_type": "release",
+  "build_command": null,
+  "exit_code": 0,
+  "artifacts_count": 0,
+  "artifacts_size_bytes": 0,
+  "tags": [
+    "test",
+    "api-validation"
+  ],
+  "webhook_url": null
+}

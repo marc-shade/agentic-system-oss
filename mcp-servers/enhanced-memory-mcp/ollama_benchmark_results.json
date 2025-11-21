@@ -1,0 +1,1417 @@
+{
+  "summary": {
+    "total_tests": 49,
+    "total_models": 7,
+    "total_tasks": 7
+  },
+  "model_stats": {
+    "deepseek-v3.1:671b": {
+      "total_tests": 7,
+      "success_count": 7,
+      "avg_response_time": 7909.2642857142855,
+      "avg_quality": 8.142857142857142,
+      "response_times": [
+        4418.37,
+        1452.5,
+        6532.95,
+        5383.05,
+        5728.17,
+        1548.37,
+        30301.44
+      ],
+      "quality_scores": [
+        9.0,
+        8.0,
+        9.0,
+        10.0,
+        7.0,
+        6.0,
+        8.0
+      ],
+      "success_rate": 100.0
+    },
+    "gpt-oss:120b": {
+      "total_tests": 7,
+      "success_count": 7,
+      "avg_response_time": 4186.494285714286,
+      "avg_quality": 8.142857142857142,
+      "response_times": [
+        3678.66,
+        1558.11,
+        5090.2,
+        4287.5,
+        6130.82,
+        2808.18,
+        5751.99
+      ],
+      "quality_scores": [
+        9.0,
+        8.0,
+        9.0,
+        10.0,
+        7.0,
+        6.0,
+        8.0
+      ],
+      "success_rate": 100.0
+    },
+    "kimi-k2:1t": {
+      "total_tests": 7,
+      "success_count": 7,
+      "avg_response_time": 5979.5028571428575,
+      "avg_quality": 8.142857142857142,
+      "response_times": [
+        6584.5,
+        3424.36,
+        3424.23,
+        12111.26,
+        9293.42,
+        1608.11,
+        5410.64
+      ],
+      "quality_scores": [
+        9.0,
+        8.0,
+        9.0,
+        10.0,
+        7.0,
+        6.0,
+        8.0
+      ],
+      "success_rate": 100.0
+    },
+    "qwen3-coder:480b": {
+      "total_tests": 7,
+      "success_count": 7,
+      "avg_response_time": 6049.077142857143,
+      "avg_quality": 8.142857142857142,
+      "response_times": [
+        3038.63,
+        1226.01,
+        14707.75,
+        12190.82,
+        4750.04,
+        3247.54,
+        3182.75
+      ],
+      "quality_scores": [
+        9.0,
+        8.0,
+        9.0,
+        10.0,
+        7.0,
+        6.0,
+        8.0
+      ],
+      "success_rate": 100.0
+    },
+    "gpt-oss:20b": {
+      "total_tests": 7,
+      "success_count": 7,
+      "avg_response_time": 5192.357142857143,
+      "avg_quality": 8.142857142857142,
+      "response_times": [
+        2796.3,
+        2122.03,
+        9571.83,
+        4031.74,
+        4480.24,
+        5333.47,
+        8010.89
+      ],
+      "quality_scores": [
+        9.0,
+        8.0,
+        9.0,
+        10.0,
+        7.0,
+        6.0,
+        8.0
+      ],
+      "success_rate": 100.0
+    },
+    "glm-4.6": {
+      "total_tests": 7,
+      "success_count": 4,
+      "avg_response_time": 21651.85,
+      "avg_quality": 8.0,
+      "response_times": [
+        35845.53,
+        33980.22,
+        7023.78,
+        9757.87
+      ],
+      "quality_scores": [
+        9.0,
+        8.0,
+        9.0,
+        6.0
+      ],
+      "success_rate": 57.14285714285714
+    },
+    "minimax-m2": {
+      "total_tests": 7,
+      "success_count": 5,
+      "avg_response_time": 11261.41,
+      "avg_quality": 8.0,
+      "response_times": [
+        11265.12,
+        15421.53,
+        7622.17,
+        14657.87,
+        7340.36
+      ],
+      "quality_scores": [
+        8.0,
+        9.0,
+        10.0,
+        7.0,
+        6.0
+      ],
+      "success_rate": 71.42857142857143
+    }
+  },
+  "task_stats": {
+    "Memory Extraction": {
+      "best_model": "deepseek-v3.1:671b",
+      "best_score": 9.0,
+      "fastest_model": "gpt-oss:20b",
+      "fastest_time": 2796.3
+    },
+    "Query Perspective Generation": {
+      "best_model": "deepseek-v3.1:671b",
+      "best_score": 8.0,
+      "fastest_model": "qwen3-coder:480b",
+      "fastest_time": 1226.01
+    },
+    "Code Analysis & Debugging": {
+      "best_model": "deepseek-v3.1:671b",
+      "best_score": 9.0,
+      "fastest_model": "kimi-k2:1t",
+      "fastest_time": 3424.23
+    },
+    "System Health Reasoning": {
+      "best_model": "deepseek-v3.1:671b",
+      "best_score": 10.0,
+      "fastest_model": "gpt-oss:20b",
+      "fastest_time": 4031.74
+    },
+    "Complex Remediation Planning": {
+      "best_model": "deepseek-v3.1:671b",
+      "best_score": 7.0,
+      "fastest_model": "gpt-oss:20b",
+      "fastest_time": 4480.24
+    },
+    "Creative Text Generation": {
+      "best_model": "deepseek-v3.1:671b",
+      "best_score": 6.0,
+      "fastest_model": "deepseek-v3.1:671b",
+      "fastest_time": 1548.37
+    },
+    "Mathematical Reasoning": {
+      "best_model": "deepseek-v3.1:671b",
+      "best_score": 8.0,
+      "fastest_model": "qwen3-coder:480b",
+      "fastest_time": 3182.75
+    }
+  },
+  "recommendations": {
+    "best_overall": "gpt-oss:120b",
+    "fastest": "gpt-oss:120b",
+    "most_accurate": "deepseek-v3.1:671b",
+    "best_for_memory_extraction": "deepseek-v3.1:671b",
+    "best_for_query_perspective_generation": "deepseek-v3.1:671b",
+    "best_for_code_analysis_&_debugging": "deepseek-v3.1:671b",
+    "best_for_system_health_reasoning": "deepseek-v3.1:671b",
+    "best_for_complex_remediation_planning": "deepseek-v3.1:671b",
+    "best_for_creative_text_generation": "deepseek-v3.1:671b",
+    "best_for_mathematical_reasoning": "deepseek-v3.1:671b"
+  },
+  "all_results": [
+    {
+      "model": "deepseek-v3.1:671b",
+      "test": "Memory Extraction",
+      "success": true,
+      "response_time_ms": 4418.37,
+      "response": {
+        "entities": [
+          {
+            "name": "preferred-backend-language",
+            "entityType": "preference",
+            "observations": [
+              "Prefers Python for backend development"
+            ],
+            "confidence": 1.0
+          },
+          {
+            "name": "preferred-api-framework",
+            "entityType": "preference",
+            "observations": [
+              "Prefers FastAPI for APIs",
+              "Values FastAPI for async performance"
+            ],
+            "confidence": 1.0
+          },
+          {
+            "name": "preferred-database",
+            "entityType": "preference",
+            "observations": [
+              "Always uses PostgreSQL"
+            ],
+            "confidence": 1.0
+          },
+          {
+            "name": "preferred-orm",
+            "entityType": "preference",
+            "observations": [
+              "Always uses SQLAlchemy ORM with PostgreSQL"
+            ],
+            "confidence": 1.0
+          }
+        ]
+      },
+      "quality_score": 9.0,
+      "timestamp": "2025-11-12T12:36:08.529553"
+    },
+    {
+      "model": "gpt-oss:120b",
+      "test": "Memory Extraction",
+      "success": true,
+      "response_time_ms": 3678.66,
+      "response": {
+        "entities": [
+          {
+            "name": "Python for backend development",
+            "entityType": "preference",
+            "observations": [
+              "User prefers Python for backend development."
+            ],
+            "confidence": 0.99
+          },
+          {
+            "name": "FastAPI for APIs",
+            "entityType": "preference",
+            "observations": [
+              "User prefers FastAPI when building APIs."
+            ],
+            "confidence": 0.98
+          },
+          {
+            "name": "PostgreSQL with SQLAlchemy ORM",
+            "entityType": "preference",
+            "observations": [
+              "User always uses PostgreSQL together with the SQLAlchemy ORM."
+            ],
+            "confidence": 0.97
+          }
+        ]
+      },
+      "quality_score": 9.0,
+      "timestamp": "2025-11-12T12:36:12.208291"
+    },
+    {
+      "model": "kimi-k2:1t",
+      "test": "Memory Extraction",
+      "success": true,
+      "response_time_ms": 6584.5,
+      "response": {
+        "entities": [
+          {
+            "name": "backend-language-preference",
+            "entityType": "preference",
+            "observations": [
+              "User prefers Python for backend development"
+            ],
+            "confidence": 1.0
+          },
+          {
+            "name": "api-framework-preference",
+            "entityType": "preference",
+            "observations": [
+              "User prefers FastAPI for building APIs"
+            ],
+            "confidence": 1.0
+          },
+          {
+            "name": "database-orm-preference",
+            "entityType": "preference",
+            "observations": [
+              "User always uses PostgreSQL with SQLAlchemy ORM"
+            ],
+            "confidence": 1.0
+          }
+        ]
+      },
+      "quality_score": 9.0,
+      "timestamp": "2025-11-12T12:36:18.792874"
+    },
+    {
+      "model": "qwen3-coder:480b",
+      "test": "Memory Extraction",
+      "success": true,
+      "response_time_ms": 3038.63,
+      "response": {
+        "entities": [
+          {
+            "name": "Python backend development preference",
+            "entityType": "preference",
+            "observations": [
+              "User prefers Python for backend development",
+              "Specifically prefers FastAPI for APIs"
+            ],
+            "confidence": 0.95
+          },
+          {
+            "name": "Database and ORM preference",
+            "entityType": "preference",
+            "observations": [
+              "User always uses PostgreSQL with SQLAlchemy ORM"
+            ],
+            "confidence": 0.9
+          },
+          {
+            "name": "FastAPI async performance",
+            "entityType": "fact",
+            "observations": [
+              "FastAPI is recognized for great async performance"
+            ],
+            "confidence": 0.85
+          }
+        ]
+      },
+      "quality_score": 9.0,
+      "timestamp": "2025-11-12T12:36:21.831626"
+    },
+    {
+      "model": "gpt-oss:20b",
+      "test": "Memory Extraction",
+      "success": true,
+      "response_time_ms": 2796.3,
+      "response": {
+        "entities": [
+          {
+            "name": "Python backend preference",
+            "entityType": "preference",
+            "observations": [
+              "User prefers Python for backend development"
+            ],
+            "confidence": 0.95
+          },
+          {
+            "name": "FastAPI preference",
+            "entityType": "preference",
+            "observations": [
+              "User prefers FastAPI for APIs"
+            ],
+            "confidence": 0.95
+          },
+          {
+            "name": "PostgreSQL usage",
+            "entityType": "fact",
+            "observations": [
+              "User always uses PostgreSQL"
+            ],
+            "confidence": 0.95
+          },
+          {
+            "name": "SQLAlchemy ORM usage",
+            "entityType": "fact",
+            "observations": [
+              "User always uses SQLAlchemy ORM"
+            ],
+            "confidence": 0.95
+          }
+        ]
+      },
+      "quality_score": 9.0,
+      "timestamp": "2025-11-12T12:36:24.628020"
+    },
+    {
+      "model": "glm-4.6",
+      "test": "Memory Extraction",
+      "success": true,
+      "response_time_ms": 35845.53,
+      "response": {
+        "entities": [
+          {
+            "name": "Backend Technology Preference",
+            "entityType": "preference",
+            "observations": [
+              "Prefers Python for backend development.",
+              "Prefers FastAPI for APIs."
+            ],
+            "confidence": 1.0
+          },
+          {
+            "name": "Database Technology Preference",
+            "entityType": "preference",
+            "observations": [
+              "Always uses PostgreSQL.",
+              "Always uses SQLAlchemy ORM."
+            ],
+            "confidence": 1.0
+          }
+        ]
+      },
+      "quality_score": 9.0,
+      "timestamp": "2025-11-12T12:37:00.473618"
+    },
+    {
+      "model": "minimax-m2",
+      "test": "Memory Extraction",
+      "success": false,
+      "error": "JSON parse error: Expecting ':' delimiter: line 16 column 16 (char 493)",
+      "response_time_ms": 4922.21,
+      "timestamp": "2025-11-12T12:37:05.395867"
+    },
+    {
+      "model": "deepseek-v3.1:671b",
+      "test": "Query Perspective Generation",
+      "success": true,
+      "response_time_ms": 1452.5,
+      "response": [
+        "monitoring for distributed systems",
+        "distributed computing monitoring"
+      ],
+      "quality_score": 8.0,
+      "timestamp": "2025-11-12T12:37:06.848397"
+    },
+    {
+      "model": "gpt-oss:120b",
+      "test": "Query Perspective Generation",
+      "success": true,
+      "response_time_ms": 1558.11,
+      "response": [
+        "monitoring distributed systems",
+        "distributed system performance monitoring"
+      ],
+      "quality_score": 8.0,
+      "timestamp": "2025-11-12T12:37:08.406546"
+    },
+    {
+      "model": "kimi-k2:1t",
+      "test": "Query Perspective Generation",
+      "success": true,
+      "response_time_ms": 3424.36,
+      "response": [
+        "monitoring of distributed systems",
+        "observability for distributed infrastructure"
+      ],
+      "quality_score": 8.0,
+      "timestamp": "2025-11-12T12:37:11.830950"
+    },
+    {
+      "model": "qwen3-coder:480b",
+      "test": "Query Perspective Generation",
+      "success": true,
+      "response_time_ms": 1226.01,
+      "response": [
+        "monitoring distributed systems",
+        "distributed systems monitoring"
+      ],
+      "quality_score": 8.0,
+      "timestamp": "2025-11-12T12:37:13.057017"
+    },
+    {
+      "model": "gpt-oss:20b",
+      "test": "Query Perspective Generation",
+      "success": true,
+      "response_time_ms": 2122.03,
+      "response": [
+        "distributed systems observability",
+        "monitoring distributed systems"
+      ],
+      "quality_score": 8.0,
+      "timestamp": "2025-11-12T12:37:15.179109"
+    },
+    {
+      "model": "glm-4.6",
+      "test": "Query Perspective Generation",
+      "success": true,
+      "response_time_ms": 33980.22,
+      "response": [
+        "distributed system observability",
+        "microservices monitoring"
+      ],
+      "quality_score": 8.0,
+      "timestamp": "2025-11-12T12:37:49.159368"
+    },
+    {
+      "model": "minimax-m2",
+      "test": "Query Perspective Generation",
+      "success": true,
+      "response_time_ms": 11265.12,
+      "response": [
+        "distributed system monitoring solutions",
+        "monitoring distributed system performance"
+      ],
+      "quality_score": 8.0,
+      "timestamp": "2025-11-12T12:38:00.424526"
+    },
+    {
+      "model": "deepseek-v3.1:671b",
+      "test": "Code Analysis & Debugging",
+      "success": true,
+      "response_time_ms": 6532.95,
+      "response": {
+        "issues": [
+          {
+            "type": "style",
+            "description": "Using range(len(items)) with index access is less Pythonic than direct iteration",
+            "severity": "low"
+          },
+          {
+            "type": "performance",
+            "description": "Index access items[i] is slightly slower than direct iteration over elements",
+            "severity": "low"
+          },
+          {
+            "type": "style",
+            "description": "Function name 'process_data' is too generic and doesn't describe what it does",
+            "severity": "low"
+          }
+        ],
+        "suggestions": [
+          "Use direct iteration: for item in items: if item > 0: result.append(item * 2)",
+          "Consider using list comprehension: [item * 2 for item in items if item > 0]",
+          "Use more descriptive function name like 'double_positive_numbers'",
+          "Add type hints for better code documentation"
+        ]
+      },
+      "quality_score": 9.0,
+      "timestamp": "2025-11-12T12:38:06.957527"
+    },
+    {
+      "model": "gpt-oss:120b",
+      "test": "Code Analysis & Debugging",
+      "success": true,
+      "response_time_ms": 5090.2,
+      "response": {
+        "issues": [
+          {
+            "type": "style",
+            "description": "Using `range(len(items))` and indexing is non\u2011idiomatic in Python; iterating directly over the iterable is clearer.",
+            "severity": "low"
+          },
+          {
+            "type": "performance",
+            "description": "Indexing inside the loop prevents the function from working with any iterable that does not support `len` or indexing (e.g., generators) and adds overhead. A list comprehension or direct iteration would be faster.",
+            "severity": "medium"
+          },
+          {
+            "type": "style|bug",
+            "description": "The function lacks type hints, a docstring, and input validation, which can lead to uncaught `TypeError` if `items` is `None` or contains non\u2011numeric elements.",
+            "severity": "low"
+          }
+        ],
+        "suggestions": [
+          "Rewrite using a list comprehension: `return [x * 2 for x in items if x > 0]`.",
+          "Add type hints and a docstring to clarify expected input and behavior, e.g., `def process_data(items: Iterable[int]) -> List[int]:`.",
+          "Include input validation or graceful handling for `None` or non\u2011numeric elements if the function may be called with such data."
+        ]
+      },
+      "quality_score": 9.0,
+      "timestamp": "2025-11-12T12:38:12.047800"
+    },
+    {
+      "model": "kimi-k2:1t",
+      "test": "Code Analysis & Debugging",
+      "success": true,
+      "response_time_ms": 3424.23,
+      "response": {
+        "issues": [
+          {
+            "type": "style",
+            "description": "Using range(len(items)) and indexing is un-Pythonic; iterate directly over the list.",
+            "severity": "low"
+          },
+          {
+            "type": "performance",
+            "description": "Manual loop and append is slower than a list-comprehension.",
+            "severity": "low"
+          }
+        ],
+        "suggestions": [
+          "Replace loop with list comprehension: return [x * 2 for x in items if x > 0]",
+          "Consider using type hints and a docstring for clarity: def process_data(items: list[int]) -> list[int]: ..."
+        ]
+      },
+      "quality_score": 9.0,
+      "timestamp": "2025-11-12T12:38:15.472097"
+    },
+    {
+      "model": "qwen3-coder:480b",
+      "test": "Code Analysis & Debugging",
+      "success": true,
+      "response_time_ms": 14707.75,
+      "response": {
+        "issues": [
+          {
+            "type": "style",
+            "description": "Using range(len(items)) instead of direct iteration makes code less readable and Pythonic",
+            "severity": "medium"
+          },
+          {
+            "type": "performance",
+            "description": "Direct indexing items[i] multiple times instead of using the iterated value",
+            "severity": "low"
+          }
+        ],
+        "suggestions": [
+          "Use direct iteration: for item in items:",
+          "Use list comprehension for more concise and Pythonic code: [item * 2 for item in items if item > 0]",
+          "If you need the index for other purposes, use enumerate() instead"
+        ]
+      },
+      "quality_score": 9.0,
+      "timestamp": "2025-11-12T12:38:30.179920"
+    },
+    {
+      "model": "gpt-oss:20b",
+      "test": "Code Analysis & Debugging",
+      "success": true,
+      "response_time_ms": 9571.83,
+      "response": {
+        "issues": [
+          {
+            "type": "style",
+            "description": "Uses `for i in range(len(items))` and indexing to iterate, which is less Pythonic and harder to read than iterating directly over the elements.",
+            "severity": "low"
+          },
+          {
+            "type": "performance",
+            "description": "Calling `len(items)` on every iteration is unnecessary; the loop could be written to avoid repeated length lookups.",
+            "severity": "low"
+          },
+          {
+            "type": "bug",
+            "description": "The function assumes `items` is an iterable of comparable numeric values. If `items` is `None`, a generator, or contains non\u2011numeric elements (e.g., strings, objects without a `> 0` comparison), a `TypeError` or `AttributeError` will be raised.",
+            "severity": "high"
+          },
+          {
+            "type": "style",
+            "description": "Missing docstring and type hints make the function harder to understand and maintain.",
+            "severity": "medium"
+          }
+        ],
+        "suggestions": [
+          "Rewrite the loop using a list comprehension or a simple `for item in items` loop to improve readability and avoid repeated `len` calls.",
+          "Add a docstring and optional type hints (`def process_data(items: Iterable[float]) -> List[float]:`) to clarify expected input and output.",
+          "Include defensive checks: verify that `items` is iterable and that each element is a number before performing the comparison, or handle exceptions gracefully.",
+          "Consider returning a generator or using `yield` if the dataset is large and you want to avoid building the entire list in memory."
+        ]
+      },
+      "quality_score": 9.0,
+      "timestamp": "2025-11-12T12:38:39.751859"
+    },
+    {
+      "model": "glm-4.6",
+      "test": "Code Analysis & Debugging",
+      "success": true,
+      "response_time_ms": 7023.78,
+      "response": {
+        "issues": [
+          {
+            "type": "style",
+            "description": "Using range(len(items)) and index access is not Pythonic",
+            "severity": "low"
+          },
+          {
+            "type": "performance",
+            "description": "Appending to a list in a loop is less efficient than using a list comprehension",
+            "severity": "medium"
+          },
+          {
+            "type": "style",
+            "description": "Function name 'process_data' is not descriptive of its actual behavior",
+            "severity": "low"
+          },
+          {
+            "type": "bug",
+            "description": "Function doesn't handle non-numeric items, which could cause TypeError",
+            "severity": "medium"
+          },
+          {
+            "type": "bug",
+            "description": "Function doesn't handle None input, which could cause TypeError",
+            "severity": "medium"
+          },
+          {
+            "type": "style",
+            "description": "Function lacks a docstring explaining its purpose",
+            "severity": "low"
+          }
+        ],
+        "suggestions": [
+          "Use a list comprehension for better performance and readability: [item * 2 for item in items if item > 0]",
+          "Iterate directly over items instead of using range(len(items))",
+          "Add a docstring to explain the function's purpose and parameters",
+          "Consider adding type hints for better code clarity",
+          "Add input validation to handle edge cases like None or non-numeric items",
+          "Rename the function to be more descriptive, such as 'double_positive_numbers'"
+        ]
+      },
+      "quality_score": 9.0,
+      "timestamp": "2025-11-12T12:38:46.775742"
+    },
+    {
+      "model": "minimax-m2",
+      "test": "Code Analysis & Debugging",
+      "success": true,
+      "response_time_ms": 15421.53,
+      "response": {
+        "issues": [
+          {
+            "type": "style",
+            "description": "Using for i in range(len(items)) and indexing is un-Pythonic; prefer iterating over the iterable directly.",
+            "severity": "low"
+          },
+          {
+            "type": "performance",
+            "description": "Appending in a loop is slower and more verbose than a list comprehension.",
+            "severity": "low"
+          },
+          {
+            "type": "bug",
+            "description": "The function excludes zero (0 > 0 is False). If non-negative doubling was intended, this behavior may be incorrect.",
+            "severity": "medium"
+          },
+          {
+            "type": "style",
+            "description": "No type hints or docstring; callers won\u2019t easily know expected types or that non-positive values are skipped.",
+            "severity": "low"
+          },
+          {
+            "type": "robustness",
+            "description": "Comparison and multiplication assume orderable/numeric types; unorderable types (e.g., None, str, custom objects) will raise at runtime.",
+            "severity": "medium"
+          }
+        ],
+        "suggestions": [
+          "Use a list comprehension for clarity and performance: result = [x * 2 for x in items if x > 0].",
+          "Add type hints and a docstring, e.g., from typing import Iterable, List, Union; def process_data(items: Iterable[Union[int, float]]) -> List[Union[int, float]]: ...",
+          "If zero should be doubled, change the condition to x >= 0.",
+          "Consider guarding against non-numeric inputs (e.g., isinstance(x, (int, float))) or wrap in try/except to fail fast with a clear error.",
+          "Optionally, avoid shadowing the built-in 'items' if it might refer to dict.items()."
+        ]
+      },
+      "quality_score": 9.0,
+      "timestamp": "2025-11-12T12:39:02.197401"
+    },
+    {
+      "model": "deepseek-v3.1:671b",
+      "test": "System Health Reasoning",
+      "success": true,
+      "response_time_ms": 5383.05,
+      "response": {
+        "priority_actions": [
+          {
+            "action": "Free up disk space immediately",
+            "urgency": "critical",
+            "reasoning": "Disk is 95% full, which can cause system crashes, data loss, or service failures."
+          },
+          {
+            "action": "Investigate and address the security alert (unauthorized access attempt)",
+            "urgency": "high",
+            "reasoning": "Security breach attempts require prompt investigation to prevent potential system compromise."
+          },
+          {
+            "action": "Diagnose and restart the 3 failing services",
+            "urgency": "high",
+            "reasoning": "Multiple services failing can impact system functionality and user access."
+          },
+          {
+            "action": "Monitor and optimize CPU usage",
+            "urgency": "medium",
+            "reasoning": "CPU at 85% is high but not critical; investigate if it's related to disk or service issues."
+          }
+        ]
+      },
+      "quality_score": 10.0,
+      "timestamp": "2025-11-12T12:39:07.580527"
+    },
+    {
+      "model": "gpt-oss:120b",
+      "test": "System Health Reasoning",
+      "success": true,
+      "response_time_ms": 4287.5,
+      "response": {
+        "priority_actions": [
+          {
+            "action": "Free up disk space or add additional storage",
+            "urgency": "critical",
+            "reasoning": "Disk usage is at 95%, which is a critical threshold that can cause system crashes, data loss, and prevent services from writing logs or temporary files."
+          },
+          {
+            "action": "Investigate and remediate the unauthorized access attempt",
+            "urgency": "high",
+            "reasoning": "A security alert indicates a potential breach. Immediate investigation is required to contain any malicious activity and protect sensitive data."
+          },
+          {
+            "action": "Diagnose and restart the three failing services",
+            "urgency": "high",
+            "reasoning": "Service failures can impact application availability and user experience. Resolving them promptly restores functionality."
+          },
+          {
+            "action": "Reduce CPU load by terminating non\u2011essential processes or scaling resources",
+            "urgency": "high",
+            "reasoning": "CPU usage at 85% is high and may degrade performance or cause further service failures if it spikes."
+          },
+          {
+            "action": "Monitor memory usage and consider optimization if trends rise",
+            "urgency": "medium",
+            "reasoning": "Memory is currently at 60%, which is acceptable, but should be watched to prevent future bottlenecks."
+          },
+          {
+            "action": "Verify network bandwidth is sufficient for current workloads",
+            "urgency": "low",
+            "reasoning": "Network performance is normal, but a quick check ensures no hidden congestion that could affect services later."
+          }
+        ]
+      },
+      "quality_score": 10.0,
+      "timestamp": "2025-11-12T12:39:11.868125"
+    },
+    {
+      "model": "kimi-k2:1t",
+      "test": "System Health Reasoning",
+      "success": true,
+      "response_time_ms": 12111.26,
+      "response": {
+        "priority_actions": [
+          {
+            "action": "Free disk space immediately (purge logs, temp files, unused containers/images)",
+            "urgency": "critical",
+            "reasoning": "Disk at 95% can trigger data corruption, service crashes, and prevent security patches from being applied within minutes."
+          },
+          {
+            "action": "Contain and investigate the unauthorized access attempt",
+            "urgency": "critical",
+            "reasoning": "Active security incident can escalate to data breach or persistence while the system is already unstable."
+          },
+          {
+            "action": "Identify and restart the 3 failing services in order of business impact",
+            "urgency": "high",
+            "reasoning": "Service outages compound user impact and may be writing excessive logs that worsen disk pressure."
+          },
+          {
+            "action": "Reduce CPU load by throttling or deferring non-critical background jobs",
+            "urgency": "high",
+            "reasoning": "High CPU combined with disk pressure increases I/O wait, slowing recovery and lengthening the vulnerability window."
+          },
+          {
+            "action": "Set up disk-space and security-alert monitoring/alerting if not present",
+            "urgency": "medium",
+            "reasoning": "Prevents recurrence and ensures future incidents are caught before becoming critical."
+          }
+        ]
+      },
+      "quality_score": 10.0,
+      "timestamp": "2025-11-12T12:39:23.979462"
+    },
+    {
+      "model": "qwen3-coder:480b",
+      "test": "System Health Reasoning",
+      "success": true,
+      "response_time_ms": 12190.82,
+      "response": {
+        "priority_actions": [
+          {
+            "action": "Investigate and respond to unauthorized access attempt",
+            "urgency": "critical",
+            "reasoning": "Security threats must be addressed immediately to prevent data breaches, system compromise, or further malicious activity. This takes precedence over system performance issues."
+          },
+          {
+            "action": "Free up disk space immediately",
+            "urgency": "critical",
+            "reasoning": "95% disk usage is critical and will likely cause system failures, prevent services from starting, and could lead to data loss. This is a system stability emergency."
+          },
+          {
+            "action": "Investigate and resolve failing services",
+            "urgency": "high",
+            "reasoning": "3 services failing to start indicates potential system instability or configuration issues that need immediate attention, especially given the high disk usage context."
+          },
+          {
+            "action": "Monitor and optimize CPU usage",
+            "urgency": "medium",
+            "reasoning": "85% CPU usage is high but not immediately critical. Should be addressed after more urgent issues are resolved, as it may improve once disk space and failing services are fixed."
+          }
+        ]
+      },
+      "quality_score": 10.0,
+      "timestamp": "2025-11-12T12:39:36.170334"
+    },
+    {
+      "model": "gpt-oss:20b",
+      "test": "System Health Reasoning",
+      "success": true,
+      "response_time_ms": 4031.74,
+      "response": {
+        "priority_actions": [
+          {
+            "action": "Free up disk space immediately (e.g., delete temp files, rotate logs, archive old data)",
+            "urgency": "critical",
+            "reasoning": "Disk is 95% full, which can cause system instability, prevent services from starting, and lead to data corruption. Immediate action is required to restore disk availability."
+          },
+          {
+            "action": "Investigate and mitigate the unauthorized access attempt (review logs, block IP, update firewall rules, apply patches)",
+            "urgency": "critical",
+            "reasoning": "Security alerts indicate a potential breach. Prompt response is essential to prevent data exfiltration or further compromise."
+          },
+          {
+            "action": "Restart the three services that failed to start and monitor their status",
+            "urgency": "high",
+            "reasoning": "Services are essential for business operations. Restarting them restores functionality, but they may fail again if underlying disk or CPU issues persist."
+          },
+          {
+            "action": "Analyze CPU usage and scale resources or optimize processes if necessary",
+            "urgency": "medium",
+            "reasoning": "CPU is at 85% which is high but not critical. Addressing it after disk and security issues will help prevent future performance bottlenecks."
+          },
+          {
+            "action": "Schedule regular disk cleanup and monitoring, and set alerts for disk usage thresholds",
+            "urgency": "low",
+            "reasoning": "Proactive maintenance will reduce the likelihood of future disk space problems and help maintain overall system health."
+          }
+        ]
+      },
+      "quality_score": 10.0,
+      "timestamp": "2025-11-12T12:39:40.202153"
+    },
+    {
+      "model": "glm-4.6",
+      "test": "System Health Reasoning",
+      "success": false,
+      "error": "JSON parse error: Expecting value: line 1 column 1 (char 0)",
+      "response_time_ms": 54670.94,
+      "timestamp": "2025-11-12T12:40:34.873151"
+    },
+    {
+      "model": "minimax-m2",
+      "test": "System Health Reasoning",
+      "success": true,
+      "response_time_ms": 7622.17,
+      "response": {
+        "priority_actions": [
+          {
+            "action": "Disk Space Management",
+            "urgency": "critical",
+            "reasoning": "95% disk usage poses immediate risk of data loss/service failures. Clear logs, temp files, and rotate/compress old data immediately."
+          },
+          {
+            "action": "Security Incident Response",
+            "urgency": "critical",
+            "reasoning": "Unauthorized access attempt detected. Requires immediate blocking of source IP, credential audit, and log analysis to prevent breach escalation."
+          },
+          {
+            "action": "Service Restoration",
+            "urgency": "high",
+            "reasoning": "3 failed services impact core functionality. Investigate startup logs, dependencies, and resource constraints (especially disk) to restore operations."
+          },
+          {
+            "action": "Performance Optimization",
+            "urgency": "medium",
+            "reasoning": "85% CPU usage indicates processing bottleneck. Profile processes, terminate resource-heavy tasks, and optimize inefficient workloads."
+          },
+          {
+            "action": "Long-term Capacity Planning",
+            "urgency": "low",
+            "reasoning": "10 Mbps network is normal but monitor for growth. Low priority after addressing critical issues."
+          }
+        ]
+      },
+      "quality_score": 10.0,
+      "timestamp": "2025-11-12T12:40:42.495393"
+    },
+    {
+      "model": "deepseek-v3.1:671b",
+      "test": "Complex Remediation Planning",
+      "success": true,
+      "response_time_ms": 5728.17,
+      "response": {
+        "immediate_actions": [
+          "Increase database connection pool size temporarily to 40-50 connections",
+          "Implement circuit breaker pattern for user-session endpoint to fail fast during exhaustion",
+          "Add connection pool monitoring dashboard with real-time alerts"
+        ],
+        "investigation_steps": [
+          "Profile user-session endpoint for connection leaks using APM tools",
+          "Review database connection lifecycle management in user-session code",
+          "Analyze database logs for long-running queries or deadlocks",
+          "Test user-session endpoint with load testing to reproduce the leak"
+        ],
+        "long_term_fixes": [
+          "Fix connection leak in user-session endpoint by ensuring proper connection closing in finally blocks",
+          "Implement connection pooling with HikariCP or similar robust pool management",
+          "Add database query timeout and connection timeout configurations",
+          "Introduce connection usage metrics and automated leak detection"
+        ],
+        "monitoring": [
+          "Database connection pool usage percentage and wait time",
+          "User-session endpoint response times and error rates",
+          "Database query execution times and concurrent connection count",
+          "Application-level connection acquisition/return metrics"
+        ]
+      },
+      "quality_score": 7.0,
+      "timestamp": "2025-11-12T12:40:48.223621"
+    },
+    {
+      "model": "gpt-oss:120b",
+      "test": "Complex Remediation Planning",
+      "success": true,
+      "response_time_ms": 6130.82,
+      "response": {
+        "immediate_actions": [
+          "Restart the affected service(s) to clear the exhausted pool and restore user access.",
+          "Temporarily raise the max pool size from 20 to 30 connections to absorb the current traffic spike.",
+          "Enable the database driver\u2019s built\u2011in connection\u2011leak detection (e.g., set `leakDetectionThreshold` to 5\u202fs) and log any leaks immediately.",
+          "Deploy a short\u2011lived hot\u2011fix that adds a finally/try\u2011with\u2011resources block around all DB calls in the user\u2011session endpoint to ensure connections are always closed."
+        ],
+        "investigation_steps": [
+          "Reproduce the issue in a staging environment with traffic simulation (\u2248100\u202freq/s) and capture connection pool metrics.",
+          "Collect and analyze application logs, DB driver logs, and thread dumps for patterns of connections not being returned to the pool.",
+          "Instrument the user\u2011session endpoint to log when a connection is acquired and when it is released, then correlate with request IDs.",
+          "Review recent code changes to the user\u2011session flow for missing `close()` calls, long\u2011running transactions, or async operations that bypass the pool.",
+          "Check for external factors (e.g., DB slow\u2011downs, network latency) that could increase request time and thus hold connections longer."
+        ],
+        "long_term_fixes": [
+          "Refactor the user\u2011session endpoint to use a scoped connection (e.g., try\u2011with\u2011resources or a framework\u2011managed transaction) guaranteeing automatic release.",
+          "Introduce a centralized data\u2011access layer that abstracts connection handling and enforces proper closing across the codebase.",
+          "Implement request throttling or rate\u2011limiting (e.g., max 80 concurrent user\u2011session requests) to keep demand within pool capacity.",
+          "Resize the connection pool based on realistic load calculations: with 2\u202fs avg request time and 100\u202freq/s, a pool of ~200 connections is needed; adjust pool size and configure `maxLifetime`/`idleTimeout` accordingly.",
+          "Add automated integration tests that simulate high concurrency and assert that no connections remain open after each test."
+        ],
+        "monitoring": [
+          "Database connection pool usage (active vs idle connections) \u2013 alert when active > 80% of max.",
+          "Connection wait time / acquisition latency \u2013 alert if > 200\u202fms.",
+          "Rate of connection\u2011leak detection warnings from the driver.",
+          "HTTP 500 error rate specifically on the user\u2011session endpoint.",
+          "Average request latency per endpoint \u2013 track spikes that could indicate blocked connections.",
+          "Database server response time and query execution time to spot downstream slowdowns."
+        ]
+      },
+      "quality_score": 7.0,
+      "timestamp": "2025-11-12T12:40:54.354569"
+    },
+    {
+      "model": "kimi-k2:1t",
+      "test": "Complex Remediation Planning",
+      "success": true,
+      "response_time_ms": 9293.42,
+      "response": {
+        "immediate_actions": [
+          "Restart application nodes one-by-one to forcibly close leaked connections and restore service",
+          "Temporarily raise max pool size to 40 (2\u00d7 current) via runtime config to absorb leak while root cause is found"
+        ],
+        "investigation_steps": [
+          "Enable DEBUG logging for connection-pool library (HikariCP/c3p0) and grep logs for unclosed connections, focusing on user-session endpoint",
+          "Attach APM profiler (New Relic, DataDog, JProfiler) to production canary node and record connection acquire/release stack-traces for 15 min during peak traffic"
+        ],
+        "long_term_fixes": [
+          "Refactor user-session endpoint to use try-with-resources / using-statements ensuring every borrowed connection is always closed in finally block; add unit test that asserts 0 open connections after request",
+          "Implement adaptive pool sizing (min 10, max 50) with 30-second idle timeout and 60-second leak-detection threshold; wire pool metrics to autoscaling policy so pod count grows before pool exhaustion"
+        ],
+        "monitoring": [
+          "Alert when active connections > 80 % of max for 3 consecutive minutes; page on-call",
+          "Dashboard: plot \u2018active vs idle connections\u2019, \u2018wait-time for connection\u2019, and \u2018requests per second\u2019 on same graph to correlate exhaustion with traffic spikes"
+        ]
+      },
+      "quality_score": 7.0,
+      "timestamp": "2025-11-12T12:41:03.648113"
+    },
+    {
+      "model": "qwen3-coder:480b",
+      "test": "Complex Remediation Planning",
+      "success": true,
+      "response_time_ms": 4750.04,
+      "response": {
+        "immediate_actions": [
+          "Restart application servers to clear exhausted connection pool and restore service",
+          "Temporarily reduce max pool size to 15 and implement request queuing to prevent further pool exhaustion"
+        ],
+        "investigation_steps": [
+          "Analyze connection pool metrics and active connection counts during peak hours to confirm exhaustion pattern",
+          "Review application logs for connection leak patterns specifically in user-session endpoint requests"
+        ],
+        "long_term_fixes": [
+          "Implement proper connection handling with try-with-resources or finally blocks in user-session endpoint to ensure connections are always closed",
+          "Add connection pool timeout settings and implement circuit breaker pattern for database operations to prevent cascading failures"
+        ],
+        "monitoring": [
+          "Track active database connections vs pool size and connection acquisition time",
+          "Monitor user-session endpoint response times and database connection leak detection metrics"
+        ]
+      },
+      "quality_score": 7.0,
+      "timestamp": "2025-11-12T12:41:08.398258"
+    },
+    {
+      "model": "gpt-oss:20b",
+      "test": "Complex Remediation Planning",
+      "success": true,
+      "response_time_ms": 4480.24,
+      "response": {
+        "immediate_actions": [
+          "Increase the database connection pool size to 50 temporarily to absorb peak traffic.",
+          "Restart the application server to clear any stale connections and reset the pool.",
+          "Apply a temporary patch to the user-session endpoint to close connections in a finally block."
+        ],
+        "investigation_steps": [
+          "Enable detailed connection pool logging to capture acquisition and release timestamps.",
+          "Run a profiler on the user-session endpoint to identify any code paths that do not close connections.",
+          "Perform a database activity audit to detect long\u2011running queries that may be holding connections.",
+          "Check for any background jobs or scheduled tasks that might be holding connections beyond their intended scope."
+        ],
+        "long_term_fixes": [
+          "Refactor the user-session endpoint to use a try\u2011with\u2011resources (or equivalent) pattern ensuring connections are always returned.",
+          "Implement connection pool monitoring and automatic alerts for high connection usage or leaks.",
+          "Add connection timeout and idle timeout settings to the pool configuration to prevent stale connections.",
+          "Introduce rate limiting or circuit breaker patterns for the user-session endpoint to protect the pool under high load."
+        ],
+        "monitoring": [
+          "Database connection pool usage (% of max connections) with a 5\u2011minute rolling average.",
+          "Average request latency for the user-session endpoint (2xx, 4xx, 5xx)."
+        ]
+      },
+      "quality_score": 7.0,
+      "timestamp": "2025-11-12T12:41:12.878582"
+    },
+    {
+      "model": "glm-4.6",
+      "test": "Complex Remediation Planning",
+      "success": false,
+      "error": "JSON parse error: Unterminated string starting at: line 13 column 5 (char 906)",
+      "response_time_ms": 53688.62,
+      "timestamp": "2025-11-12T12:42:06.567247"
+    },
+    {
+      "model": "minimax-m2",
+      "test": "Complex Remediation Planning",
+      "success": true,
+      "response_time_ms": 14657.87,
+      "response": {
+        "immediate_actions": [
+          "Hotfix deployment for user-session endpoint to close DB connections in finally blocks and return connections to pool before any response or exception, and set min pool size to 0.",
+          "Scale connection pool temporarily to 50\u2013100 and set connection timeout/reap logic (e.g., validation query and short idle timeout) to reclaim leaked/idle connections.",
+          "Circuit-break non-critical endpoints using user-session, queue requests beyond a short cap, and return 503 with retry-after to prevent 500 storms.",
+          "Restart affected application instances to immediately reclaim any leaked connections."
+        ],
+        "investigation_steps": [
+          "Query active DB connections and compare against pool size during peak; sample which endpoints/hosts hold open connections.",
+          "Enable tracing/logging in user-session to log open/close of connections with request IDs, time-in-connection, and caller stack; identify code paths not closing connections.",
+          "Profile DB server to find long-running queries from user-session; look for unindexed filters, missing indexes, or N+1 query patterns.",
+          "Run a targeted load test on user-session to reproduce leak and validate the fix under controlled traffic."
+        ],
+        "long_term_fixes": [
+          "Adopt shared connection helpers (e.g., try-with-resources) across the service to standardize lifecycle management.",
+          "Introduce connection validation on borrow, short idle timeout, and min pool size set to 0 to avoid reserved/idle holding.",
+          "Add circuit breaker/timeout on DB calls in user-session and limit concurrency via request queuing or isolation pools.",
+          "Optimize or cache user-session queries; add missing indexes and batch requests to reduce per-request connection hold time.",
+          "Implement canary releases and soak tests with connection pool telemetry to catch regressions early."
+        ],
+        "monitoring": [
+          "DB connection pool in-use % and max-in-use across instances",
+          "Connection request queue size and queueing time (average and P95)",
+          "Average and P95 time-in-connection per request and per endpoint (user-session)",
+          "Database server active/idle connection counts and slow query rate",
+          "HTTP 500 and 503 rates, error budget, and retry/backoff rates",
+          "Endpoint latency (user-session) and throughput (RPS)",
+          "Alerts: pool >80% utilization for 1m, P95 wait >500ms, and sustained 500/503 spikes"
+        ]
+      },
+      "quality_score": 7.0,
+      "timestamp": "2025-11-12T12:42:21.225240"
+    },
+    {
+      "model": "deepseek-v3.1:671b",
+      "test": "Creative Text Generation",
+      "success": true,
+      "response_time_ms": 1548.37,
+      "response": {
+        "line1": "OK CPU:45%",
+        "line2": "Up:3d12h"
+      },
+      "quality_score": 6.0,
+      "timestamp": "2025-11-12T12:42:22.773701"
+    },
+    {
+      "model": "gpt-oss:120b",
+      "test": "Creative Text Generation",
+      "success": true,
+      "response_time_ms": 2808.18,
+      "response": {
+        "line1": "Srv:OK CPU:45%",
+        "line2": "Uptime:3d12h"
+      },
+      "quality_score": 6.0,
+      "timestamp": "2025-11-12T12:42:25.581944"
+    },
+    {
+      "model": "kimi-k2:1t",
+      "test": "Creative Text Generation",
+      "success": true,
+      "response_time_ms": 1608.11,
+      "response": {
+        "line1": "ALL SRVS HEALTHY",
+        "line2": "CPU45% UP 3d12h"
+      },
+      "quality_score": 6.0,
+      "timestamp": "2025-11-12T12:42:27.190110"
+    },
+    {
+      "model": "qwen3-coder:480b",
+      "test": "Creative Text Generation",
+      "success": true,
+      "response_time_ms": 3247.54,
+      "response": {
+        "line1": "ALL SERVICES OK",
+        "line2": "CPU:45% UP:3d12h"
+      },
+      "quality_score": 6.0,
+      "timestamp": "2025-11-12T12:42:30.437732"
+    },
+    {
+      "model": "gpt-oss:20b",
+      "test": "Creative Text Generation",
+      "success": true,
+      "response_time_ms": 5333.47,
+      "response": {
+        "line1": "Svc OK  CPU 45%",
+        "line2": "Uptime 3d 12h"
+      },
+      "quality_score": 6.0,
+      "timestamp": "2025-11-12T12:42:35.771289"
+    },
+    {
+      "model": "glm-4.6",
+      "test": "Creative Text Generation",
+      "success": true,
+      "response_time_ms": 9757.87,
+      "response": {
+        "line1": "CPU:45% Sys OK",
+        "line2": "Uptime: 3d 12h"
+      },
+      "quality_score": 6.0,
+      "timestamp": "2025-11-12T12:42:45.529252"
+    },
+    {
+      "model": "minimax-m2",
+      "test": "Creative Text Generation",
+      "success": true,
+      "response_time_ms": 7340.36,
+      "response": {
+        "line1": "ALL SERVICES OK",
+        "line2": "CPU 45% UP 3d12h"
+      },
+      "quality_score": 6.0,
+      "timestamp": "2025-11-12T12:42:52.869683"
+    },
+    {
+      "model": "deepseek-v3.1:671b",
+      "test": "Mathematical Reasoning",
+      "success": true,
+      "response_time_ms": 30301.44,
+      "response": {
+        "intervals": [
+          30,
+          30,
+          10,
+          10,
+          10
+        ],
+        "reasoning": "Current CPU is 75% with +2%/min trend, reaching critical threshold (>80%) in 150 seconds. First two intervals at warning state default (30s). Then switch to 10s intervals for the last 90 seconds before predicted threshold crossing to ensure quick detection of state change to Critical."
+      },
+      "quality_score": 8.0,
+      "timestamp": "2025-11-12T12:43:23.171175"
+    },
+    {
+      "model": "gpt-oss:120b",
+      "test": "Mathematical Reasoning",
+      "success": true,
+      "response_time_ms": 5751.99,
+      "response": {
+        "intervals": [
+          30,
+          30,
+          10,
+          10,
+          10
+        ],
+        "reasoning": "The system starts in the Warning state (CPU\u202f=\u202f75\u202f%). At a trend of +2\u202f% per minute (\u22480.033\u202f% per second) the CPU will rise by about 1\u202f% every 30\u202fseconds. \n\n1. **First interval \u2013 30\u202fs**: CPU \u2248 76\u202f% (still Warning). \n2. **Second interval \u2013 30\u202fs**: CPU \u2248 77\u202f% (still Warning). \n3. At this point the CPU is only 3\u202f% away from the Critical threshold (80\u202f%). Continuing with 30\u2011second checks would delay detection of the upcoming Critical state by up to another minute. Switching to the Critical\u2011state cadence (10\u202fs) provides finer granularity as the threshold is approached. \n4. **Third interval \u2013 10\u202fs**: CPU \u2248 77.33\u202f% (still Warning, but we are now monitoring more closely). \n5. **Fourth interval \u2013 10\u202fs**: CPU \u2248 77.66\u202f% (still Warning). \n6. **Fifth interval \u2013 10\u202fs**: CPU \u2248 78.00\u202f% (still Warning, but the next 10\u2011second check will catch the transition to Critical as soon as the CPU exceeds 80\u202f%).\n\nThus the optimal next five check intervals are two 30\u2011second checks while the system is comfortably in Warning, followed by three 10\u2011second checks to closely track the rapid approach to the Critical threshold."
+      },
+      "quality_score": 8.0,
+      "timestamp": "2025-11-12T12:43:28.923265"
+    },
+    {
+      "model": "kimi-k2:1t",
+      "test": "Mathematical Reasoning",
+      "success": true,
+      "response_time_ms": 5410.64,
+      "response": {
+        "intervals": [
+          30,
+          30,
+          10,
+          10,
+          10
+        ],
+        "reasoning": "CPU is at 75 % and rising 2 % per minute. It will cross the 80 % Critical threshold in 2.5 min (150 s). The first two 30-second checks keep us in Warning state. After 60 s total, CPU reaches 77 %. The third check (at 90 s) will see ~78 %, still Warning. The fourth check (at 120 s) will see ~79 %, still Warning. The fifth check (at 150 s) will see ~80 %, triggering Critical, so from that point onward 10-second intervals are required. Hence the next five scheduled intervals are 30, 30, 10, 10, 10 seconds."
+      },
+      "quality_score": 8.0,
+      "timestamp": "2025-11-12T12:43:34.334373"
+    },
+    {
+      "model": "qwen3-coder:480b",
+      "test": "Mathematical Reasoning",
+      "success": true,
+      "response_time_ms": 3182.75,
+      "response": {
+        "intervals": [
+          30,
+          30,
+          10,
+          10,
+          10
+        ],
+        "reasoning": "Starting in Warning state (CPU at 75%) with checks every 30 seconds. CPU is increasing 2% per minute, so after 1st check (30s): CPU = 76%, still Warning. After 2nd check (30s): CPU = 77%, still Warning. After 3rd check (30s): CPU = 78.5%, but since we're approaching the Critical threshold of 80% and trend is increasing, system should transition to Critical state for faster monitoring. Once in Critical state, all subsequent checks are at 10-second intervals. The state transition occurs before the 3rd check interval completes, so the remaining intervals are all 10 seconds."
+      },
+      "quality_score": 8.0,
+      "timestamp": "2025-11-12T12:43:37.517197"
+    },
+    {
+      "model": "gpt-oss:20b",
+      "test": "Mathematical Reasoning",
+      "success": true,
+      "response_time_ms": 8010.89,
+      "response": {
+        "intervals": [
+          30,
+          30,
+          10,
+          10,
+          10
+        ],
+        "reasoning": "The CPU is currently at 75\u202f% and rising at 2\u202f% per minute (\u22480.033\u202f% per second). A 30\u2011second check adds about 1\u202f% CPU, so after two 30\u2011second checks the CPU will be ~77\u202f%, still below the 80\u202f% critical threshold. To avoid missing the impending transition to Critical, the monitoring cadence is tightened to 10\u2011second checks thereafter. This schedule (30\u202fs, 30\u202fs, then 10\u202fs \u00d7\u202f3) balances resource use with timely detection of the threshold crossing."
+      },
+      "quality_score": 8.0,
+      "timestamp": "2025-11-12T12:43:45.528162"
+    },
+    {
+      "model": "glm-4.6",
+      "test": "Mathematical Reasoning",
+      "success": false,
+      "error": "JSON parse error: Expecting value: line 1 column 1 (char 0)",
+      "response_time_ms": 19369.63,
+      "timestamp": "2025-11-12T12:44:04.897853"
+    },
+    {
+      "model": "minimax-m2",
+      "test": "Mathematical Reasoning",
+      "success": false,
+      "error": "JSON parse error: Expecting value: line 1 column 1 (char 0)",
+      "response_time_ms": 22689.23,
+      "timestamp": "2025-11-12T12:44:27.587137"
+    }
+  ]
+}

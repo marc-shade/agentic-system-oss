@@ -1,0 +1,9 @@
+{
+  "calibration_date": "2025-11-16T09:14:10.746087",
+  "prometheus_checkpoint": 0,
+  "current_week_percentage": 63,
+  "weekly_limit_tokens": 229119,
+  "next_reset": "2025-11-19T15:59:00-05:00",
+  "timezone": "America/New_York",
+  "prometheus_total_at_calibration": 144345
+}

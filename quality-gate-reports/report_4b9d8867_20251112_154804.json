@@ -1,0 +1,74 @@
+{
+  "timestamp": "2025-11-12T15:48:04.749924",
+  "code_hash": "4b9d8867",
+  "syntax": {
+    "gate_name": "syntax",
+    "status": "pass",
+    "severity": "critical",
+    "score": 1.0,
+    "message": "Syntax valid",
+    "details": {},
+    "execution_time_ms": 0.041
+  },
+  "types": {
+    "gate_name": "types",
+    "status": "pass",
+    "severity": "low",
+    "score": 1.0,
+    "message": "No type errors",
+    "details": {},
+    "execution_time_ms": 276.19599999999997
+  },
+  "security": {
+    "gate_name": "security",
+    "status": "warn",
+    "severity": "medium",
+    "score": 0.9,
+    "message": "0 MEDIUM, 2 LOW issues",
+    "details": {
+      "high": 0,
+      "medium": 0,
+      "low": 2
+    },
+    "execution_time_ms": 144.827
+  },
+  "complexity": {
+    "gate_name": "complexity",
+    "status": "pass",
+    "severity": "low",
+    "score": 1.0,
+    "message": "Complexity acceptable (max=0, avg=0.0)",
+    "details": {
+      "functions": 0,
+      "classes": 0,
+      "lines": 2,
+      "max_complexity": 0,
+      "avg_complexity": 0,
+      "complexities": []
+    },
+    "execution_time_ms": 0.122
+  },
+  "style": {
+    "gate_name": "style",
+    "status": "fail",
+    "severity": "medium",
+    "score": 0.5,
+    "message": "Style score 0.50 below threshold 0.7",
+    "details": {
+      "errors": 0,
+      "warnings": 0,
+      "conventions": 2
+    },
+    "execution_time_ms": 380.51
+  },
+  "all_gates_passed": true,
+  "critical_failures": [],
+  "high_failures": [],
+  "warnings": [
+    "security: 0 MEDIUM, 2 LOW issues",
+    "style: Style score 0.50 below threshold 0.7"
+  ],
+  "overall_score": 0.92,
+  "deployment_approved": true,
+  "reasoning": "APPROVED: All gates passed (score=0.92) with 2 warnings"
+}

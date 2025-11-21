@@ -1,0 +1,25 @@
+[Unit]
+Description=Comprehensive Cluster State Updater
+Documentation=https://github.com/anthropics/agentic-system
+After=network.target
+
+[Service]
+Type=simple
+User=marc
+WorkingDirectory=/mnt/agentic-system/cluster-deployment
+ExecStart=/usr/bin/python3 /mnt/agentic-system/cluster-deployment/comprehensive_state_updater.py
+Restart=always
+RestartSec=30
+StandardOutput=journal
+StandardError=journal
+
+# Environment
+Environment="PYTHONUNBUFFERED=1"
+Environment="PATH=/usr/local/bin:/usr/bin:/bin"
+
+# Resource limits
+MemoryLimit=500M
+CPUQuota=25%
+
+[Install]
+WantedBy=multi-user.target

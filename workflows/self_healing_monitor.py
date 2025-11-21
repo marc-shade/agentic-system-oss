@@ -29,7 +29,11 @@ logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
+<<<<<<< HEAD
         logging.FileHandler('/Volumes/SSDRAID0/agentic-system/logs/self_healing.log'),
+=======
+        logging.FileHandler('/mnt/agentic-system/logs/self_healing.log'),
+>>>>>>> origin/main
         logging.StreamHandler()
     ]
 )
@@ -41,9 +45,15 @@ class ErrorDetector:
 
     def __init__(self):
         self.log_paths = [
+<<<<<<< HEAD
             '/Volumes/SSDRAID0/agentic-system/arduino-surface/logs/display-agent.log',
             '/Volumes/SSDRAID0/agentic-system/logs/system.log',
             '/Volumes/SSDRAID0/agentic-system/intelligent-self-healing/intelligent_statusline.log',
+=======
+            '/mnt/agentic-system/arduino-surface/logs/display-agent.log',
+            '/mnt/agentic-system/logs/system.log',
+            '/mnt/agentic-system/intelligent-self-healing/intelligent_statusline.log',
+>>>>>>> origin/main
         ]
         self.error_patterns = [
             (r'ERROR.*no such table: (\w+)', 'missing_table'),
@@ -117,9 +127,15 @@ class SelfHealingEngine:
                     '''
 import sys
 from pathlib import Path
+<<<<<<< HEAD
 sys.path.insert(0, '/Volumes/SSDRAID0/agentic-system/mcp-servers/agent-runtime-mcp')
 import server
 server.DB_PATH = Path('/Volumes/SSDRAID0/agentic-system/databases/mcp/agent_runtime.db')
+=======
+sys.path.insert(0, '/mnt/agentic-system/mcp-servers/agent-runtime-mcp')
+import server
+server.DB_PATH = Path('/mnt/agentic-system/databases/mcp/agent_runtime.db')
+>>>>>>> origin/main
 db = server.AgentRuntimeDB(server.DB_PATH)
 print("Database initialized successfully")
 '''
@@ -144,7 +160,11 @@ print("Database initialized successfully")
 
                 # The code has already been modified to handle this gracefully
                 # Just verify the fix is in place
+<<<<<<< HEAD
                 display_agent_path = '/Volumes/SSDRAID0/agentic-system/arduino-surface/daemons/intelligent_display_agent.py'
+=======
+                display_agent_path = '/mnt/agentic-system/arduino-surface/daemons/intelligent_display_agent.py'
+>>>>>>> origin/main
 
                 with open(display_agent_path, 'r') as f:
                     content = f.read()
@@ -202,8 +222,13 @@ print("Database initialized successfully")
 
         # Map log files to venv paths
         venv_map = {
+<<<<<<< HEAD
             'display-agent': Path('/Volumes/SSDRAID0/agentic-system/arduino-surface/.venv'),
             'enhanced-memory': Path('/Volumes/SSDRAID0/agentic-system/mcp-servers/enhanced-memory-mcp/.venv'),
+=======
+            'display-agent': Path('/mnt/agentic-system/arduino-surface/.venv'),
+            'enhanced-memory': Path('/mnt/agentic-system/mcp-servers/enhanced-memory-mcp/.venv'),
+>>>>>>> origin/main
         }
 
         for key, venv in venv_map.items():
@@ -251,8 +276,12 @@ print("Database initialized successfully")
 
 def update_status(state: str, error_count: int = 0, healing_count: int = 0, fixed_count: int = 0, message: str = ""):
     """Update status file for statusline display."""
+<<<<<<< HEAD
     # Store on SSDRAID0 (not /tmp - see FILE_LOCATION_POLICY.md)
     status_file = Path('/Volumes/SSDRAID0/agentic-system/logs/self_healing/status.json')
+=======
+    status_file = Path('/tmp/self_healing_status.json')
+>>>>>>> origin/main
     status = {
         'state': state,  # idle, analyzing, healing, completed
         'error_count': error_count,
@@ -324,7 +353,11 @@ async def main():
         update_status('idle', error_count=len(results) - healed_count, message='Manual fix needed')
 
     # Save results to file for analysis
+<<<<<<< HEAD
     results_file = Path('/Volumes/SSDRAID0/agentic-system/logs/self_healing_results.jsonl')
+=======
+    results_file = Path('/mnt/agentic-system/logs/self_healing_results.jsonl')
+>>>>>>> origin/main
     with open(results_file, 'a') as f:
         for result in results:
             f.write(json.dumps(result) + '\n')

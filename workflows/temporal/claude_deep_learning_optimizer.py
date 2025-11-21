@@ -14,7 +14,11 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Tuple, Optional
 
 # Add intelligent healing system to path
+<<<<<<< HEAD
 sys.path.insert(0, '/Volumes/SSDRAID0/agentic-system/intelligent-self-healing')
+=======
+sys.path.insert(0, '/mnt/agentic-system/intelligent-self-healing')
+>>>>>>> origin/main
 from intelligent_config_agent import IntelligentConfigAgent
 
 # Temporal imports
@@ -41,10 +45,15 @@ class PerformanceMetrics:
     """Collect and analyze Claude Code performance metrics"""
 
     def __init__(self):
+<<<<<<< HEAD
         # Store on SSDRAID0 (not /tmp - see FILE_LOCATION_POLICY.md)
         base = Path("/Volumes/SSDRAID0/agentic-system")
         self.metrics_file = base / "logs/performance/claude_metrics.json"
         self.learning_memory = base / "logs/learning/learning_memory.jsonl"
+=======
+        self.metrics_file = Path("/tmp/claude_performance_metrics.json")
+        self.learning_memory = Path("/tmp/claude_learning_memory.jsonl")
+>>>>>>> origin/main
 
     def collect_metrics(self) -> Dict:
         """Collect current performance metrics"""
@@ -353,10 +362,15 @@ if TEMPORAL_AVAILABLE:
                 "optimizations": result
             }
 
+<<<<<<< HEAD
             # Log to learning memory (SSDRAID0)
             base = Path("/Volumes/SSDRAID0/agentic-system")
             learning_memory = base / "logs/learning/learning_memory.jsonl"
             learning_memory.parent.mkdir(parents=True, exist_ok=True)
+=======
+            # Log to learning memory
+            learning_memory = Path("/tmp/claude_learning_memory.jsonl")
+>>>>>>> origin/main
             with open(learning_memory, 'a') as f:
                 f.write(json.dumps(learning_record) + '\n')
 
@@ -422,9 +436,13 @@ def main_standalone():
         "optimizations": result
     }
 
+<<<<<<< HEAD
     base = Path("/Volumes/SSDRAID0/agentic-system")
     learning_memory = base / "logs/learning/learning_memory.jsonl"
     learning_memory.parent.mkdir(parents=True, exist_ok=True)
+=======
+    learning_memory = Path("/tmp/claude_learning_memory.jsonl")
+>>>>>>> origin/main
     with open(learning_memory, 'a') as f:
         f.write(json.dumps(learning_record) + '\n')
 

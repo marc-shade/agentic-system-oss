@@ -23,6 +23,7 @@ from mcp.server import Server
 from mcp.types import Tool, TextContent, ImageContent, EmbeddedResource
 import mcp.server.stdio
 
+<<<<<<< HEAD
 # TOON format utilities for 50% token savings
 sys.path.insert(0, str(Path(__file__).parent.parent / "SHARED"))
 try:
@@ -41,12 +42,15 @@ except ImportError:
     META_PROMPTING_AVAILABLE = False
     print("⚠️  Meta-prompting integration not available", file=sys.stderr)
 
+=======
+>>>>>>> origin/main
 
 # Database path
 DB_PATH = Path.home() / ".claude" / "agent_runtime.db"
 DB_PATH.parent.mkdir(exist_ok=True)
 
 
+<<<<<<< HEAD
 def _encode_response(data: Any, pretty: bool = False) -> str:
     """
     Encode response data using TOON format when available.
@@ -68,6 +72,8 @@ def _encode_response(data: Any, pretty: bool = False) -> str:
             return json.dumps(data, separators=(',', ':'))
 
 
+=======
+>>>>>>> origin/main
 class AgentRuntimeDB:
     """Database manager for persistent task and goal storage."""
 
@@ -643,7 +649,11 @@ async def call_tool(name: str, arguments: Any) -> List[TextContent]:
         goal = db.get_goal(goal_id)
         return [TextContent(
             type="text",
+<<<<<<< HEAD
             text=_encode_response(goal, use_tabular=False)
+=======
+            text=json.dumps(goal, indent=2)
+>>>>>>> origin/main
         )]
 
     elif name == "decompose_goal":
@@ -652,6 +662,7 @@ async def call_tool(name: str, arguments: Any) -> List[TextContent]:
             return [TextContent(type="text", text=f"Goal {arguments['goal_id']} not found")]
 
         strategy = arguments.get("strategy", "sequential")
+<<<<<<< HEAD
 
         # Layer 4: Use meta-prompted decomposition if available
         if META_PROMPTING_AVAILABLE:
@@ -659,6 +670,9 @@ async def call_tool(name: str, arguments: Any) -> List[TextContent]:
         else:
             # Fallback to original decomposition
             tasks = await decomposer.decompose_goal(goal, strategy)
+=======
+        tasks = await decomposer.decompose_goal(goal, strategy)
+>>>>>>> origin/main
 
         created_task_ids = []
         for i, task in enumerate(tasks):
@@ -672,6 +686,7 @@ async def call_tool(name: str, arguments: Any) -> List[TextContent]:
                 title=task["title"],
                 description=task["description"],
                 priority=task.get("priority", 5),
+<<<<<<< HEAD
                 dependencies=dependencies,
                 metadata=task.get("metadata")
             )
@@ -696,6 +711,20 @@ async def call_tool(name: str, arguments: Any) -> List[TextContent]:
         return [TextContent(
             type="text",
             text=_encode_response(result, use_tabular=False)
+=======
+                dependencies=dependencies
+            )
+            created_task_ids.append(task_id)
+
+        return [TextContent(
+            type="text",
+            text=json.dumps({
+                "goal_id": goal["id"],
+                "strategy": strategy,
+                "tasks_created": created_task_ids,
+                "count": len(created_task_ids)
+            }, indent=2)
+>>>>>>> origin/main
         )]
 
     elif name == "create_task":
@@ -709,7 +738,11 @@ async def call_tool(name: str, arguments: Any) -> List[TextContent]:
         task = db.get_task(task_id)
         return [TextContent(
             type="text",
+<<<<<<< HEAD
             text=_encode_response(task, pretty=False)
+=======
+            text=json.dumps(task, indent=2)
+>>>>>>> origin/main
         )]
 
     elif name == "get_next_task":
@@ -717,12 +750,20 @@ async def call_tool(name: str, arguments: Any) -> List[TextContent]:
         if task:
             return [TextContent(
                 type="text",
+<<<<<<< HEAD
                 text=_encode_response(task, pretty=False)
+=======
+                text=json.dumps(task, indent=2)
+>>>>>>> origin/main
             )]
         else:
             return [TextContent(
                 type="text",
+<<<<<<< HEAD
                 text=_encode_response({"message": "No tasks available in queue"}, pretty=False)
+=======
+                text=json.dumps({"message": "No tasks available in queue"})
+>>>>>>> origin/main
             )]
 
     elif name == "update_task_status":
@@ -735,15 +776,25 @@ async def call_tool(name: str, arguments: Any) -> List[TextContent]:
         task = db.get_task(arguments["task_id"])
         return [TextContent(
             type="text",
+<<<<<<< HEAD
             text=_encode_response(task, pretty=False)
+=======
+            text=json.dumps(task, indent=2)
+>>>>>>> origin/main
         )]
 
     elif name == "list_goals":
         goals = db.list_goals(arguments.get("status"))
+<<<<<<< HEAD
         # Lists benefit greatly from TOON's tabular format
         return [TextContent(
             type="text",
             text=_encode_response(goals, pretty=False)
+=======
+        return [TextContent(
+            type="text",
+            text=json.dumps(goals, indent=2)
+>>>>>>> origin/main
         )]
 
     elif name == "list_tasks":
@@ -752,10 +803,16 @@ async def call_tool(name: str, arguments: Any) -> List[TextContent]:
             status=arguments.get("status"),
             limit=arguments.get("limit", 50)
         )
+<<<<<<< HEAD
         # Task lists benefit greatly from TOON's tabular format (50-60% savings)
         return [TextContent(
             type="text",
             text=_encode_response(tasks, pretty=False)
+=======
+        return [TextContent(
+            type="text",
+            text=json.dumps(tasks, indent=2)
+>>>>>>> origin/main
         )]
 
     elif name == "get_goal":
@@ -763,12 +820,20 @@ async def call_tool(name: str, arguments: Any) -> List[TextContent]:
         if goal:
             return [TextContent(
                 type="text",
+<<<<<<< HEAD
                 text=_encode_response(goal, pretty=False)
+=======
+                text=json.dumps(goal, indent=2)
+>>>>>>> origin/main
             )]
         else:
             return [TextContent(
                 type="text",
+<<<<<<< HEAD
                 text=_encode_response({"error": f"Goal {arguments['goal_id']} not found"}, pretty=False)
+=======
+                text=json.dumps({"error": f"Goal {arguments['goal_id']} not found"})
+>>>>>>> origin/main
             )]
 
     elif name == "get_task":
@@ -776,12 +841,20 @@ async def call_tool(name: str, arguments: Any) -> List[TextContent]:
         if task:
             return [TextContent(
                 type="text",
+<<<<<<< HEAD
                 text=_encode_response(task, pretty=False)
+=======
+                text=json.dumps(task, indent=2)
+>>>>>>> origin/main
             )]
         else:
             return [TextContent(
                 type="text",
+<<<<<<< HEAD
                 text=_encode_response({"error": f"Task {arguments['task_id']} not found"}, pretty=False)
+=======
+                text=json.dumps({"error": f"Task {arguments['task_id']} not found"})
+>>>>>>> origin/main
             )]
 
     return [TextContent(type="text", text=f"Unknown tool: {name}")]

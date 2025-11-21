@@ -1,0 +1,22 @@
+{
+  "item_id": "http://arxiv.org/abs/1608.08459v1",
+  "source_type": "research_paper",
+  "source_id": "http://arxiv.org/abs/1608.08459v1",
+  "title": "Construction of Zero Cross Correlation Code using a type of Pascal's Triangle Matrix for Spectral Amplitude Coding Optical Code Division Multiple Access networks",
+  "concepts": [],
+  "techniques": [],
+  "insights": [
+    "In this paper a new method to construct zero cross correlation code with the\nhelp of Pascal's triangle pattern called Pascal's Triangle Matrix Code (PTMC)\nfor Spectral Amplitude Coding Optical Code Di"
+  ],
+  "authors": [
+    "K S Nisar"
+  ],
+  "created_at": "2016-08-13T20:19:39+00:00",
+  "citations": 0,
+  "confidence_score": 0.8,
+  "related_items": [],
+  "tags": [
+    "cs.IT",
+    "math.IT"
+  ]
+}

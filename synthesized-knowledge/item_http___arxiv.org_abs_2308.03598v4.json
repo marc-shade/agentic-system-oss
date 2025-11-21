@@ -1,0 +1,22 @@
+{
+  "item_id": "http://arxiv.org/abs/2308.03598v4",
+  "source_type": "research_paper",
+  "source_id": "http://arxiv.org/abs/2308.03598v4",
+  "title": "Why We Don't Have AGI Yet",
+  "concepts": [],
+  "techniques": [],
+  "insights": [
+    "The original vision of AI was re-articulated in 2002 via the term 'Artificial\nGeneral Intelligence' or AGI. This vision is to build 'Thinking Machines' -\ncomputer systems that can learn, reason, and s"
+  ],
+  "authors": [
+    "Peter Voss",
+    "Mladjan Jovanovic"
+  ],
+  "created_at": "2023-08-07T13:59:31+00:00",
+  "citations": 0,
+  "confidence_score": 0.8,
+  "related_items": [],
+  "tags": [
+    "cs.AI"
+  ]
+}

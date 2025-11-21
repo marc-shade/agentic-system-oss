@@ -1,0 +1,106 @@
+# Promtail Configuration for Builder Node (macpro51)
+# Ships logs from systemd journal, Docker containers, and build logs to Loki
+
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  # Scrape systemd journal for Builder API and build executor
+  - job_name: journal
+    journal:
+      max_age: 12h
+      labels:
+        job: systemd-journal
+        node: macpro51
+        node_type: builder
+    relabel_configs:
+      - source_labels: ['__journal__systemd_unit']
+        target_label: 'unit'
+      - source_labels: ['__journal__hostname']
+        target_label: 'hostname'
+      - source_labels: ['__journal_priority_keyword']
+        target_label: 'level'
+
+  # Scrape Docker container logs
+  - job_name: docker
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+        refresh_interval: 5s
+    relabel_configs:
+      - source_labels: ['__meta_docker_container_name']
+        regex: '/(.*)'
+        target_label: 'container'
+      - source_labels: ['__meta_docker_container_log_stream']
+        target_label: 'stream'
+      - source_labels: ['__meta_docker_container_label_com_docker_compose_service']
+        target_label: 'service'
+      - source_labels: ['__meta_docker_container_label_com_docker_compose_project']
+        target_label: 'project'
+    pipeline_stages:
+      # Add static labels
+      - static_labels:
+          node: macpro51
+          node_type: builder
+      # Parse JSON logs if present
+      - json:
+          expressions:
+            level: level
+            timestamp: timestamp
+            message: message
+      # Extract log level from common patterns
+      - regex:
+          expression: '(?P<level>INFO|WARN|ERROR|DEBUG|TRACE)'
+      - labels:
+          level:
+
+  # Scrape build logs from artifact storage
+  - job_name: build-logs
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: build-logs
+          node: macpro51
+          node_type: builder
+          __path__: /home/marc/agentic-system/builder-node/artifacts/*/logs/*.log
+    pipeline_stages:
+      # Extract build ID from file path
+      - regex:
+          source: filename
+          expression: '/artifacts/(?P<build_id>[^/]+)/logs/'
+      - labels:
+          build_id:
+      # Extract log level
+      - regex:
+          expression: '(?P<level>INFO|WARN|ERROR|DEBUG|TRACE)'
+      - labels:
+          level:
+
+  # Scrape monitoring stack logs
+  - job_name: monitoring
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: monitoring-logs
+          node: macpro51
+          __path__: /home/marc/agentic-system/monitoring/*/logs/*.log
+    pipeline_stages:
+      # Extract service name from path
+      - regex:
+          source: filename
+          expression: '/monitoring/(?P<service>[^/]+)/logs/'
+      - labels:
+          service:
+      # Extract log level
+      - regex:
+          expression: '(?P<level>INFO|WARN|ERROR|DEBUG|TRACE)'
+      - labels:
+          level:

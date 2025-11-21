@@ -1,0 +1,404 @@
+{
+  "dashboard": {
+    "title": "GitMQ Task Execution",
+    "tags": [
+      "gitmq",
+      "tasks",
+      "execution"
+    ],
+    "timezone": "browser",
+    "schemaVersion": 36,
+    "version": 1,
+    "refresh": "5s",
+    "panels": [
+      {
+        "type": "stat",
+        "title": "Pending Tasks",
+        "gridPos": {
+          "h": 4,
+          "w": 6,
+          "x": 0,
+          "y": 0
+        },
+        "targets": [
+          {
+            "expr": "gitmq_tasks_pending",
+            "refId": "A",
+            "datasource": "Prometheus"
+          }
+        ],
+        "options": {
+          "reduceOptions": {
+            "values": false,
+            "calcs": [
+              "lastNotNull"
+            ]
+          },
+          "orientation": "auto",
+          "textMode": "auto",
+          "colorMode": "value",
+          "graphMode": "area"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "value": 0,
+                  "color": "green"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "type": "stat",
+        "title": "Running Tasks",
+        "gridPos": {
+          "h": 4,
+          "w": 6,
+          "x": 6,
+          "y": 0
+        },
+        "targets": [
+          {
+            "expr": "gitmq_tasks_running",
+            "refId": "A",
+            "datasource": "Prometheus"
+          }
+        ],
+        "options": {
+          "reduceOptions": {
+            "values": false,
+            "calcs": [
+              "lastNotNull"
+            ]
+          },
+          "orientation": "auto",
+          "textMode": "auto",
+          "colorMode": "value",
+          "graphMode": "area"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "value": 0,
+                  "color": "green"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "type": "stat",
+        "title": "Completed (1h)",
+        "gridPos": {
+          "h": 4,
+          "w": 6,
+          "x": 12,
+          "y": 0
+        },
+        "targets": [
+          {
+            "expr": "increase(gitmq_tasks_completed_total[1h])",
+            "refId": "A",
+            "datasource": "Prometheus"
+          }
+        ],
+        "options": {
+          "reduceOptions": {
+            "values": false,
+            "calcs": [
+              "lastNotNull"
+            ]
+          },
+          "orientation": "auto",
+          "textMode": "auto",
+          "colorMode": "value",
+          "graphMode": "area"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "value": 0,
+                  "color": "green"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "type": "stat",
+        "title": "Failed (1h)",
+        "gridPos": {
+          "h": 4,
+          "w": 6,
+          "x": 18,
+          "y": 0
+        },
+        "targets": [
+          {
+            "expr": "increase(gitmq_tasks_failed_total[1h])",
+            "refId": "A",
+            "datasource": "Prometheus"
+          }
+        ],
+        "options": {
+          "reduceOptions": {
+            "values": false,
+            "calcs": [
+              "lastNotNull"
+            ]
+          },
+          "orientation": "auto",
+          "textMode": "auto",
+          "colorMode": "value",
+          "graphMode": "area"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "value": 0,
+                  "color": "green"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "type": "graph",
+        "title": "Task Execution Duration (Percentiles)",
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 4
+        },
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.50, rate(gitmq_task_execution_duration_seconds_bucket[5m]))",
+            "legendFormat": "p50",
+            "refId": "A",
+            "datasource": "Prometheus"
+          },
+          {
+            "expr": "histogram_quantile(0.90, rate(gitmq_task_execution_duration_seconds_bucket[5m]))",
+            "legendFormat": "p90",
+            "refId": "B",
+            "datasource": "Prometheus"
+          },
+          {
+            "expr": "histogram_quantile(0.95, rate(gitmq_task_execution_duration_seconds_bucket[5m]))",
+            "legendFormat": "p95",
+            "refId": "C",
+            "datasource": "Prometheus"
+          },
+          {
+            "expr": "histogram_quantile(0.99, rate(gitmq_task_execution_duration_seconds_bucket[5m]))",
+            "legendFormat": "p99",
+            "refId": "D",
+            "datasource": "Prometheus"
+          }
+        ],
+        "yaxes": [
+          {
+            "label": "seconds",
+            "show": true
+          },
+          {
+            "show": true
+          }
+        ],
+        "xaxis": {
+          "show": true,
+          "mode": "time"
+        },
+        "legend": {
+          "show": true,
+          "alignAsTable": true,
+          "avg": true,
+          "max": true,
+          "min": true,
+          "current": true,
+          "values": true
+        },
+        "lines": true,
+        "fill": 1,
+        "linewidth": 1,
+        "nullPointMode": "null",
+        "tooltip": {
+          "shared": true,
+          "sort": 0,
+          "value_type": "individual"
+        }
+      },
+      {
+        "type": "graph",
+        "title": "Task Submission by Type",
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 4
+        },
+        "targets": [
+          {
+            "expr": "rate(gitmq_tasks_submitted_total[5m])",
+            "legendFormat": "{{task_type}}",
+            "refId": "A",
+            "datasource": "Prometheus"
+          }
+        ],
+        "yaxes": [
+          {
+            "label": "tasks/sec",
+            "show": true
+          },
+          {
+            "show": true
+          }
+        ],
+        "xaxis": {
+          "show": true,
+          "mode": "time"
+        },
+        "legend": {
+          "show": true,
+          "alignAsTable": true,
+          "avg": true,
+          "max": true,
+          "min": true,
+          "current": true,
+          "values": true
+        },
+        "lines": true,
+        "fill": 1,
+        "linewidth": 1,
+        "nullPointMode": "null",
+        "tooltip": {
+          "shared": true,
+          "sort": 0,
+          "value_type": "individual"
+        }
+      },
+      {
+        "type": "graph",
+        "title": "Task Status Timeline",
+        "gridPos": {
+          "h": 8,
+          "w": 24,
+          "x": 0,
+          "y": 12
+        },
+        "targets": [
+          {
+            "expr": "gitmq_tasks_pending",
+            "legendFormat": "Pending",
+            "refId": "A",
+            "datasource": "Prometheus"
+          },
+          {
+            "expr": "gitmq_tasks_running",
+            "legendFormat": "Running",
+            "refId": "B",
+            "datasource": "Prometheus"
+          },
+          {
+            "expr": "rate(gitmq_tasks_completed_total[1m])",
+            "legendFormat": "Completed/sec",
+            "refId": "C",
+            "datasource": "Prometheus"
+          },
+          {
+            "expr": "rate(gitmq_tasks_failed_total[1m])",
+            "legendFormat": "Failed/sec",
+            "refId": "D",
+            "datasource": "Prometheus"
+          }
+        ],
+        "yaxes": [
+          {
+            "label": "count",
+            "show": true
+          },
+          {
+            "show": true
+          }
+        ],
+        "xaxis": {
+          "show": true,
+          "mode": "time"
+        },
+        "legend": {
+          "show": true,
+          "alignAsTable": true,
+          "avg": true,
+          "max": true,
+          "min": true,
+          "current": true,
+          "values": true
+        },
+        "lines": true,
+        "fill": 1,
+        "linewidth": 1,
+        "nullPointMode": "null",
+        "tooltip": {
+          "shared": true,
+          "sort": 0,
+          "value_type": "individual"
+        }
+      },
+      {
+        "type": "table",
+        "title": "Task Metrics by Type",
+        "gridPos": {
+          "h": 8,
+          "w": 24,
+          "x": 0,
+          "y": 20
+        },
+        "targets": [
+          {
+            "expr": "gitmq_tasks_submitted_total",
+            "format": "table",
+            "instant": true,
+            "refId": "A",
+            "datasource": "Prometheus"
+          }
+        ],
+        "options": {
+          "showHeader": true,
+          "sortBy": []
+        },
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {
+              "excludeByName": {},
+              "indexByName": {},
+              "renameByName": {}
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

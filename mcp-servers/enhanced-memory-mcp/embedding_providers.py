@@ -241,8 +241,13 @@ class OllamaProvider(EmbeddingProvider):
 
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
+<<<<<<< HEAD
         self.model = config.get("model", "nomic-embed-text")
         self.dimensions = config.get("dimensions", 768)
+=======
+        self.model = config.get("model", "mxbai-embed-large")
+        self.dimensions = config.get("dimensions", 1024)  # mxbai-embed-large uses 1024 dimensions
+>>>>>>> origin/main
         self.base_url = config.get("base_url", "http://localhost:11434")
 
     def is_available(self) -> bool:

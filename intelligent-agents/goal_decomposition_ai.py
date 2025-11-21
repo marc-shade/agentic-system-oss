@@ -41,7 +41,11 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Database path
+<<<<<<< HEAD
 DB_PATH = Path("/Volumes/SSDRAID0/agentic-system/databases/goal_decomposition.db")
+=======
+DB_PATH = Path("/mnt/agentic-system/databases/goal_decomposition.db")
+>>>>>>> origin/main
 
 
 class TaskType(Enum):

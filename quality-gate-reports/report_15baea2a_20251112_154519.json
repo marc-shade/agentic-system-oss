@@ -1,0 +1,30 @@
+{
+  "timestamp": "2025-11-12T15:45:19.705395",
+  "code_hash": "15baea2a",
+  "syntax": {
+    "gate_name": "syntax",
+    "status": "fail",
+    "severity": "critical",
+    "score": 0.0,
+    "message": "Syntax error at line 2: expected ':'",
+    "details": {
+      "line": 2,
+      "offset": 22,
+      "text": "def broken_function()\n"
+    },
+    "execution_time_ms": 0.056
+  },
+  "types": null,
+  "security": null,
+  "complexity": null,
+  "style": null,
+  "all_gates_passed": false,
+  "critical_failures": [
+    "Syntax check failed (critical)"
+  ],
+  "high_failures": [],
+  "warnings": [],
+  "overall_score": 0.0,
+  "deployment_approved": false,
+  "reasoning": "Syntax check failed (critical)"
+}

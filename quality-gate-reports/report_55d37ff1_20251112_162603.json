@@ -1,0 +1,106 @@
+{
+  "timestamp": "2025-11-12T16:26:03.502772",
+  "code_hash": "55d37ff1",
+  "syntax": {
+    "gate_name": "syntax",
+    "status": "pass",
+    "severity": "critical",
+    "score": 1.0,
+    "message": "Syntax valid",
+    "details": {},
+    "execution_time_ms": 2.114
+  },
+  "types": {
+    "gate_name": "types",
+    "status": "warn",
+    "severity": "low",
+    "score": 0.0,
+    "message": "25 type issues found",
+    "details": {
+      "error_count": 25,
+      "errors": [
+        "tmp-workspace/tmpjx3cle9a.py:16: error: Function is missing a type annotation  [no-untyped-def]",
+        "tmp-workspace/tmpjx3cle9a.py:36: error: Function is missing a type annotation  [no-untyped-def]",
+        "tmp-workspace/tmpjx3cle9a.py:55: error: Function is missing a type annotation  [no-untyped-def]",
+        "tmp-workspace/tmpjx3cle9a.py:75: error: Function is missing a type annotation  [no-untyped-def]",
+        "tmp-workspace/tmpjx3cle9a.py:98: error: Function is missing a type annotation  [no-untyped-def]"
+      ]
+    },
+    "execution_time_ms": 915.755
+  },
+  "security": {
+    "gate_name": "security",
+    "status": "fail",
+    "severity": "high",
+    "score": 0.55,
+    "message": "Security score 0.55 below threshold 0.8",
+    "details": {
+      "high": 0,
+      "medium": 0,
+      "low": 9
+    },
+    "execution_time_ms": 673.845
+  },
+  "complexity": {
+    "gate_name": "complexity",
+    "status": "pass",
+    "severity": "low",
+    "score": 1.0,
+    "message": "Complexity acceptable (max=6, avg=2.9)",
+    "details": {
+      "functions": 12,
+      "classes": 0,
+      "lines": 252,
+      "max_complexity": 6,
+      "avg_complexity": 2.9166666666666665,
+      "complexities": [
+        {
+          "name": "process_items",
+          "complexity": 3
+        },
+        {
+          "name": "calculate_total",
+          "complexity": 2
+        },
+        {
+          "name": "filter_and_square",
+          "complexity": 3
+        },
+        {
+          "name": "find_max_value",
+          "complexity": 4
+        },
+        {
+          "name": "merge_and_sort",
+          "complexity": 6
+        }
+      ]
+    },
+    "execution_time_ms": 1.449
+  },
+  "style": {
+    "gate_name": "style",
+    "status": "fail",
+    "severity": "medium",
+    "score": 0.5,
+    "message": "Style score 0.50 below threshold 0.7",
+    "details": {
+      "errors": 0,
+      "warnings": 0,
+      "conventions": 4
+    },
+    "execution_time_ms": 399.69
+  },
+  "all_gates_passed": false,
+  "critical_failures": [],
+  "high_failures": [
+    "security: Security score 0.55 below threshold 0.8"
+  ],
+  "warnings": [
+    "types: 25 type issues found",
+    "style: Style score 0.50 below threshold 0.7"
+  ],
+  "overall_score": 0.715,
+  "deployment_approved": false,
+  "reasoning": "REJECTED: High severity failures - security: Security score 0.55 below threshold 0.8"
+}

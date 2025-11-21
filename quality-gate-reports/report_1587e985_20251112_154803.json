@@ -1,0 +1,30 @@
+{
+  "timestamp": "2025-11-12T15:48:03.947129",
+  "code_hash": "1587e985",
+  "syntax": {
+    "gate_name": "syntax",
+    "status": "fail",
+    "severity": "critical",
+    "score": 0.0,
+    "message": "Syntax error at line 1: expected ':'",
+    "details": {
+      "line": 1,
+      "offset": 11,
+      "text": "def bad() print('missing colon')\n"
+    },
+    "execution_time_ms": 0.043000000000000003
+  },
+  "types": null,
+  "security": null,
+  "complexity": null,
+  "style": null,
+  "all_gates_passed": false,
+  "critical_failures": [
+    "Syntax check failed (critical)"
+  ],
+  "high_failures": [],
+  "warnings": [],
+  "overall_score": 0.0,
+  "deployment_approved": false,
+  "reasoning": "Syntax check failed (critical)"
+}

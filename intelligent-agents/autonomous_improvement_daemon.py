@@ -22,6 +22,7 @@ import asyncio
 import logging
 import signal
 import sys
+<<<<<<< HEAD
 import os
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -36,6 +37,13 @@ except ImportError:
     ANTHROPIC_AVAILABLE = False
     logger.warning("Anthropic SDK not available - recursive improvement will be limited")
 
+=======
+from datetime import datetime, timedelta
+from pathlib import Path
+from typing import Dict, Optional
+import json
+
+>>>>>>> origin/main
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent))
 
@@ -47,15 +55,22 @@ from goal_decomposition_ai import GoalDecompositionAI
 from context_synthesis_engine import ContextSynthesisEngine
 from darwin_godel_machine import DarwinGodelMachine, ModificationType
 
+<<<<<<< HEAD
 # Import verified improvement executor (NEW - Phase 1 Activation)
 from verified_improvement_executor import VerifiedImprovementExecutor
 
+=======
+>>>>>>> origin/main
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
+<<<<<<< HEAD
         logging.FileHandler('/Volumes/SSDRAID0/agentic-system/logs/autonomous_improvement.log'),
+=======
+        logging.FileHandler('/mnt/agentic-system/logs/autonomous_improvement.log'),
+>>>>>>> origin/main
         logging.StreamHandler()
     ]
 )
@@ -88,6 +103,7 @@ class AutonomousImprovementDaemon:
         self.context_engine = ContextSynthesisEngine()
         self.darwin_godel = DarwinGodelMachine()
 
+<<<<<<< HEAD
         # Initialize verified improvement executor (Phase 1 Activation)
         self.verified_executor = VerifiedImprovementExecutor(
             working_dir=Path("/Volumes/SSDRAID0/agentic-system"),
@@ -95,10 +111,13 @@ class AutonomousImprovementDaemon:
             require_approval_threshold=0.95
         )
 
+=======
+>>>>>>> origin/main
         # Set Darwin Gödel baseline
         self.darwin_godel.set_baseline()
 
         logger.info("AGI components initialized successfully")
+<<<<<<< HEAD
         logger.info("✓ Verified Improvement Executor activated")
 
     async def call_claude_for_analysis(
@@ -257,6 +276,8 @@ Respond ONLY with valid JSON, no additional text."""
         logger.info(f"Execution record saved to: {execution_file}")
 
         return result
+=======
+>>>>>>> origin/main
 
     async def run_meta_learning_cycle(self) -> Dict:
         """Run meta-learning improvement cycle"""
@@ -296,6 +317,7 @@ Respond ONLY with valid JSON, no additional text."""
             return {"status": "error", "message": str(e)}
 
     async def run_darwin_godel_cycle(self) -> Dict:
+<<<<<<< HEAD
         """
         Run Darwin Gödel self-improvement cycle.
 
@@ -304,6 +326,9 @@ Respond ONLY with valid JSON, no additional text."""
         - Auto-implements high-safety modifications
         - Tracks implementation results
         """
+=======
+        """Run Darwin Gödel self-improvement cycle"""
+>>>>>>> origin/main
         logger.info("Running Darwin Gödel cycle...")
 
         try:
@@ -313,6 +338,7 @@ Respond ONLY with valid JSON, no additional text."""
             # Check if any recent modifications need verification
             recent_modifications = [h for h in history if h["applied"] and not h["reverted"]]
 
+<<<<<<< HEAD
             # PHASE 6: Check for pending modifications (recursive self-improvement)
             pending_modifications = [h for h in history if not h["applied"]]
             implementations_attempted = 0
@@ -355,6 +381,12 @@ Respond ONLY with valid JSON, no additional text."""
                 "implementations_attempted": implementations_attempted,
                 "implementations_succeeded": implementations_succeeded,
                 "recursive_loop_active": implementations_attempted > 0
+=======
+            return {
+                "status": "success",
+                "total_modifications": len(history),
+                "active_modifications": len(recent_modifications)
+>>>>>>> origin/main
             }
         except Exception as e:
             logger.error(f"Darwin Gödel cycle failed: {e}")
@@ -385,6 +417,7 @@ Respond ONLY with valid JSON, no additional text."""
             return {"status": "error", "message": str(e)}
 
     async def run_improvement_cycle(self) -> Dict:
+<<<<<<< HEAD
         """
         Run complete improvement cycle WITH Claude integration.
 
@@ -398,6 +431,9 @@ Respond ONLY with valid JSON, no additional text."""
         This creates a continuous feedback loop where the system improves itself
         through its own reasoning capabilities.
         """
+=======
+        """Run complete improvement cycle across all components"""
+>>>>>>> origin/main
         cycle_start = datetime.now()
         self.cycle_count += 1
 
@@ -407,6 +443,7 @@ Respond ONLY with valid JSON, no additional text."""
 
         results = {}
 
+<<<<<<< HEAD
         # 1. Meta-Learning - Detect patterns in recent executions
         results["meta_learning"] = await self.run_meta_learning_cycle()
 
@@ -509,6 +546,20 @@ Respond ONLY with valid JSON, no additional text."""
             }
         # ============ END CLAUDE INTEGRATION ============
 
+=======
+        # 1. Meta-Learning
+        results["meta_learning"] = await self.run_meta_learning_cycle()
+
+        # 2. Skill Evolution
+        results["skill_evolution"] = await self.run_skill_evolution_cycle()
+
+        # 3. Darwin Gödel Machine
+        results["darwin_godel"] = await self.run_darwin_godel_cycle()
+
+        # 4. Multi-Agent Coordination
+        results["coordination"] = await self.run_coordination_optimization()
+
+>>>>>>> origin/main
         cycle_duration = (datetime.now() - cycle_start).total_seconds()
 
         summary = {
@@ -528,7 +579,11 @@ Respond ONLY with valid JSON, no additional text."""
 
     def _save_cycle_report(self, summary: Dict):
         """Save cycle report to file"""
+<<<<<<< HEAD
         reports_dir = Path("/Volumes/SSDRAID0/agentic-system/logs/improvement_cycles")
+=======
+        reports_dir = Path("/mnt/agentic-system/logs/improvement_cycles")
+>>>>>>> origin/main
         reports_dir.mkdir(parents=True, exist_ok=True)
 
         report_file = reports_dir / f"cycle_{self.cycle_count:04d}.json"

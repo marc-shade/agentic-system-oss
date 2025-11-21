@@ -36,11 +36,15 @@ logger = logging.getLogger("memory-db-service")
 
 # Configuration
 SOCKET_PATH = "/tmp/memory-db.sock"
+<<<<<<< HEAD
 # Use env var or default to SSDRAID0 (see FILE_LOCATION_POLICY.md)
 MEMORY_DIR = Path(os.getenv(
     "ENHANCED_MEMORY_DB_DIR",
     "/Volumes/SSDRAID0/agentic-system/databases/enhanced_memory"
 ))
+=======
+MEMORY_DIR = Path.home() / ".claude" / "enhanced_memories"
+>>>>>>> origin/main
 DB_PATH = MEMORY_DIR / "memory.db"
 
 # Create directories

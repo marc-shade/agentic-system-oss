@@ -1,0 +1,30 @@
+{
+  "item_id": "http://arxiv.org/abs/2502.04675v3",
+  "source_type": "research_paper",
+  "source_id": "http://arxiv.org/abs/2502.04675v3",
+  "title": "Scalable Oversight for Superhuman AI via Recursive Self-Critiquing",
+  "concepts": [],
+  "techniques": [],
+  "insights": [
+    "As AI capabilities increasingly surpass human proficiency in complex tasks,\ncurrent alignment techniques including SFT and RLHF face fundamental challenges\nin ensuring reliable oversight. These method"
+  ],
+  "authors": [
+    "Xueru Wen",
+    "Jie Lou",
+    "Xinyu Lu",
+    "Junjie Yang",
+    "Yanjiang Liu",
+    "Yaojie Lu",
+    "Debing Zhang",
+    "Xing Yu"
+  ],
+  "created_at": "2025-02-07T05:41:23+00:00",
+  "citations": 0,
+  "confidence_score": 0.8,
+  "related_items": [],
+  "tags": [
+    "cs.AI",
+    "cs.CL",
+    "cs.LG"
+  ]
+}

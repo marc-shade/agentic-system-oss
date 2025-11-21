@@ -4,7 +4,11 @@
 storage:
   # SQLite for metadata and core storage
   sqlite:
+<<<<<<< HEAD
     path: "/Volumes/SSDRAID0/agentic-system/databases/mcp/enhanced_memories.db"
+=======
+    path: "/mnt/agentic-system/databases/mcp/enhanced_memories.db"
+>>>>>>> origin/main
     wal_mode: true
     cache_size: 10000
 
@@ -21,7 +25,11 @@ storage:
 
   # File-based portable storage
   files:
+<<<<<<< HEAD
     root: "/Volumes/SSDRAID0/agentic-system/agent-memory/nmf_files"
+=======
+    root: "/mnt/agentic-system/agent-memory/nmf_files"
+>>>>>>> origin/main
     compression: true
     max_file_size: "10MB"
 
@@ -198,13 +206,21 @@ benchmarking:
     - "ollama"
 
   # Output
+<<<<<<< HEAD
   results_path: "/Volumes/SSDRAID0/agentic-system/logs/nmf_benchmark_results.json"
+=======
+  results_path: "/mnt/agentic-system/logs/nmf_benchmark_results.json"
+>>>>>>> origin/main
 
 # Logging
 logging:
   level: "INFO"
   format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+<<<<<<< HEAD
   file: "/Volumes/SSDRAID0/agentic-system/logs/nmf.log"
+=======
+  file: "/mnt/agentic-system/logs/nmf.log"
+>>>>>>> origin/main
   max_size_mb: 100
   backup_count: 3
 

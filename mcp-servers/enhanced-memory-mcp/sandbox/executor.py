@@ -256,12 +256,15 @@ def create_api_context(executor: Optional[CodeExecutor] = None) -> Dict[str, Cal
     """
     Create execution context with all API functions.
 
+<<<<<<< HEAD
     Implements Anthropic's code execution pattern with:
     - Progressive tool discovery (search_tools)
     - Cross-MCP proxy (mcp.server.tool())
     - PII tokenization (tokenize_pii/detokenize_pii)
     - Lazy loading (get_tool_schema)
 
+=======
+>>>>>>> origin/main
     Args:
         executor: CodeExecutor instance (for filesystem/skills access)
 
@@ -323,6 +326,7 @@ def create_api_context(executor: Optional[CodeExecutor] = None) -> Dict[str, Cal
             'list_skills': executor.list_skills,
         })
 
+<<<<<<< HEAD
     # === NEW: Anthropic Pattern Enhancements ===
 
     # Progressive Tool Discovery (90% token reduction for tool lookup)
@@ -360,4 +364,6 @@ def create_api_context(executor: Optional[CodeExecutor] = None) -> Dict[str, Cal
     except ImportError:
         pass
 
+=======
+>>>>>>> origin/main
     return context

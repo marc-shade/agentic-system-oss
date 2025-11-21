@@ -47,7 +47,11 @@ async def detect_improvements_with_llm(loop_instance, insights: List) -> List:
         loop_instance.llm_detector = create_llm_detector(use_ollama=True)
 
     # Load configuration to get target files
+<<<<<<< HEAD
     config_path = Path("/Volumes/SSDRAID0/agentic-system/agi_config.json")
+=======
+    config_path = Path("/mnt/agentic-system/agi_config.json")
+>>>>>>> origin/main
     try:
         with open(config_path, 'r') as f:
             config = json.load(f)
@@ -74,7 +78,11 @@ async def detect_improvements_with_llm(loop_instance, insights: List) -> List:
 
     # Analyze each target file with LLM
     for target_file in target_files[:1]:  # Start with first file
+<<<<<<< HEAD
         target_path = Path("/Volumes/SSDRAID0/agentic-system") / target_file
+=======
+        target_path = Path("/mnt/agentic-system") / target_file
+>>>>>>> origin/main
 
         if not target_path.exists():
             logger.error(f"  Target file not found: {target_file}")

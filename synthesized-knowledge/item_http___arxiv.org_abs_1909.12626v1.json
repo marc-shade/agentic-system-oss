@@ -1,0 +1,22 @@
+{
+  "item_id": "http://arxiv.org/abs/1909.12626v1",
+  "source_type": "research_paper",
+  "source_id": "http://arxiv.org/abs/1909.12626v1",
+  "title": "Reachability Analysis of Self Modifying Code",
+  "concepts": [],
+  "techniques": [],
+  "insights": [
+    "A Self modifying code is code that modifies its own instructions during execution time. It is nowadays widely used, especially in malware to make the code hard to analyse and to detect by anti-viruses"
+  ],
+  "authors": [
+    "Tayssir Touili",
+    "Xin Ye"
+  ],
+  "created_at": "2019-09-27T11:25:09+00:00",
+  "citations": 0,
+  "confidence_score": 0.8,
+  "related_items": [],
+  "tags": [
+    "cs.FL"
+  ]
+}

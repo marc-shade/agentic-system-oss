@@ -105,7 +105,11 @@ class KnowledgeSynthesisEngine:
     to generate novel insights through cross-domain synthesis.
     """
 
+<<<<<<< HEAD
     def __init__(self, base_path: str = "/Volumes/SSDRAID0/agentic-system"):
+=======
+    def __init__(self, base_path: str = "/mnt/agentic-system"):
+>>>>>>> origin/main
         """Initialize knowledge synthesis engine."""
         self.base_path = Path(base_path)
         self.knowledge_dir = self.base_path / "synthesized-knowledge"

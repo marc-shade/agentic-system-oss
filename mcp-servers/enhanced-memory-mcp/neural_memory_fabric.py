@@ -100,7 +100,11 @@ class NeuralMemoryFabric:
             # Try multiple locations
             possible_paths = [
                 Path(__file__).parent.parent.parent / "memory-fabric" / "nmf_config.yaml",
+<<<<<<< HEAD
                 Path("/Volumes/SSDRAID0/agentic-system/memory-fabric/nmf_config.yaml"),
+=======
+                Path("/Volumes/FILES/agentic-system/memory-fabric/nmf_config.yaml"),
+>>>>>>> origin/main
                 Path(__file__).parent / "nmf_config.yaml"
             ]
 

@@ -1,0 +1,182 @@
+groups:
+  - name: builder_system_alerts
+    interval: 30s
+    rules:
+      # CPU Alerts
+      - alert: HighCPUUsage
+        expr: 100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 90
+        for: 5m
+        labels:
+          severity: warning
+          node: macpro51
+          component: system
+        annotations:
+          summary: "High CPU usage on Builder node"
+          description: "CPU usage is above 90% (current value: {{ $value | humanizePercentage }})"
+
+      - alert: CriticalCPUUsage
+        expr: 100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 95
+        for: 10m
+        labels:
+          severity: critical
+          node: macpro51
+          component: system
+        annotations:
+          summary: "Critical CPU usage on Builder node"
+          description: "CPU usage is above 95% for 10 minutes (current value: {{ $value | humanizePercentage }})"
+
+      # Memory Alerts
+      - alert: HighMemoryUsage
+        expr: 100 * (1 - ((node_memory_MemAvailable_bytes) / (node_memory_MemTotal_bytes))) > 85
+        for: 5m
+        labels:
+          severity: warning
+          node: macpro51
+          component: system
+        annotations:
+          summary: "High memory usage on Builder node"
+          description: "Memory usage is above 85% (current value: {{ $value | humanizePercentage }})"
+
+      - alert: CriticalMemoryUsage
+        expr: 100 * (1 - ((node_memory_MemAvailable_bytes) / (node_memory_MemTotal_bytes))) > 95
+        for: 2m
+        labels:
+          severity: critical
+          node: macpro51
+          component: system
+        annotations:
+          summary: "Critical memory usage on Builder node"
+          description: "Memory usage is above 95% (current value: {{ $value | humanizePercentage }})"
+
+      # Disk Space Alerts
+      - alert: HighDiskUsage
+        expr: 100 - ((node_filesystem_avail_bytes{mountpoint="/",fstype!="rootfs"} * 100) / node_filesystem_size_bytes{mountpoint="/",fstype!="rootfs"}) > 80
+        for: 5m
+        labels:
+          severity: warning
+          node: macpro51
+          component: storage
+        annotations:
+          summary: "High disk usage on Builder node"
+          description: "Root filesystem usage is above 80% (current value: {{ $value | humanizePercentage }})"
+
+      - alert: CriticalDiskUsage
+        expr: 100 - ((node_filesystem_avail_bytes{mountpoint="/",fstype!="rootfs"} * 100) / node_filesystem_size_bytes{mountpoint="/",fstype!="rootfs"}) > 90
+        for: 5m
+        labels:
+          severity: critical
+          node: macpro51
+          component: storage
+        annotations:
+          summary: "Critical disk usage on Builder node"
+          description: "Root filesystem usage is above 90% (current value: {{ $value | humanizePercentage }})"
+
+      # System Load Alerts
+      - alert: HighSystemLoad
+        expr: node_load15 / count(node_cpu_seconds_total{mode="idle"}) > 1.5
+        for: 10m
+        labels:
+          severity: warning
+          node: macpro51
+          component: system
+        annotations:
+          summary: "High system load on Builder node"
+          description: "15-minute load average is 1.5x CPU count (current value: {{ $value }})"
+
+      - alert: NodeExporterDown
+        expr: up{job="node-exporter"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          node: macpro51
+          component: monitoring
+        annotations:
+          summary: "Node Exporter is down on Builder node"
+          description: "Node Exporter has been down for more than 2 minutes"
+
+      # Disk I/O Alerts
+      - alert: HighDiskIOWait
+        expr: rate(node_cpu_seconds_total{mode="iowait"}[5m]) > 0.3
+        for: 10m
+        labels:
+          severity: warning
+          node: macpro51
+          component: storage
+        annotations:
+          summary: "High disk I/O wait on Builder node"
+          description: "Disk I/O wait is above 30% (current value: {{ $value | humanizePercentage }})"
+
+  - name: builder_service_alerts
+    interval: 30s
+    rules:
+      # Prometheus Self-Monitoring
+      - alert: PrometheusDown
+        expr: up{job="prometheus"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          node: macpro51
+          component: monitoring
+        annotations:
+          summary: "Prometheus is down on Builder node"
+          description: "Prometheus has been down for more than 2 minutes"
+
+      # Future: Build API Alerts (when implemented)
+      - alert: BuiltderAPIDown
+        expr: up{job="builder-api"} == 0
+        for: 5m
+        labels:
+          severity: warning
+          node: macpro51
+          component: api
+        annotations:
+          summary: "Builder API is down"
+          description: "Builder API has been unreachable for more than 5 minutes"
+
+  - name: builder_build_alerts
+    interval: 1m
+    rules:
+      # Build Performance Alerts (for when build metrics are available)
+      - alert: HighBuildFailureRate
+        expr: 100 * (rate(builder_builds_total{status="failed"}[1h]) / rate(builder_builds_total[1h])) > 30
+        for: 15m
+        labels:
+          severity: warning
+          node: macpro51
+          component: builds
+        annotations:
+          summary: "High build failure rate on Builder node"
+          description: "Build failure rate is above 30% over the last hour (current: {{ $value | humanizePercentage }})"
+
+      - alert: SlowBuildPerformance
+        expr: avg(builder_build_duration_seconds) > 1800
+        for: 30m
+        labels:
+          severity: warning
+          node: macpro51
+          component: builds
+        annotations:
+          summary: "Slow build performance on Builder node"
+          description: "Average build duration is above 30 minutes (current: {{ $value | humanizeDuration }})"
+
+      - alert: HighArtifactStorageUsage
+        expr: builder_artifact_storage_bytes > 95000000000
+        for: 10m
+        labels:
+          severity: warning
+          node: macpro51
+          component: storage
+        annotations:
+          summary: "High artifact storage usage on Builder node"
+          description: "Artifact storage is approaching 100GB limit (current: {{ $value | humanize1024 }}B)"
+
+      - alert: CriticalArtifactStorageUsage
+        expr: builder_artifact_storage_bytes > 105000000000
+        for: 5m
+        labels:
+          severity: critical
+          node: macpro51
+          component: storage
+        annotations:
+          summary: "Critical artifact storage usage on Builder node"
+          description: "Artifact storage has exceeded 100GB limit (current: {{ $value | humanize1024 }}B)"

@@ -1,0 +1,90 @@
+{
+  "timestamp": "2025-11-12T15:48:01.570406",
+  "code_hash": "78e62b45",
+  "syntax": {
+    "gate_name": "syntax",
+    "status": "pass",
+    "severity": "critical",
+    "score": 1.0,
+    "message": "Syntax valid",
+    "details": {},
+    "execution_time_ms": 0.091
+  },
+  "types": {
+    "gate_name": "types",
+    "status": "warn",
+    "severity": "low",
+    "score": 0.7,
+    "message": "3 type issues found",
+    "details": {
+      "error_count": 3,
+      "errors": [
+        "tmp-workspace/tmpslgg4026.py:2: error: Function is missing a type annotation  [no-untyped-def]",
+        "tmp-workspace/tmpslgg4026.py:6: error: Function is missing a return type annotation  [no-untyped-def]",
+        "tmp-workspace/tmpslgg4026.py:9: error: Call to untyped function \"process_items\" in typed context  [no-untyped-call]"
+      ]
+    },
+    "execution_time_ms": 961.4390000000001
+  },
+  "security": {
+    "gate_name": "security",
+    "status": "pass",
+    "severity": "low",
+    "score": 1.0,
+    "message": "No security issues found",
+    "details": {
+      "high": 0,
+      "medium": 0,
+      "low": 0
+    },
+    "execution_time_ms": 198.74800000000002
+  },
+  "complexity": {
+    "gate_name": "complexity",
+    "status": "pass",
+    "severity": "low",
+    "score": 1.0,
+    "message": "Complexity acceptable (max=1, avg=1.0)",
+    "details": {
+      "functions": 2,
+      "classes": 0,
+      "lines": 11,
+      "max_complexity": 1,
+      "avg_complexity": 1.0,
+      "complexities": [
+        {
+          "name": "process_items",
+          "complexity": 1
+        },
+        {
+          "name": "main",
+          "complexity": 1
+        }
+      ]
+    },
+    "execution_time_ms": 0.245
+  },
+  "style": {
+    "gate_name": "style",
+    "status": "fail",
+    "severity": "medium",
+    "score": 0.5,
+    "message": "Style score 0.50 below threshold 0.7",
+    "details": {
+      "errors": 0,
+      "warnings": 0,
+      "conventions": 1
+    },
+    "execution_time_ms": 364.834
+  },
+  "all_gates_passed": true,
+  "critical_failures": [],
+  "high_failures": [],
+  "warnings": [
+    "types: 3 type issues found",
+    "style: Style score 0.50 below threshold 0.7"
+  ],
+  "overall_score": 0.9199999999999999,
+  "deployment_approved": true,
+  "reasoning": "APPROVED: All gates passed (score=0.92) with 2 warnings"
+}

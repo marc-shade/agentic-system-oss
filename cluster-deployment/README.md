@@ -1,13 +1,39 @@
+<<<<<<< HEAD
 # Cluster Memory Deployment Package
 
 ## 🌐 Multi-Node Agentic Cluster Memory System
 
 This package enables distributed memory management across all Mac nodes in the agentic cluster.
+=======
+# Cluster Deployment Package
+
+## 🌐 Multi-Node Agentic Cluster System
+
+This package enables distributed memory management and automatic task execution across all nodes in the agentic cluster.
+
+## ✨ What's Included
+
+### 🚀 Distributed Task Execution (NEW!)
+**Status**: ✅ FULLY OPERATIONAL - 7/7 tests passed
+
+Automatic workload distribution across cluster nodes with aggressive offloading:
+- **Automatic routing** - Tasks route to optimal node based on OS, architecture, and capabilities
+- **Aggressive offloading** - Keeps active node free (0 local tasks, 10 remote tasks in testing)
+- **Smart distribution** - Linux → macpro51, macOS → Mac Studio/MacBook Air
+- **Simple API** - One-line task submission: `offload("command")`
+- **Parallel execution** - Distribute multiple tasks across cluster
+
+See `DISTRIBUTED_EXECUTION.md` for complete documentation.
+
+### 🧠 Cluster Memory System
+Shared memory management across all Mac nodes in the cluster.
+>>>>>>> origin/main
 
 ## Package Contents
 
 ```
 cluster-deployment/
+<<<<<<< HEAD
 ├── README.md                      # This file
 ├── DEPLOYMENT_INSTRUCTIONS.md     # Detailed setup guide
 ├── INTEGRATION_CHANGES.md         # Technical integration details
@@ -15,11 +41,59 @@ cluster-deployment/
 ├── cluster_memory.py             # Cluster memory manager
 ├── test_cluster_memory.py        # Test suite
 └── server.py.integrated          # Pre-integrated server.py (from macbook-air)
+=======
+├── README.md                          # This file
+├── DISTRIBUTED_EXECUTION.md           # 🚀 Distributed execution guide
+├── WORKLOAD_DISTRIBUTION_DESIGN.md    # Architecture and design
+├── distributed_task_router.py         # Core routing engine
+├── cluster_offload.py                 # Simple task offload API
+├── test_distributed_execution.py      # Test suite (7/7 passing)
+├── DEPLOYMENT_INSTRUCTIONS.md         # Detailed setup guide
+├── INTEGRATION_CHANGES.md             # Technical integration details
+├── deploy-to-node.sh                  # Automated deployment script
+├── cluster_memory.py                  # Cluster memory manager
+├── test_cluster_memory.py             # Memory test suite
+└── server.py.integrated               # Pre-integrated server.py
+>>>>>>> origin/main
 ```
 
 ## Quick Start
 
+<<<<<<< HEAD
 ### On Each Node (mac-studio, macbook-air, macbook-pro):
+=======
+### 🚀 Distributed Task Execution (Ready to Use!)
+
+**From any node**, automatically offload tasks to the cluster:
+
+```python
+from cluster_offload import offload
+
+# Just submit - automatic routing!
+result = offload("echo 'Hello' && hostname")
+print(f"Executed on: {result['assigned_to']}")
+
+# Linux-specific tasks → macpro51
+offload("make build && make test", requires_os="linux")
+
+# Parallel execution
+from cluster_offload import offload_many
+results = offload_many([
+    "python3 test_1.py",
+    "python3 test_2.py",
+    "python3 test_3.py"
+])
+```
+
+**CLI Usage:**
+```bash
+cd ~/agentic-system/cluster-deployment
+python3 distributed_task_router.py submit "echo 'Test' && hostname"
+python3 distributed_task_router.py cluster-status
+```
+
+### 🧠 Cluster Memory (On macOS Nodes)
+>>>>>>> origin/main
 
 ```bash
 # Navigate to deployment directory
@@ -50,6 +124,7 @@ Follow the detailed instructions in `INTEGRATION_CHANGES.md`
 
 ## Node Personas
 
+<<<<<<< HEAD
 Each Mac has a specialized persona:
 
 - **🎯 mac-studio (Orchestrator)**
@@ -64,6 +139,30 @@ Each Mac has a specialized persona:
 - **💻 macbook-pro (Developer)**
   - Implementation, testing, debugging
   - Priority: 2
+=======
+Each node has a specialized persona for automatic task routing:
+
+- **🏗️ macpro51 (Builder)** - Linux x86_64
+  - Compilation, testing, containerization, benchmarking
+  - Capabilities: docker, podman, raid, nvme
+  - Priority: 3 (preferred for heavy workloads)
+  - **Status: ✅ DISTRIBUTED EXECUTION DEPLOYED**
+
+- **🎯 mac-studio (Orchestrator)** - macOS ARM64
+  - System coordination and high-level planning
+  - Capabilities: orchestration, coordination, temporal
+  - Priority: 1 (keep free for interactive work)
+  - **Status: ✅ DISTRIBUTED EXECUTION DEPLOYED**
+
+- **🔬 macbook-air (Researcher)** - macOS ARM64
+  - Analysis, documentation, investigation
+  - Capabilities: research, documentation, analysis
+  - Priority: 2
+  - **Status: ✅ DISTRIBUTED EXECUTION DEPLOYED**
+
+- **💻 macbook-pro (Developer)** - macOS x86_64 (2010 model)
+  - **Status: ❌ TOO OLD** (macOS 10.13.6, cannot run Claude Code)
+>>>>>>> origin/main
 
 ## Memory Architecture
 
@@ -135,11 +234,35 @@ Once integrated, each node will have these MCP tools:
 
 ## Deployment Status
 
+<<<<<<< HEAD
+=======
+### 🚀 Distributed Task Execution
+
+| Node | Status | Test Results | Notes |
+|------|--------|--------------|-------|
+| macpro51 | ✅ OPERATIONAL | 7/7 passing | Linux builder, aggressive offloading working |
+| mac-studio | ✅ OPERATIONAL | 7/7 passing | Orchestrator, receives offloaded tasks |
+| macbook-air | ✅ OPERATIONAL | 7/7 passing | Researcher, receives offloaded tasks |
+| macbook-pro | ❌ NOT SUPPORTED | - | Too old (2010 model, macOS 10.13.6) |
+
+**Key Metrics**:
+- Aggressive offloading: 100% (0 local, 10 remote tasks)
+- Linux routing accuracy: 100%
+- macOS routing accuracy: 100%
+- Parallel execution: 5/5 tasks completed
+
+### 🧠 Cluster Memory
+
+>>>>>>> origin/main
 | Node | Status | Persona | Deployed By |
 |------|--------|---------|-------------|
 | macbook-air | ✅ COMPLETE | Researcher | Researcher |
 | mac-studio | ⏳ PENDING | Orchestrator | - |
+<<<<<<< HEAD
 | macbook-pro | ⏳ PENDING | Developer | - |
+=======
+| macbook-pro | ❌ NOT SUPPORTED | - | Too old |
+>>>>>>> origin/main
 
 ## Next Steps
 

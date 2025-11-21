@@ -29,7 +29,11 @@ echo "📍 Detected Node: $NODE_ID ($PERSONA)"
 echo ""
 
 # Check if deployment package exists
+<<<<<<< HEAD
 DEPLOY_DIR="/Volumes/SSDRAID0/agentic-system/cluster-deployment"
+=======
+DEPLOY_DIR="/mnt/agentic-system/cluster-deployment"
+>>>>>>> origin/main
 if [ ! -d "$DEPLOY_DIR" ]; then
     echo "❌ Deployment directory not found: $DEPLOY_DIR"
     exit 1
@@ -61,12 +65,21 @@ else
     cat > "$NODE_CONFIG" <<EOF
 {
   "node_id": "$NODE_ID",
+<<<<<<< HEAD
   "persona_config": "/Volumes/SSDRAID0/agentic-system/databases/cluster/nodes/$NODE_ID/persona_state.json",
   "memory": {
     "local_db": "$HOME/Documents/Cline/MCP/enhanced-memory-mcp/memory.db",
     "personal_db": "/Volumes/SSDRAID0/agentic-system/databases/cluster/nodes/$NODE_ID/personal_memories.db",
     "shared_db": "/Volumes/SSDRAID0/agentic-system/databases/cluster/shared_memories.db",
     "node_registry_db": "/Volumes/SSDRAID0/agentic-system/databases/cluster/node_registry.db"
+=======
+  "persona_config": "/mnt/agentic-system/databases/cluster/nodes/$NODE_ID/persona_state.json",
+  "memory": {
+    "local_db": "$HOME/Documents/Cline/MCP/enhanced-memory-mcp/memory.db",
+    "personal_db": "/mnt/agentic-system/databases/cluster/nodes/$NODE_ID/personal_memories.db",
+    "shared_db": "/mnt/agentic-system/databases/cluster/shared_memories.db",
+    "node_registry_db": "/mnt/agentic-system/databases/cluster/node_registry.db"
+>>>>>>> origin/main
   },
   "cluster": {
     "enabled": true,
@@ -93,7 +106,11 @@ fi
 echo ""
 
 echo "Step 3: Ensuring cluster database directories exist"
+<<<<<<< HEAD
 CLUSTER_DB_DIR="/Volumes/SSDRAID0/agentic-system/databases/cluster"
+=======
+CLUSTER_DB_DIR="/mnt/agentic-system/databases/cluster"
+>>>>>>> origin/main
 NODE_DB_DIR="$CLUSTER_DB_DIR/nodes/$NODE_ID"
 
 mkdir -p "$NODE_DB_DIR"

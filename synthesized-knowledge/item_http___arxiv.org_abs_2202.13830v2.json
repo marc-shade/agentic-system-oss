@@ -1,0 +1,21 @@
+{
+  "item_id": "http://arxiv.org/abs/2202.13830v2",
+  "source_type": "research_paper",
+  "source_id": "http://arxiv.org/abs/2202.13830v2",
+  "title": "Curb Your Self-Modifying Code",
+  "concepts": [],
+  "techniques": [],
+  "insights": [
+    "Self-modifying code has many intriguing applications in a broad range of fields including software security, artificial general intelligence, and open-ended evolution. Having control over self-modifyi"
+  ],
+  "authors": [
+    "Patrik Christen"
+  ],
+  "created_at": "2022-02-28T14:39:34+00:00",
+  "citations": 0,
+  "confidence_score": 0.8,
+  "related_items": [],
+  "tags": [
+    "cs.SE"
+  ]
+}

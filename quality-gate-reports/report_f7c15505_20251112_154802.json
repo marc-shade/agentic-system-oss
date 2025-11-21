@@ -1,0 +1,91 @@
+{
+  "timestamp": "2025-11-12T15:48:02.535616",
+  "code_hash": "f7c15505",
+  "syntax": {
+    "gate_name": "syntax",
+    "status": "pass",
+    "severity": "critical",
+    "score": 1.0,
+    "message": "Syntax valid",
+    "details": {},
+    "execution_time_ms": 0.08399999999999999
+  },
+  "types": {
+    "gate_name": "types",
+    "status": "warn",
+    "severity": "low",
+    "score": 0.8,
+    "message": "2 type issues found",
+    "details": {
+      "error_count": 2,
+      "errors": [
+        "tmp-workspace/tmprfa6eto7.py:5: error: Function is missing a type annotation  [no-untyped-def]",
+        "tmp-workspace/tmprfa6eto7.py:10: error: Function is missing a type annotation  [no-untyped-def]"
+      ]
+    },
+    "execution_time_ms": 301.13800000000003
+  },
+  "security": {
+    "gate_name": "security",
+    "status": "fail",
+    "severity": "critical",
+    "score": 0.55,
+    "message": "1 HIGH severity security issues found",
+    "details": {
+      "high": 1,
+      "medium": 1,
+      "low": 1
+    },
+    "execution_time_ms": 154.842
+  },
+  "complexity": {
+    "gate_name": "complexity",
+    "status": "pass",
+    "severity": "low",
+    "score": 1.0,
+    "message": "Complexity acceptable (max=2, avg=1.5)",
+    "details": {
+      "functions": 2,
+      "classes": 0,
+      "lines": 13,
+      "max_complexity": 2,
+      "avg_complexity": 1.5,
+      "complexities": [
+        {
+          "name": "load_unsafe_data",
+          "complexity": 2
+        },
+        {
+          "name": "run_shell_command",
+          "complexity": 1
+        }
+      ]
+    },
+    "execution_time_ms": 0.213
+  },
+  "style": {
+    "gate_name": "style",
+    "status": "fail",
+    "severity": "medium",
+    "score": 0.5,
+    "message": "Style score 0.50 below threshold 0.7",
+    "details": {
+      "errors": 0,
+      "warnings": 0,
+      "conventions": 1
+    },
+    "execution_time_ms": 507.1600000000001
+  },
+  "all_gates_passed": false,
+  "critical_failures": [
+    "security: 1 HIGH severity security issues found"
+  ],
+  "high_failures": [],
+  "warnings": [
+    "types: 2 type issues found",
+    "style: Style score 0.50 below threshold 0.7"
+  ],
+  "overall_score": 0.795,
+  "deployment_approved": false,
+  "reasoning": "REJECTED: Critical failures - security: 1 HIGH severity security issues found"
+}

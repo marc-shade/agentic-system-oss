@@ -14,7 +14,11 @@ from pathlib import Path
 from datetime import datetime
 
 # Add intelligent healing system to path
+<<<<<<< HEAD
 sys.path.insert(0, '/Volumes/SSDRAID0/agentic-system/intelligent-self-healing')
+=======
+sys.path.insert(0, '/mnt/agentic-system/intelligent-self-healing')
+>>>>>>> origin/main
 from intelligent_config_agent import IntelligentConfigAgent
 
 
@@ -221,7 +225,11 @@ def optimize_settings(dry_run: bool = False) -> dict:
         print("🛡️  Verifying with intelligent watchdog...")
         import subprocess
         result = subprocess.run(
+<<<<<<< HEAD
             ["python3", "/Volumes/SSDRAID0/agentic-system/intelligent-self-healing/intelligent_statusline_watchdog.py"],
+=======
+            ["python3", "/mnt/agentic-system/intelligent-self-healing/intelligent_statusline_watchdog.py"],
+>>>>>>> origin/main
             capture_output=True,
             text=True,
             timeout=30

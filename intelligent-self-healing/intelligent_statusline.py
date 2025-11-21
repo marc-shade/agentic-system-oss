@@ -87,6 +87,7 @@ class IntelligentStatusLine:
             else:
                 data['claude_sessions'] = 0
 
+<<<<<<< HEAD
             # Check for Claude Code activity via session file (more reliable)
             session_file = Path('/tmp/claude_session_start.json')
             if session_file.exists():
@@ -107,10 +108,26 @@ class IntelligentStatusLine:
                     for line in result.stdout.split('\n')
                 )
                 data['claude_running'] = claude_running
+=======
+            # Check for Claude process using ps (more reliable than pgrep)
+            result = subprocess.run(
+                ['ps', '-ax'],
+                capture_output=True,
+                text=True,
+                timeout=2
+            )
+            # Look for process containing "claude" command (not statusline script)
+            claude_running = any(
+                ' claude' in line and 'statusline' not in line and 'grep' not in line
+                for line in result.stdout.split('\n')
+            )
+            data['claude_running'] = claude_running
+>>>>>>> origin/main
         except Exception:
             data['claude_sessions'] = 0
             data['claude_running'] = False
 
+<<<<<<< HEAD
         # Hook activity detection
         try:
             hooks_dir = Path.home() / ".claude" / "hooks"
@@ -126,6 +143,23 @@ class IntelligentStatusLine:
 
             # Check recent hook activity (last 60 seconds)
             hook_log = Path("/tmp/phoenix_session_start.log")
+=======
+        # Hook activity detection - Read from settings.json
+        try:
+            import json
+            settings_file = Path.home() / ".claude" / "settings.json"
+
+            active_hooks = 0
+            if settings_file.exists():
+                with open(settings_file, 'r') as f:
+                    settings = json.load(f)
+                    hooks_config = settings.get('hooks', {})
+                    # Count configured hook events
+                    active_hooks = len(hooks_config)
+
+            # Check recent hook activity from logs
+            hook_log = Path.home() / "agentic-system" / "logs" / "tool-usage.log"
+>>>>>>> origin/main
             recent_hook_activity = False
 
             if hook_log.exists():
@@ -140,13 +174,18 @@ class IntelligentStatusLine:
             data['hook_count'] = 0
             data['recent_hook_activity'] = False
 
+<<<<<<< HEAD
         # MCP server configuration - count configured and enabled
         # Note: MCPs are on-demand (started by Claude Code when needed), not persistent processes
+=======
+        # MCP server configuration
+>>>>>>> origin/main
         try:
             claude_json = Path.home() / ".claude.json"
             if claude_json.exists():
                 with open(claude_json, 'r') as f:
                     config = json.load(f)
+<<<<<<< HEAD
                     mcp_servers = config.get('mcpServers', {})
                     total_configured = len(mcp_servers)
 
@@ -167,6 +206,15 @@ class IntelligentStatusLine:
         except Exception:
             data['mcp_count'] = 0
             data['mcp_running'] = 0
+=======
+                    data['mcp_count'] = len(config.get('mcpServers', {}))
+            else:
+                data['mcp_count'] = 0
+        except json.JSONDecodeError:
+            data['mcp_count'] = 0
+        except Exception:
+            data['mcp_count'] = 0
+>>>>>>> origin/main
 
         # Temporal workflow engine status
         try:
@@ -183,7 +231,11 @@ class IntelligentStatusLine:
         # AutoKitteh event-driven automation status
         try:
             result = subprocess.run(
+<<<<<<< HEAD
                 ['pgrep', '-f', 'ak up'],
+=======
+                ['pgrep', '-f', 'autokitteh'],
+>>>>>>> origin/main
                 capture_output=True,
                 text=True,
                 timeout=1
@@ -235,6 +287,7 @@ class IntelligentStatusLine:
         # Enhanced memory system activity
         data['memory_status'] = self._check_memory_activity()
 
+<<<<<<< HEAD
         # Health monitoring integration (from autonomous health system)
         data['health_status'] = self._check_health_monitoring()
 
@@ -243,6 +296,34 @@ class IntelligentStatusLine:
 
         # Cluster node status
         data['cluster_status'] = self._check_cluster_status()
+=======
+        # RAID array health
+        data['raid_health'] = self._check_raid_health()
+
+        # System services status
+        data['system_services'] = self._check_system_services()
+
+        # Qdrant vector database status
+        data['qdrant_running'] = self._check_qdrant_status()
+
+        # Active workflow count
+        data['workflow_count'] = self._count_active_workflows()
+
+        # Background jobs
+        data['background_jobs'] = self._check_background_jobs()
+
+        # Subagent queue
+        data['subagent_queue'] = self._check_subagent_queue()
+
+        # Hook latency
+        data['hook_latency'] = self._check_hook_latency()
+
+        # Memory DB size
+        data['memory_db_size'] = self._check_memory_db_size()
+
+        # Network health
+        data['network_healthy'] = self._check_network_health()
+>>>>>>> origin/main
 
         return data
 
@@ -256,7 +337,11 @@ class IntelligentStatusLine:
         cutoff_time = datetime.now() - timedelta(minutes=5)
 
         log_paths = [
+<<<<<<< HEAD
             Path("/Volumes/SSDRAID0/agentic-system/arduino-surface/logs/display-agent.log"),
+=======
+            Path("/mnt/agentic-system/arduino-surface/logs/display-agent.log"),
+>>>>>>> origin/main
             Path("/tmp/phoenix_session_start.log")
         ]
 
@@ -327,10 +412,35 @@ class IntelligentStatusLine:
             return default_status
 
     def _get_session_duration(self) -> str:
+<<<<<<< HEAD
         """Get Claude Code session duration from timestamp file (production-safe)"""
         try:
             from datetime import datetime
             session_file = Path('/tmp/claude_session_start.json')
+=======
+        """Get Claude Code session duration from timestamp file (production-safe)
+
+        Supports multiple concurrent sessions by reading session-specific files.
+        Falls back to legacy single-session file if session ID not available.
+        """
+        try:
+            from datetime import datetime
+            import os
+
+            # Determine which session file to read
+            session_id = os.environ.get('CLAUDE_SESSION_ID')
+
+            # Try session-specific file first (multi-session support)
+            if session_id and session_id != 'unknown':
+                session_file = Path(f'/tmp/claude_session_{session_id}.json')
+            else:
+                # Fall back to "current" session symlink (most recently started)
+                session_file = Path('/tmp/claude_session_current.json')
+
+                # If symlink doesn't exist, try legacy single-session file
+                if not session_file.exists():
+                    session_file = Path('/tmp/claude_session_start.json')
+>>>>>>> origin/main
 
             if not session_file.exists():
                 return ''
@@ -343,7 +453,13 @@ class IntelligentStatusLine:
                     return ''
 
                 start_time = datetime.fromisoformat(start_time_str)
+<<<<<<< HEAD
                 elapsed = datetime.now() - start_time
+=======
+                # Handle timezone-aware datetime comparison
+                now = datetime.now(start_time.tzinfo) if start_time.tzinfo else datetime.now()
+                elapsed = now - start_time
+>>>>>>> origin/main
                 total_seconds = int(elapsed.total_seconds())
 
                 # Format as HH:MM or MM:SS depending on duration
@@ -360,6 +476,7 @@ class IntelligentStatusLine:
             return ''
 
     def _get_token_usage(self) -> Dict[str, Any]:
+<<<<<<< HEAD
         """Get Claude Code token usage estimation (production-safe)"""
         try:
             # Import the token estimator utility
@@ -374,6 +491,36 @@ class IntelligentStatusLine:
                     'limit': usage['limit'],
                     'percentage': usage['percentage']
                 }
+=======
+        """Get Claude Code token usage from Prometheus metrics (production-safe)"""
+        try:
+            # Try Prometheus first (real-time metrics)
+            import sys
+            sys.path.insert(0, '/home/marc/agentic-system/intelligent-self-healing')
+            from prometheus_metrics import get_prometheus_usage
+
+            metrics = get_prometheus_usage()
+
+            # If Prometheus has data, use it
+            if metrics and (metrics.get('session') or metrics.get('weekly')):
+                return metrics
+
+            # Fallback to manual weekly_budget.json if Prometheus not available
+            import json
+            budget_file = Path.home() / ".claude" / "weekly_budget.json"
+            if budget_file.exists():
+                with open(budget_file, 'r') as f:
+                    data = json.load(f)
+                    return {
+                        'session': None,  # No session data in manual file
+                        'weekly': {
+                            'current': data.get('current_tokens', 0),
+                            'limit': data.get('weekly_limit', 200000),
+                            'percentage': data.get('percentage', 0)
+                        }
+                    }
+
+>>>>>>> origin/main
             return {}
         except Exception:
             return {}
@@ -411,7 +558,11 @@ class IntelligentStatusLine:
     def _check_storage_usage(self) -> int:
         """Check storage usage percentage on hot tier"""
         try:
+<<<<<<< HEAD
             hot_tier = Path("/Volumes/SSDRAID0/agentic-system")
+=======
+            hot_tier = Path("/mnt/agentic-system")
+>>>>>>> origin/main
             if not hot_tier.exists():
                 return 0
 
@@ -537,6 +688,7 @@ class IntelligentStatusLine:
         except Exception:
             return {"status": "error", "display": "🧠❌"}
 
+<<<<<<< HEAD
     def _check_health_monitoring(self) -> Dict[str, Any]:
         """
         Check autonomous health monitoring system status
@@ -747,6 +899,201 @@ class IntelligentStatusLine:
 
         # Bar first, then percentage
         return f"{bar} {percentage}%"
+=======
+    def _check_raid_health(self) -> Dict[str, Any]:
+        """Check RAID array health from /proc/mdstat"""
+        try:
+            with open('/proc/mdstat', 'r') as f:
+                content = f.read()
+
+            # Parse RAID status
+            if 'md0' not in content:
+                return {'status': 'none', 'healthy': True}
+
+            # Check for degraded state
+            if '[UU_U]' in content or '[U_UU]' in content or '_' in content:
+                # Degraded - at least one drive failed
+                healthy_count = content.count('U')
+                failed_count = content.count('_')
+                return {
+                    'status': 'degraded',
+                    'healthy': False,
+                    'healthy_drives': healthy_count,
+                    'failed_drives': failed_count
+                }
+            elif '[UUUU]' in content:
+                # All healthy
+                return {'status': 'healthy', 'healthy': True, 'drives': 4}
+            else:
+                # Unknown state
+                return {'status': 'unknown', 'healthy': False}
+
+        except Exception:
+            return {'status': 'error', 'healthy': False}
+
+    def _check_system_services(self) -> Dict[str, Any]:
+        """Check critical system services status"""
+        try:
+            services = ['agentic-guardian', 'agentic-memory-db', 'builder-node-api']
+            running = 0
+            total = len(services)
+
+            for service in services:
+                result = subprocess.run(
+                    ['systemctl', 'is-active', service],
+                    capture_output=True,
+                    text=True,
+                    timeout=1
+                )
+                if result.stdout.strip() == 'active':
+                    running += 1
+
+            return {
+                'running': running,
+                'total': total,
+                'all_healthy': running == total
+            }
+        except Exception:
+            return {'running': 0, 'total': 3, 'all_healthy': False}
+
+    def _check_qdrant_status(self) -> bool:
+        """Check if Qdrant vector database is running"""
+        try:
+            result = subprocess.run(
+                ['pgrep', '-f', 'qdrant'],
+                capture_output=True,
+                text=True,
+                timeout=1
+            )
+            return bool(result.stdout.strip())
+        except Exception:
+            return False
+
+    def _count_active_workflows(self) -> int:
+        """Count active Temporal/AutoKitteh workflows"""
+        try:
+            count = 0
+            # Count temporal processes
+            result = subprocess.run(
+                ['pgrep', '-f', 'temporal'],
+                capture_output=True,
+                text=True,
+                timeout=1
+            )
+            if result.stdout.strip():
+                count += len(result.stdout.strip().split('\n'))
+
+            # Count autokitteh processes
+            result = subprocess.run(
+                ['pgrep', '-f', 'autokitteh'],
+                capture_output=True,
+                text=True,
+                timeout=1
+            )
+            if result.stdout.strip():
+                count += len(result.stdout.strip().split('\n'))
+
+            return count
+        except Exception:
+            return 0
+
+    def _check_background_jobs(self) -> int:
+        """Check active background jobs from build executor"""
+        try:
+            log_file = Path('/mnt/agentic-system/logs/build_executor.log')
+            if not log_file.exists():
+                return 0
+
+            # Check for recent "BUILD STARTED" vs "BUILD COMPLETED" in last 100 lines
+            with open(log_file, 'r') as f:
+                lines = f.readlines()[-100:]
+
+            started = sum(1 for line in lines if 'BUILD STARTED' in line or 'BUILDING' in line)
+            completed = sum(1 for line in lines if 'BUILD COMPLETED' in line or 'FINISHED' in line)
+
+            active_jobs = max(0, started - completed)
+            return active_jobs
+        except Exception:
+            return 0
+
+    def _check_subagent_queue(self) -> int:
+        """Check pending subagent tasks in queue"""
+        try:
+            log_file = Path('/mnt/agentic-system/logs/subagent-activity.log')
+            if not log_file.exists():
+                return 0
+
+            # Check for QUEUED vs COMPLETED in recent log
+            with open(log_file, 'r') as f:
+                lines = f.readlines()[-200:]
+
+            queued = sum(1 for line in lines if 'QUEUED' in line or 'PENDING' in line)
+            completed = sum(1 for line in lines if 'COMPLETED' in line or 'FINISHED' in line)
+
+            pending = max(0, queued - completed)
+            return pending
+        except Exception:
+            return 0
+
+    def _check_hook_latency(self) -> Optional[float]:
+        """Check average hook execution time from recent runs"""
+        try:
+            # Check for hook timing data in session logs
+            log_file = Path('/tmp/hook_timing.log')
+            if not log_file.exists():
+                return None
+
+            with open(log_file, 'r') as f:
+                lines = f.readlines()[-20:]  # Last 20 hook executions
+
+            timings = []
+            for line in lines:
+                # Parse lines like "hook_name: 234ms"
+                if 'ms' in line:
+                    try:
+                        ms_str = line.split(':')[-1].strip().replace('ms', '')
+                        timings.append(float(ms_str))
+                    except ValueError:
+                        continue
+
+            if timings:
+                return sum(timings) / len(timings)  # Average in ms
+            return None
+        except Exception:
+            return None
+
+    def _check_memory_db_size(self) -> Optional[int]:
+        """Check agent memory database size in MB"""
+        try:
+            memory_dir = Path('/mnt/agentic-system/agent-memory')
+            if not memory_dir.exists():
+                return None
+
+            # Get total size in bytes
+            total_size = 0
+            for item in memory_dir.rglob('*'):
+                if item.is_file():
+                    total_size += item.stat().st_size
+
+            # Convert to MB
+            size_mb = total_size // (1024 * 1024)
+            return size_mb
+        except Exception:
+            return None
+
+    def _check_network_health(self) -> bool:
+        """Check if critical external services are reachable"""
+        try:
+            # Quick ping to check network connectivity (Claude API)
+            result = subprocess.run(
+                ['ping', '-c', '1', '-W', '1', 'api.anthropic.com'],
+                capture_output=True,
+                timeout=2
+            )
+            return result.returncode == 0
+        except Exception:
+            return True  # Don't show error if check fails
+>>>>>>> origin/main
 
     def ai_prioritize_display(self, data: Dict[str, Any]) -> List[Tuple[str, str, int]]:
         """
@@ -765,6 +1112,7 @@ System Data:
 {json.dumps(data, indent=2)}
 
 Prioritization Rules:
+<<<<<<< HEAD
 1. CRITICAL HEALTH FAILURES: health_status.critical_failures - Always show first (priority 0)
 2. Errors/critical issues: Always show first (priority 0)
 3. DEGRADED HEALTH: health_status.overall == 'degraded' - High priority (priority 1)
@@ -790,6 +1138,21 @@ MANDATORY ITEMS (include ALL of these):
    - Priority 2 if idle (💤)
 4. mcp_count: ALWAYS show (e.g., "🔌 7mcp") with priority 2
 5. agent_count with normal priority (2) if > 0 (e.g., "🤖 18agents")
+=======
+1. Errors/critical issues: Always show first (priority 0)
+2. Resource warnings (memory, storage): High priority (priority 1)
+3. Active work (training, workflows, active_skill): High priority (priority 1)
+4. Service status changes: Important if down (priority 1)
+5. Normal operations (agents, Claude with hooks, MCP): Medium priority (priority 2)
+6. Background services running: Low priority (priority 3)
+
+MANDATORY ITEMS (include ALL of these):
+1. memory_status: ALWAYS show display field (e.g., "🧠🔄11" if active, "🧠💤11" if idle)
+   - Priority 1 if active (🔄) or recent_pull (📥)
+   - Priority 2 if idle (💤)
+2. mcp_count: ALWAYS show (e.g., "🔌 7mcp") with priority 2
+3. agent_count with normal priority (2) if > 0 (e.g., "🤖 18agents")
+>>>>>>> origin/main
 4. claude_running: show "💻 active" if true with priority 2 (NOT 🧠, that's memory!)
 5. temporal_running: show "⏰" if true with priority 3
 6. autokitteh_running: show "🐈" if true with priority 3
@@ -864,10 +1227,42 @@ Priority meanings:
             print(f"AI prioritization failed: {e}", file=sys.stderr)
             return self._rule_based_prioritize(data)
 
+<<<<<<< HEAD
+=======
+    def _make_progress_bar(self, percentage: int, width: int = 10) -> str:
+        """
+        Create a compact progress bar
+
+        Args:
+            percentage: Percentage (0-100)
+            width: Total width of the bar in characters
+
+        Returns:
+            Progress bar string (e.g., "████▌     " for 45%)
+        """
+        # Calculate filled blocks
+        filled = (percentage * width) // 100
+        # Check if we need a half block
+        remainder = (percentage * width) % 100
+        half_block = remainder >= 50
+
+        # Build the bar
+        bar = '█' * filled
+        if half_block and filled < width:
+            bar += '▌'
+            empty = width - filled - 1
+        else:
+            empty = width - filled
+
+        bar += ' ' * empty
+        return bar
+
+>>>>>>> origin/main
     def _rule_based_prioritize(self, data: Dict[str, Any]) -> List[Tuple[str, str, int]]:
         """Production rule-based prioritization (fallback when AI unavailable)"""
         items = []
 
+<<<<<<< HEAD
         # Claude Code weekly usage (show if available)
         claude_usage = data.get('claude_usage', {})
         if claude_usage.get('available'):
@@ -908,6 +1303,8 @@ Priority meanings:
                 service_count = len(checks)
                 items.append(('✅', f"{service_count} services OK", 2))
 
+=======
+>>>>>>> origin/main
         # Critical: Dynamic self-healing status
         self_healing = data.get('self_healing', {})
         healing_state = self_healing.get('state', 'idle')
@@ -959,12 +1356,43 @@ Priority meanings:
         if active_skill:
             items.append(('⚡', f"skill:{active_skill}", 1))
 
+<<<<<<< HEAD
+=======
+        # CRITICAL: RAID health (Tier 1)
+        raid_health = data.get('raid_health', {})
+        if not raid_health.get('healthy', True):
+            if raid_health.get('status') == 'degraded':
+                failed = raid_health.get('failed_drives', 0)
+                items.append(('🛡️', f"⚠️ {failed} drive(s) failed!", 0))
+            elif raid_health.get('status') == 'error':
+                items.append(('🛡️', '✗ Check failed', 0))
+        elif raid_health.get('status') == 'healthy':
+            # Show healthy status (low priority, informational)
+            items.append(('🛡️', '✓', 3))
+
+        # HIGH: System services down (Tier 1)
+        system_services = data.get('system_services', {})
+        if not system_services.get('all_healthy', True):
+            running = system_services.get('running', 0)
+            total = system_services.get('total', 3)
+            items.append(('⚙️', f"⚠️ {running}/{total}", 1))
+
+        # HIGH: Qdrant vector DB down (Tier 1)
+        if not data.get('qdrant_running', True):
+            items.append(('🗄️', 'down', 1))
+
+        # HIGH: Network down (Tier 3)
+        if not data.get('network_healthy', True):
+            items.append(('🌐', '⚠️ offline', 1))
+
+>>>>>>> origin/main
         # High: Critical services down
         if not data.get('temporal_running'):
             items.append(('⚠️', 'Temporal down', 1))
         if not data.get('autokitteh_running'):
             items.append(('⚠️', 'AK down', 1))
 
+<<<<<<< HEAD
         # Cluster status - show reachable/total nodes
         cluster_status = data.get('cluster_status', {})
         if cluster_status.get('available'):
@@ -983,15 +1411,50 @@ Priority meanings:
                     # Multiple nodes down - critical
                     items.append(('⚠️', f"{reachable}/{total}nodes", 0))
 
+=======
+>>>>>>> origin/main
         # Normal: Agent activity
         agent_count = data.get('agent_count', 0)
         if agent_count > 0:
             items.append(('🤖', f"{agent_count}agents", 2))
 
+<<<<<<< HEAD
         # Normal: Claude Code status (only show hook info if abnormal)
         if data.get('claude_running'):
             hook_count = data.get('hook_count', 0)
             expected_hooks = 2  # Normal state
+=======
+        # NORMAL: Active workflows (Tier 2)
+        workflow_count = data.get('workflow_count', 0)
+        if workflow_count > 0:
+            items.append(('⏰', f"{workflow_count}wf", 2))
+
+        # NORMAL: Background jobs (Tier 2)
+        background_jobs = data.get('background_jobs', 0)
+        if background_jobs > 0:
+            items.append(('🔨', f"{background_jobs}", 2))
+
+        # NORMAL: Subagent queue (Tier 2)
+        subagent_queue = data.get('subagent_queue', 0)
+        if subagent_queue > 0:
+            items.append(('🧵', f"{subagent_queue}q", 2))
+
+        # HIGH: Hook latency warning (Tier 3)
+        hook_latency = data.get('hook_latency')
+        if hook_latency and hook_latency > 500:  # > 500ms is concerning
+            latency_sec = hook_latency / 1000
+            items.append(('⚡', f"⚠️ {latency_sec:.1f}s", 1))
+
+        # NORMAL: Memory DB size (only if large - Tier 3)
+        memory_db_size = data.get('memory_db_size')
+        if memory_db_size and memory_db_size > 800:  # > 800MB
+            items.append(('💾', f"{memory_db_size}MB", 2))
+
+        # Normal: Claude Code status (only show hook info if abnormal)
+        if data.get('claude_running'):
+            hook_count = data.get('hook_count', 0)
+            expected_hooks = 8  # Normal state: 8 configured hook events
+>>>>>>> origin/main
 
             # Only show hook count if it's different from expected
             if hook_count != expected_hooks:
@@ -1004,6 +1467,7 @@ Priority meanings:
             else:
                 items.append(('💻', 'active', 2))  # Changed from 🧠 to avoid confusion with memory
 
+<<<<<<< HEAD
             # Show token usage if available
             token_usage = data.get('token_usage', {})
             if token_usage and token_usage.get('current'):
@@ -1031,6 +1495,49 @@ Priority meanings:
             items.append(('⚠️', mcp_display, 1))  # Warning icon for degraded state
         else:
             items.append(('🔌', mcp_display, 2))  # Normal - show running/total
+=======
+            # Show session cost from Claude Code's own metrics (port 9464)
+            token_usage = data.get('token_usage', {})
+            session = token_usage.get('session', {})
+
+            if session and session.get('source') == 'claude_code_metrics':
+                # Session cost tracking from Claude Code's metrics endpoint
+                cost_usd = session.get('cost_usd', 0)
+                context_pct = session.get('context_pct', 0)
+
+                # Always show session cost (compact format)
+                if cost_usd >= 10:
+                    items.append(('💰', f"${cost_usd:.2f}", 2))
+                elif cost_usd >= 1:
+                    items.append(('💰', f"${cost_usd:.2f}", 2))
+                else:
+                    items.append(('💰', f"${cost_usd:.4f}", 2))
+
+                # Show session context if >= 80% of 200k limit
+                if context_pct >= 100:
+                    # Critical - over 200k limit
+                    items.append(('⚠️', f"CTX {context_pct}%!", 0))
+                elif context_pct >= 90:
+                    # Warning - approaching limit
+                    items.append(('⚠️', f"CTX {context_pct}%", 1))
+                elif context_pct >= 80:
+                    # High - show as info
+                    items.append(('📊', f"ctx {context_pct}%", 2))
+        else:
+            items.append(('💻', 'idle', 2))
+
+        # Normal: MCP configuration (ALWAYS show)
+        mcp_count = data.get('mcp_count', 0)
+        expected_mcp_min = 6
+        expected_mcp_max = 10
+
+        if mcp_count < expected_mcp_min:
+            items.append(('⚠️', f"{mcp_count}mcp low!", 1))  # Warning - too few
+        elif mcp_count > expected_mcp_max:
+            items.append(('⚠️', f"{mcp_count}mcp high!", 1))  # Warning - too many
+        else:
+            items.append(('🔌', f"{mcp_count}mcp", 2))  # Normal - always show count
+>>>>>>> origin/main
 
         # Workflow engines - removed from display per user request
         # (Status still checked in _collect_system_data but not shown on statusline)

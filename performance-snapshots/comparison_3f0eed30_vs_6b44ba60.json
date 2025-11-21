@@ -1,0 +1,16 @@
+{
+  "baseline_id": "3f0eed30",
+  "modified_id": "6b44ba60",
+  "execution_time_delta_percent": -42.63243376422097,
+  "memory_delta_percent": 1.595881595881596,
+  "cpu_delta_percent": 0.0,
+  "success_rate_delta": -0.03731397012026849,
+  "error_rate_delta": -0.0028301281600222605,
+  "test_pass_rate_delta": -0.07654858639294426,
+  "quality_score_delta": 0.030670049283591516,
+  "overall_improvement": false,
+  "regression_detected": false,
+  "confidence_score": 0.0,
+  "decision": "uncertain",
+  "reasoning": "UNCERTAIN: Insufficient evidence (confidence=0.0%)"
+}

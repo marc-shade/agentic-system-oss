@@ -1,0 +1,24 @@
+{
+  "item_id": "http://arxiv.org/abs/1705.05596v1",
+  "source_type": "research_paper",
+  "source_id": "http://arxiv.org/abs/1705.05596v1",
+  "title": "Construction of Parallel RIO Codes using Coset Coding with Hamming Codes",
+  "concepts": [],
+  "techniques": [],
+  "insights": [
+    "Random input/output (RIO) code is a coding scheme that enables reading of one\nlogical page using a single read threshold in multilevel flash memory. The\nconstruction of RIO codes is equivalent to the "
+  ],
+  "authors": [
+    "Akira Yamawaki",
+    "Hiroshi Kamabe",
+    "Shan Lu"
+  ],
+  "created_at": "2017-05-16T08:56:23+00:00",
+  "citations": 0,
+  "confidence_score": 0.8,
+  "related_items": [],
+  "tags": [
+    "cs.IT",
+    "math.IT"
+  ]
+}

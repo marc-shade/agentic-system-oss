@@ -145,7 +145,11 @@ class RAGCodeGenerator:
         qdrant_host: str = "localhost",
         qdrant_port: int = 6333,
         ollama_host: str = "http://localhost:11434",
+<<<<<<< HEAD
         base_path: str = "/Volumes/SSDRAID0/agentic-system"
+=======
+        base_path: str = "/mnt/agentic-system"
+>>>>>>> origin/main
     ):
         """
         Initialize RAG Code Generator.

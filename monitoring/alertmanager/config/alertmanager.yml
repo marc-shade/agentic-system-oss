@@ -1,0 +1,96 @@
+# Alertmanager Configuration for Builder Node (macpro51)
+# Routes alerts to appropriate receivers based on severity and type
+
+global:
+  resolve_timeout: 5m
+
+# Template for alert formatting
+templates: []
+
+# Route tree for alert distribution
+route:
+  receiver: 'default'
+  group_by: ['alertname', 'severity', 'service']
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+
+  routes:
+    # Critical alerts - immediate notification
+    - receiver: 'critical'
+      matchers:
+        - severity = "critical"
+      group_wait: 10s
+      repeat_interval: 1h
+
+    # Warning alerts - grouped notification
+    - receiver: 'warning'
+      matchers:
+        - severity = "warning"
+      group_wait: 1m
+      repeat_interval: 6h
+
+    # Builder-specific alerts
+    - receiver: 'builder'
+      matchers:
+        - node = "macpro51"
+      group_wait: 30s
+      repeat_interval: 4h
+
+    # Build job alerts
+    - receiver: 'build-jobs'
+      matchers:
+        - service =~ "builder.*"
+      group_wait: 1m
+      repeat_interval: 2h
+
+# Alert receivers
+receivers:
+  # Default webhook receiver - sends to orchestrator
+  - name: 'default'
+    webhook_configs:
+      - url: 'http://mac-studio.local/api/v1/alerts'
+        send_resolved: true
+        http_config:
+          follow_redirects: true
+
+  # Critical alerts - multiple channels
+  - name: 'critical'
+    webhook_configs:
+      - url: 'http://mac-studio.local/api/v1/alerts/critical'
+        send_resolved: true
+      # Future: Add PagerDuty, Slack, etc.
+
+  # Warning alerts - webhook only
+  - name: 'warning'
+    webhook_configs:
+      - url: 'http://mac-studio.local/api/v1/alerts/warning'
+        send_resolved: true
+
+  # Builder-specific alerts
+  - name: 'builder'
+    webhook_configs:
+      - url: 'http://mac-studio.local/api/v1/alerts/builder'
+        send_resolved: true
+
+  # Build job alerts
+  - name: 'build-jobs'
+    webhook_configs:
+      - url: 'http://mac-studio.local/api/v1/alerts/builds'
+        send_resolved: true
+
+# Inhibition rules - prevent notification spam
+inhibit_rules:
+  # If a critical alert is firing, suppress warnings for same alertname
+  - source_matchers:
+      - severity = "critical"
+    target_matchers:
+      - severity = "warning"
+    equal: ['alertname', 'service', 'node']
+
+  # If service is down, suppress all related alerts
+  - source_matchers:
+      - alertname = "ServiceDown"
+    target_matchers:
+      - service = "{{ $labels.service }}"
+    equal: ['service']

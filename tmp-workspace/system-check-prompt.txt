@@ -1,0 +1,24 @@
+You are analyzing an agentic AI system running on Linux (Fedora 43).
+
+Current system information:
+- Node: macpro51 (Builder role)
+- CPU: Dual Intel Xeon X5680 (24 threads @ 3.33 GHz)
+- RAM: 126 GB
+- Storage: 930 GB NVMe RAID10
+- Container Runtime: Podman preferred, Docker fallback
+- Storage Base: /home/marc/agentic-system/
+
+Key components that should be verified:
+1. MCP Servers (enhanced-memory, agent-runtime, ember)
+2. Temporal workflow engine
+3. Cluster memory databases
+4. Monitoring stack (Prometheus, Loki, Grafana)
+5. Intelligent agents
+
+Please analyze this system configuration file and tell me:
+1. What agentic features are currently active?
+2. What services should be running but might not be?
+3. Are there any Linux-specific issues to address?
+4. What improvements would you recommend?
+
+Keep your response concise and actionable.

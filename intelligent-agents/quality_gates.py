@@ -101,7 +101,11 @@ class QualityGateSystem:
 
     def __init__(
         self,
+<<<<<<< HEAD
         base_path: str = "/Volumes/SSDRAID0/agentic-system",
+=======
+        base_path: str = "/mnt/agentic-system",
+>>>>>>> origin/main
         strict_mode: bool = True
     ):
         """

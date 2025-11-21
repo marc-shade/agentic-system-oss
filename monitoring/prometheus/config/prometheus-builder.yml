@@ -1,0 +1,79 @@
+# Prometheus Configuration for Builder Node (macpro51)
+# Monitors Builder-specific services and system metrics
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'agentic-system'
+    environment: 'production'
+    node: 'macpro51'
+    node_type: 'builder'
+
+# Alertmanager configuration (to be added)
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: []
+
+# Load rules once and periodically evaluate them
+rule_files:
+  - "rules/*.yml"
+
+# Scrape configurations
+scrape_configs:
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+        labels:
+          service: 'prometheus'
+          node: 'macpro51'
+
+  # Builder API metrics
+  - job_name: 'builder-api'
+    static_configs:
+      - targets: ['host.docker.internal:9000']
+        labels:
+          service: 'builder-api'
+          node: 'macpro51'
+    metrics_path: '/api/v1/metrics'
+    scrape_interval: 30s
+    scrape_timeout: 10s
+
+  # Node exporter for system metrics
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+        labels:
+          service: 'node-exporter'
+          node: 'macpro51'
+    scrape_interval: 30s
+
+  # Docker daemon metrics
+  - job_name: 'docker'
+    static_configs:
+      - targets: ['host.docker.internal:9323']
+        labels:
+          service: 'docker'
+          node: 'macpro51'
+    scrape_interval: 60s
+
+  # Redis metrics (if available)
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis:6379']
+        labels:
+          service: 'redis'
+          node: 'macpro51'
+    scrape_interval: 60s
+
+  # Qdrant metrics (if available)
+  - job_name: 'qdrant'
+    static_configs:
+      - targets: ['host.docker.internal:6333']
+        labels:
+          service: 'qdrant'
+          node: 'macpro51'
+    metrics_path: '/metrics'
+    scrape_interval: 60s

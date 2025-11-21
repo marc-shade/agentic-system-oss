@@ -1,0 +1,31 @@
+[Unit]
+Description=Cluster Self-X Daemon - Autonomous Self-Improvement, Optimization, and Discovery
+Documentation=https://github.com/marc-shade/agentic-system
+After=network.target
+
+[Service]
+Type=simple
+User=marc
+WorkingDirectory=/home/marc/agentic-system/cluster-deployment
+Environment="PATH=/usr/bin:/usr/local/bin"
+Environment="PYTHONUNBUFFERED=1"
+
+# Main daemon process
+ExecStart=/usr/bin/python3 /home/marc/agentic-system/cluster-deployment/cluster_self_x_daemon.py --daemon
+
+# Restart on failure
+Restart=always
+RestartSec=10
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=cluster-self-x
+
+# Resource limits
+Nice=10
+CPUQuota=50%
+MemoryMax=1G
+
+[Install]
+WantedBy=default.target

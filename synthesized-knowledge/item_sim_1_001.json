@@ -1,0 +1,30 @@
+{
+  "item_id": "sim_1_001",
+  "source_type": "research_paper",
+  "source_id": "arxiv:2024.1",
+  "title": "Novel AGI Optimization Technique",
+  "concepts": [
+    "optimization",
+    "meta-learning",
+    "self-improvement"
+  ],
+  "techniques": [
+    "gradient descent",
+    "caching",
+    "parallel processing"
+  ],
+  "insights": [
+    "New optimization achieves 91% efficiency"
+  ],
+  "authors": [
+    "Researchers"
+  ],
+  "created_at": "2025-11-12T16:41:08.555065",
+  "citations": 10,
+  "confidence_score": 0.85,
+  "related_items": [],
+  "tags": [
+    "AGI",
+    "optimization"
+  ]
+}

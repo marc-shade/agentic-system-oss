@@ -1,0 +1,84 @@
+{
+  "timestamp": "2025-11-12T15:45:21.827402",
+  "code_hash": "a2a721ed",
+  "syntax": {
+    "gate_name": "syntax",
+    "status": "pass",
+    "severity": "critical",
+    "score": 1.0,
+    "message": "Syntax valid",
+    "details": {},
+    "execution_time_ms": 0.15100000000000002
+  },
+  "types": {
+    "gate_name": "types",
+    "status": "warn",
+    "severity": "low",
+    "score": 0.9,
+    "message": "1 type issues found",
+    "details": {
+      "error_count": 1,
+      "errors": [
+        "/mnt/agentic-system/tmp-workspace/tmpgw5xthzw.py:2: error: Function is missing a type annotation  [no-untyped-def]"
+      ]
+    },
+    "execution_time_ms": 316.042
+  },
+  "security": {
+    "gate_name": "security",
+    "status": "pass",
+    "severity": "low",
+    "score": 1.0,
+    "message": "No security issues found",
+    "details": {
+      "high": 0,
+      "medium": 0,
+      "low": 0
+    },
+    "execution_time_ms": 153.10999999999999
+  },
+  "complexity": {
+    "gate_name": "complexity",
+    "status": "pass",
+    "severity": "low",
+    "score": 1.0,
+    "message": "Complexity acceptable (max=12, avg=12.0)",
+    "details": {
+      "functions": 1,
+      "classes": 0,
+      "lines": 23,
+      "max_complexity": 12,
+      "avg_complexity": 12.0,
+      "complexities": [
+        {
+          "name": "complex_function",
+          "complexity": 12
+        }
+      ]
+    },
+    "execution_time_ms": 0.406
+  },
+  "style": {
+    "gate_name": "style",
+    "status": "fail",
+    "severity": "medium",
+    "score": 0.5,
+    "message": "Style score 0.50 below threshold 0.7",
+    "details": {
+      "errors": 0,
+      "warnings": 0,
+      "conventions": 1
+    },
+    "execution_time_ms": 319.68800000000005
+  },
+  "all_gates_passed": true,
+  "critical_failures": [],
+  "high_failures": [],
+  "warnings": [
+    "types: 1 type issues found",
+    "style: Style score 0.50 below threshold 0.7"
+  ],
+  "overall_score": 0.94,
+  "deployment_approved": true,
+  "reasoning": "APPROVED: All gates passed (score=0.94) with 2 warnings"
+}

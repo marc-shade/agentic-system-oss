@@ -32,6 +32,7 @@ from typing import Dict, List, Optional, Set, Tuple
 from collections import defaultdict
 import uuid
 
+<<<<<<< HEAD
 # Import physics-informed learning for constrained agent selection
 try:
     from physics_informed_learning import PhysicsInformedLearning
@@ -53,6 +54,8 @@ except ImportError:
     CLUSTER_AVAILABLE = False
     logging.warning("Cluster distribution not available")
 
+=======
+>>>>>>> origin/main
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -61,7 +64,11 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Database path
+<<<<<<< HEAD
 DB_PATH = Path("/Volumes/SSDRAID0/agentic-system/databases/coordination.db")
+=======
+DB_PATH = Path("/mnt/agentic-system/databases/coordination.db")
+>>>>>>> origin/main
 
 
 class TaskStatus(Enum):
@@ -116,6 +123,7 @@ class MultiAgentCoordinator:
     with intelligent task decomposition and result aggregation.
     """
 
+<<<<<<< HEAD
     def __init__(self, db_path: Path = DB_PATH, enable_physics_constraints: bool = True,
                  enable_cluster_offload: bool = True):
         """
@@ -126,6 +134,10 @@ class MultiAgentCoordinator:
             enable_physics_constraints: Enable physics-informed agent selection
             enable_cluster_offload: Enable task offloading to cluster nodes
         """
+=======
+    def __init__(self, db_path: Path = DB_PATH):
+        """Initialize multi-agent coordinator"""
+>>>>>>> origin/main
         self.db_path = db_path
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self._init_database()
@@ -134,6 +146,7 @@ class MultiAgentCoordinator:
         self.agents: Dict[str, AgentCapability] = {}
         self._register_default_agents()
 
+<<<<<<< HEAD
         # Cluster distribution (prioritize remote execution)
         self.enable_cluster_offload = enable_cluster_offload and CLUSTER_AVAILABLE
         if self.enable_cluster_offload:
@@ -155,6 +168,8 @@ class MultiAgentCoordinator:
             if enable_physics_constraints and not PHYSICS_AVAILABLE:
                 logger.warning("Physics constraints requested but not available")
 
+=======
+>>>>>>> origin/main
     def _init_database(self):
         """Initialize coordination database"""
         conn = sqlite3.connect(self.db_path)
@@ -262,6 +277,7 @@ class MultiAgentCoordinator:
         for agent in default_agents:
             self.register_agent(agent)
 
+<<<<<<< HEAD
     def _register_cluster_agents(self):
         """
         Register cluster nodes as virtual agents.
@@ -311,6 +327,8 @@ class MultiAgentCoordinator:
             self.register_agent(cluster_agent)
             logger.info(f"Registered cluster agent: {node_id} ({role}) - {len(task_types)} task types")
 
+=======
+>>>>>>> origin/main
     def register_agent(self, agent: AgentCapability) -> None:
         """Register an agent with the coordinator"""
         self.agents[agent.agent_name] = agent
@@ -483,6 +501,7 @@ class MultiAgentCoordinator:
         1. Agent supports task type
         2. Agent is available (not at capacity)
         3. Agent has best performance score
+<<<<<<< HEAD
         4. [NEW] Respects physics constraints if enabled (load balancing, energy conservation)
         """
         # Use physics-constrained selection if enabled
@@ -494,6 +513,9 @@ class MultiAgentCoordinator:
 
     def _assign_agent_standard(self, subtask: SubTask) -> Optional[str]:
         """Standard agent assignment without physics constraints"""
+=======
+        """
+>>>>>>> origin/main
         candidates = []
 
         for agent_name, agent in self.agents.items():
@@ -521,6 +543,7 @@ class MultiAgentCoordinator:
 
         return selected_agent
 
+<<<<<<< HEAD
     def _assign_agent_physics_constrained(self, subtask: SubTask) -> Optional[str]:
         """
         Physics-constrained agent assignment.
@@ -630,10 +653,28 @@ class MultiAgentCoordinator:
             "output": f"Local execution: {subtask.description}",
             "execution_time_ms": 500,
             "execution_location": "local"
+=======
+    async def execute_subtask(self, subtask: SubTask) -> Dict:
+        """
+        Execute a subtask (simulation - would call actual agent).
+        """
+        logger.info(f"Executing subtask {subtask.task_id} with agent {subtask.assigned_agent}")
+
+        # Simulate execution
+        await asyncio.sleep(0.5)  # Simulate work
+
+        # In production, this would call the actual agent
+        result = {
+            "task_id": subtask.task_id,
+            "status": "completed",
+            "output": f"Completed: {subtask.description}",
+            "execution_time_ms": 500
+>>>>>>> origin/main
         }
 
         return result
 
+<<<<<<< HEAD
     async def _execute_on_cluster(self, subtask: SubTask) -> Dict:
         """
         Execute subtask on a remote cluster node.
@@ -701,6 +742,8 @@ class MultiAgentCoordinator:
                 "execution_location": f"cluster:{node_id}"
             }
 
+=======
+>>>>>>> origin/main
     async def execute_parallel(self, subtasks: List[SubTask]) -> List[Dict]:
         """Execute subtasks in parallel respecting dependencies"""
         completed = set()

@@ -1,0 +1,14 @@
+{
+  "impl_id": "9847bb04-6c8c-4565-910c-0e1a427594bc",
+  "improvement_id": "dgm_095edb2b-22b2-4806-8382-c001c9871e1f",
+  "generated_code": "",
+  "patch_file": "",
+  "status": "failed",
+  "created_at": "2025-11-10T11:09:48.659196",
+  "tested_at": null,
+  "deployed_at": null,
+  "rolled_back_at": null,
+  "test_results": null,
+  "performance_delta": null,
+  "error_message": "Target file not found: intelligent-agents/sample_module.py"
+}
