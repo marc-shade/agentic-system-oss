@@ -1,0 +1,18 @@
+{
+  "name": "autokitteh-mcp",
+  "version": "1.0.0",
+  "description": "MCP server for AutoKitteh workflow automation integration",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "latest",
+    "axios": "^1.7.2",
+    "zod": "^3.22.4"
+  },
+  "keywords": ["mcp", "autokitteh", "workflow", "automation"],
+  "author": "2 Acre Studios",
+  "license": "MIT"
+}

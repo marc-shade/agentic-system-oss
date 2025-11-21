@@ -1,0 +1,19 @@
+{
+  "recommendations": [
+    {
+      "timestamp": "2025-11-21T13:03:34.885890",
+      "service": "Arduino Smart Agent",
+      "action": "restart",
+      "reason": "Arduino Smart Agent verification failed: failed",
+      "confidence": 0.9
+    },
+    {
+      "timestamp": "2025-11-21T13:03:34.885967",
+      "service": "System Health Guardian (Observer)",
+      "action": "restart",
+      "reason": "System Health Guardian (Observer) verification failed: failed",
+      "confidence": 0.9
+    }
+  ],
+  "last_updated": "2025-11-21T13:03:34.886024"
+}

@@ -13,32 +13,57 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent / "bridge"))
 
 try:
-    from surface_bridge import ArduinoSurface
+    from arduino_cluster_discovery import ArduinoClusterDiscovery, ArduinoLocation
+    from arduino_cluster_relay import ClusterAwareArduinoSurface
 except ImportError as e:
-    print(f"Error importing surface_bridge: {e}", file=sys.stderr)
+    print(f"Error importing Arduino modules: {e}", file=sys.stderr)
     print(f"Python path: {sys.path}", file=sys.stderr)
     sys.exit(1)
 
 # Global Arduino surface instance
 arduino = None
-arduino_port = None
+arduino_location = None
 
 
-def initialize_arduino(port: str) -> bool:
-    """Initialize Arduino connection"""
-    global arduino, arduino_port
+def discover_and_initialize_arduino() -> bool:
+    """Discover and initialize Arduino connection across cluster"""
+    global arduino, arduino_location
 
-    if arduino and arduino_port == port:
+    if arduino:
+        # Already initialized
         return True
 
     try:
-        arduino = ArduinoSurface(port)
+        # Discover Arduino location
+        discovery = ArduinoClusterDiscovery()
+        location = discovery.discover()
+
+        if not location:
+            print("⚠️  Arduino not found on any cluster node", file=sys.stderr)
+            print("   MCP server will operate in degraded mode", file=sys.stderr)
+            print("   All Arduino operations will gracefully fail", file=sys.stderr)
+            return False
+
+        # Initialize cluster-aware surface
+        arduino = ClusterAwareArduinoSurface(location)
+
         if arduino.connect():
-            arduino_port = port
+            arduino_location = location
+            print(f"✅ Arduino connected!", file=sys.stderr)
+            print(f"   Node: {location.node_id}", file=sys.stderr)
+            print(f"   IP: {location.node_ip}", file=sys.stderr)
+            print(f"   Port: {location.port}", file=sys.stderr)
+            print(f"   Local: {location.is_local}", file=sys.stderr)
+            print(f"   Relay: {location.relay_method}", file=sys.stderr)
             return True
-        return False
+        else:
+            print(f"⚠️  Arduino found but connection failed", file=sys.stderr)
+            print(f"   Node: {location.node_id} ({location.port})", file=sys.stderr)
+            return False
+
     except Exception as e:
-        print(f"Error initializing Arduino: {e}", file=sys.stderr)
+        print(f"⚠️  Error during Arduino discovery: {e}", file=sys.stderr)
+        print("   MCP server will operate in degraded mode", file=sys.stderr)
         return False
 
 
@@ -240,10 +265,17 @@ async def handle_list_tools(request_id: str):
 
 async def handle_call_tool(request_id: str, params: dict):
     """Execute Arduino tool"""
-    global arduino
+    global arduino, arduino_location
 
     if not arduino:
-        send_error(request_id, "Arduino not initialized")
+        # Provide helpful error message
+        error_msg = "Arduino not available. "
+        if arduino_location:
+            error_msg += f"Found on {arduino_location.node_id} but connection failed."
+        else:
+            error_msg += "Not found on any cluster node. Please ensure Arduino is connected."
+
+        send_error(request_id, error_msg)
         return
 
     tool_name = params.get("name")
@@ -446,20 +478,18 @@ async def main():
     """Main MCP server loop"""
     global arduino
 
-    # Get Arduino port from command line
-    if len(sys.argv) < 2:
-        print("Usage: arduino_surface_mcp.py <serial_port>", file=sys.stderr)
-        print("Example: arduino_surface_mcp.py /dev/tty.usbmodem8344401", file=sys.stderr)
-        sys.exit(1)
+    print("🔍 Arduino Surface MCP Server", file=sys.stderr)
+    print("   Discovering Arduino across cluster...", file=sys.stderr)
+    print("", file=sys.stderr)
 
-    port = sys.argv[1]
+    # Discover and initialize Arduino (non-fatal if not found)
+    discover_and_initialize_arduino()
 
-    # Initialize Arduino
-    if not initialize_arduino(port):
-        print(f"Failed to connect to Arduino on {port}", file=sys.stderr)
-        sys.exit(1)
-
-    print(f"Arduino Surface MCP server started on {port}", file=sys.stderr)
+    print("", file=sys.stderr)
+    print("✅ MCP server ready", file=sys.stderr)
+    if not arduino:
+        print("   (Operating in degraded mode - Arduino not available)", file=sys.stderr)
+    print("", file=sys.stderr)
 
     # Read JSON-RPC requests from stdin
     loop = asyncio.get_event_loop()

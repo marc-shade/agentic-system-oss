@@ -39,6 +39,20 @@ from urllib.parse import quote
 
 import aiohttp
 import arxiv
+# Add SHARED to path for TOON utilities
+sys.path.insert(0, str(Path(__file__).parent.parent / "SHARED"))
+
+# Import TOON utilities for token-optimized responses
+try:
+    from toon_utils import toon_response, estimate_token_savings
+    TOON_ENABLED = True
+except ImportError:
+    # Fallback to JSON if TOON not available
+    TOON_ENABLED = False
+    def toon_response(data, **kwargs):
+        return json.dumps(data)
+
+
 from mcp.server.models import InitializationOptions
 from mcp.server import NotificationOptions, Server
 import mcp.server.stdio
@@ -254,7 +268,7 @@ async def search_arxiv(args: Dict) -> List[types.TextContent]:
         )
 
         results = []
-        async for result in search.results():
+        for result in search.results():
             paper_data = {
                 "id": result.entry_id.split("/")[-1],
                 "title": result.title,
@@ -272,19 +286,19 @@ async def search_arxiv(args: Dict) -> List[types.TextContent]:
 
         return [types.TextContent(
             type="text",
-            text=json.dumps({
+            text=toon_response({
                 "success": True,
                 "query": query,
                 "count": len(results),
                 "papers": results
-            }, indent=2)
+            })
         )]
 
     except Exception as e:
         logger.error(f"arXiv search failed: {e}", exc_info=True)
         return [types.TextContent(
             type="text",
-            text=json.dumps({
+            text=toon_response({
                 "success": False,
                 "error": str(e)
             })
@@ -317,12 +331,12 @@ async def search_semantic_scholar(args: Dict) -> List[types.TextContent]:
 
                     return [types.TextContent(
                         type="text",
-                        text=json.dumps({
+                        text=toon_response({
                             "success": True,
                             "query": query,
                             "count": len(papers),
                             "papers": papers
-                        }, indent=2)
+                        })
                     )]
                 else:
                     error_text = await response.text()
@@ -332,7 +346,7 @@ async def search_semantic_scholar(args: Dict) -> List[types.TextContent]:
         logger.error(f"Semantic Scholar search failed: {e}", exc_info=True)
         return [types.TextContent(
             type="text",
-            text=json.dumps({
+            text=toon_response({
                 "success": False,
                 "error": str(e)
             })
@@ -363,7 +377,7 @@ async def download_paper(args: Dict) -> List[types.TextContent]:
 
                     return [types.TextContent(
                         type="text",
-                        text=json.dumps({
+                        text=toon_response({
                             "success": True,
                             "paper_id": paper_id,
                             "file_path": str(pdf_path),
@@ -377,7 +391,7 @@ async def download_paper(args: Dict) -> List[types.TextContent]:
         logger.error(f"Paper download failed: {e}", exc_info=True)
         return [types.TextContent(
             type="text",
-            text=json.dumps({
+            text=toon_response({
                 "success": False,
                 "error": str(e)
             })
@@ -418,18 +432,18 @@ async def extract_insights(args: Dict) -> List[types.TextContent]:
 
         return [types.TextContent(
             type="text",
-            text=json.dumps({
+            text=toon_response({
                 "success": True,
                 "insights": insights,
                 "focus_areas": focus_areas
-            }, indent=2)
+            })
         )]
 
     except Exception as e:
         logger.error(f"Insight extraction failed: {e}", exc_info=True)
         return [types.TextContent(
             type="text",
-            text=json.dumps({
+            text=toon_response({
                 "success": False,
                 "error": str(e)
             })
@@ -467,10 +481,10 @@ async def analyze_citations(args: Dict) -> List[types.TextContent]:
 
                     return [types.TextContent(
                         type="text",
-                        text=json.dumps({
+                        text=toon_response({
                             "success": True,
                             "citation_graph": citation_graph
-                        }, indent=2)
+                        })
                     )]
                 else:
                     raise Exception(f"HTTP {response.status}")
@@ -479,7 +493,7 @@ async def analyze_citations(args: Dict) -> List[types.TextContent]:
         logger.error(f"Citation analysis failed: {e}", exc_info=True)
         return [types.TextContent(
             type="text",
-            text=json.dumps({
+            text=toon_response({
                 "success": False,
                 "error": str(e)
             })
@@ -514,7 +528,7 @@ async def store_paper_knowledge(args: Dict) -> List[types.TextContent]:
 
         return [types.TextContent(
             type="text",
-            text=json.dumps({
+            text=toon_response({
                 "success": True,
                 "entity_name": entity_name,
                 "observations_count": len(observations),
@@ -526,7 +540,7 @@ async def store_paper_knowledge(args: Dict) -> List[types.TextContent]:
         logger.error(f"Knowledge storage failed: {e}", exc_info=True)
         return [types.TextContent(
             type="text",
-            text=json.dumps({
+            text=toon_response({
                 "success": False,
                 "error": str(e)
             })

@@ -37,7 +37,8 @@ class ProactiveMemoryLoader:
     """Proactively loads relevant context from enhanced-memory"""
 
     def __init__(self):
-        self.memory_db = Path.home() / ".claude" / "enhanced_memories" / "memory.db"
+        # Store on SSDRAID0 (not home directory - see FILE_LOCATION_POLICY.md)
+        self.memory_db = Path("/Volumes/SSDRAID0/agentic-system/databases/enhanced_memory/memory.db")
         self.min_relevance_score = 0.6
         self.max_context_items = 5
 

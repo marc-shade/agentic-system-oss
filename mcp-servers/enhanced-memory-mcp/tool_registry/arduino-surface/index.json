@@ -1,0 +1,9 @@
+{
+  "server": "arduino-surface",
+  "tool_count": 3,
+  "tools": [
+    "surface_display",
+    "surface_led_set",
+    "surface_alert"
+  ]
+}

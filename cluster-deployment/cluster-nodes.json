@@ -1,0 +1,90 @@
+{
+  "nodes": {
+    "macpro51": {
+      "hostname": "macpro51.local",
+      "ip": "192.168.1.183",
+      "os": "linux",
+      "arch": "x86_64",
+      "role": "builder",
+      "storage_base": "/mnt/agentic-system",
+      "specialties": [
+        "compilation",
+        "testing",
+        "containerization",
+        "benchmarking"
+      ],
+      "capabilities": [
+        "docker",
+        "podman",
+        "raid",
+        "compilation",
+        "testing"
+      ]
+    },
+    "mac-studio": {
+      "hostname": "mac-studio.local",
+      "ip": "192.168.1.16",
+      "os": "macos",
+      "arch": "arm64",
+      "role": "orchestrator",
+      "storage_base": "/Volumes/SSDRAID0/agentic-system",
+      "specialties": [
+        "orchestration",
+        "coordination",
+        "monitoring",
+        "temporal-workflows"
+      ],
+      "capabilities": [
+        "orchestration",
+        "coordination",
+        "temporal",
+        "mlx-gpu",
+        "arduino"
+      ]
+    },
+    "macbook-air-m3": {
+      "hostname": "macbook-air.local",
+      "ip": "192.168.1.76",
+      "os": "macos",
+      "arch": "arm64",
+      "role": "researcher",
+      "storage_base": "~/agentic-system",
+      "specialties": [
+        "research",
+        "documentation",
+        "analysis",
+        "mobile-operations"
+      ],
+      "capabilities": [
+        "research",
+        "documentation",
+        "analysis"
+      ]
+    },
+    "completeu-server": {
+      "hostname": "completeu-server.local",
+      "ip": "192.168.1.186",
+      "os": "macos",
+      "arch": "arm64",
+      "role": "data",
+      "storage_base": "~/agentic-system",
+      "specialties": [
+        "persistence",
+        "apis",
+        "databases",
+        "completeu-platform"
+      ],
+      "capabilities": [
+        "data-storage",
+        "api-hosting",
+        "database-management"
+      ]
+    }
+  },
+  "discovery": {
+    "ssh_user": "marc",
+    "ssh_key": "~/.ssh/id_ed25519",
+    "timeout": 10,
+    "retry": 3
+  }
+}

@@ -1,0 +1,3 @@
+# First, we need to save the Corgi sprite sheet from the uploaded image.
+# Since I can't directly save the uploaded image, let me create a sample 
+# configuration and usage guide for the avatar feature.

@@ -1,0 +1,9 @@
+Complexity,Loss,Equation
+1,0.011608304,"0.5384189"
+3,0.006122111,"3.888635 / log_exec_time"
+4,0.005083463,"log(12.404968 / log_exec_time)"
+5,0.0048171408,"sqrt(log(9.738181 / log_exec_time))"
+7,0.0024722605,"sqrt(log(10.66369 / log_exec_time) * success_rate)"
+8,0.0018222469,"sqrt(success_rate * sqrt(log(8.451636 / log_exec_time)))"
+11,0.000956775,"(success_rate + 0.2829025) * sqrt(avg_quality_score * log(10.104731 / log_exec_time))"
+12,0.00087170507,"sqrt(log(sqrt((avg_quality_score * success_rate) + 0.30638182) * (10.197238 / log_exec_time)))"

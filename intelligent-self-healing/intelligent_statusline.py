@@ -140,7 +140,8 @@ class IntelligentStatusLine:
             data['hook_count'] = 0
             data['recent_hook_activity'] = False
 
-        # MCP server configuration - count both configured and running
+        # MCP server configuration - count configured and enabled
+        # Note: MCPs are on-demand (started by Claude Code when needed), not persistent processes
         try:
             claude_json = Path.home() / ".claude.json"
             if claude_json.exists():
@@ -149,39 +150,14 @@ class IntelligentStatusLine:
                     mcp_servers = config.get('mcpServers', {})
                     total_configured = len(mcp_servers)
 
-                    # Count how many are actually running by checking processes
-                    running_count = 0
+                    # Count enabled servers (not disabled)
+                    enabled_count = 0
                     for server_name, server_config in mcp_servers.items():
-                        # Skip disabled servers
-                        if server_config.get('disabled', False):
-                            continue
-
-                        # Extract command/args to identify the process
-                        command = server_config.get('command', '')
-                        args = server_config.get('args', [])
-
-                        # Build search pattern
-                        if args and len(args) > 0:
-                            # Use first arg as identifier (usually the script path)
-                            search_pattern = args[0]
-                        else:
-                            search_pattern = command
-
-                        if search_pattern:
-                            try:
-                                result = subprocess.run(
-                                    ['pgrep', '-f', search_pattern],
-                                    capture_output=True,
-                                    text=True,
-                                    timeout=1
-                                )
-                                if result.stdout.strip():
-                                    running_count += 1
-                            except Exception:
-                                pass
+                        if not server_config.get('disabled', False):
+                            enabled_count += 1
 
                     data['mcp_count'] = total_configured
-                    data['mcp_running'] = running_count
+                    data['mcp_running'] = enabled_count
             else:
                 data['mcp_count'] = 0
                 data['mcp_running'] = 0
@@ -207,7 +183,7 @@ class IntelligentStatusLine:
         # AutoKitteh event-driven automation status
         try:
             result = subprocess.run(
-                ['pgrep', '-f', 'autokitteh'],
+                ['pgrep', '-f', 'ak up'],
                 capture_output=True,
                 text=True,
                 timeout=1
@@ -264,6 +240,9 @@ class IntelligentStatusLine:
 
         # Claude Code weekly usage tracking
         data['claude_usage'] = self._check_claude_usage()
+
+        # Cluster node status
+        data['cluster_status'] = self._check_cluster_status()
 
         return data
 
@@ -385,7 +364,7 @@ class IntelligentStatusLine:
         try:
             # Import the token estimator utility
             import sys
-            sys.path.insert(0, '/Volumes/SSDRAID0/agentic-system/intelligent-self-healing')
+            sys.path.insert(0, str(Path.home() / '.claude'))
             from token_estimator import estimate_token_usage
 
             usage = estimate_token_usage()
@@ -652,12 +631,13 @@ class IntelligentStatusLine:
             # For now, we'll use a cached file approach if API doesn't support direct usage query
             cache_file = Path.home() / ".claude" / ".usage_cache.json"
 
-            # Check if we have recent cached data (within last 5 minutes)
+            # Check if we have recent cached data (within last 1 hour)
+            # Weekly usage doesn't change frequently, so longer cache is fine
             if cache_file.exists():
                 mod_time = cache_file.stat().st_mtime
                 age_seconds = datetime.now().timestamp() - mod_time
 
-                if age_seconds < 300:  # 5 minutes
+                if age_seconds < 3600:  # 1 hour (increased from 5 min to make usage "stick")
                     with open(cache_file, 'r') as f:
                         usage_data = json.load(f)
                         return usage_data
@@ -674,6 +654,80 @@ class IntelligentStatusLine:
         except Exception:
             return {'available': False}
 
+    def _check_cluster_status(self) -> Dict[str, Any]:
+        """
+        Check distributed cluster node status
+        Returns reachable nodes, total nodes, and per-node health
+        """
+        cluster_config = Path('/Volumes/SSDRAID0/agentic-system/cluster-deployment/cluster-nodes.json')
+
+        default_status = {
+            'total': 0,
+            'reachable': 0,
+            'nodes': {},
+            'available': False
+        }
+
+        if not cluster_config.exists():
+            return default_status
+
+        try:
+            with open(cluster_config, 'r') as f:
+                config = json.load(f)
+
+            # Handle nested structure (nodes key)
+            nodes = config.get('nodes', config)
+
+            if not nodes:
+                return default_status
+
+            total = len(nodes)
+            reachable = 0
+            node_status = {}
+
+            # Quick ping check for each node (timeout 1 second)
+            for node_id, node_info in nodes.items():
+                ip = node_info.get('ip', '')
+                if not ip:
+                    node_status[node_id] = {'status': 'no_ip', 'reachable': False}
+                    continue
+
+                # Check if this is the local node
+                local_hostname = os.uname().nodename.lower().replace('-', '').replace('.local', '')
+                node_name_normalized = node_id.lower().replace('-', '')
+                if node_name_normalized in local_hostname or local_hostname in node_name_normalized:
+                    node_status[node_id] = {'status': 'local', 'reachable': True}
+                    reachable += 1
+                    continue
+
+                try:
+                    # Fast ping check (1 packet, 1 second timeout)
+                    result = subprocess.run(
+                        ['ping', '-c', '1', '-W', '1', ip],
+                        capture_output=True,
+                        timeout=2
+                    )
+                    is_reachable = result.returncode == 0
+
+                    if is_reachable:
+                        reachable += 1
+                        node_status[node_id] = {'status': 'online', 'reachable': True, 'ip': ip}
+                    else:
+                        node_status[node_id] = {'status': 'offline', 'reachable': False, 'ip': ip}
+
+                except (subprocess.TimeoutExpired, Exception):
+                    node_status[node_id] = {'status': 'timeout', 'reachable': False, 'ip': ip}
+
+            return {
+                'total': total,
+                'reachable': reachable,
+                'nodes': node_status,
+                'available': True
+            }
+
+        except (json.JSONDecodeError, Exception):
+            return default_status
+
     def _format_usage_bar(self, percentage: int, width: int = 10) -> str:
         """
         Create a compact progress bar for usage display
@@ -683,7 +737,7 @@ class IntelligentStatusLine:
             width: Width of progress bar in characters
 
         Returns:
-            Compact progress bar string like "36% ██████░░░░"
+            Compact progress bar string like "█░░░░░░░░░ 19%"
         """
         filled = int((percentage / 100.0) * width)
         empty = width - filled
@@ -691,7 +745,8 @@ class IntelligentStatusLine:
         # Use block characters for compact display
         bar = "█" * filled + "░" * empty
 
-        return f"{percentage}% {bar}"
+        # Bar first, then percentage
+        return f"{bar} {percentage}%"
 
     def ai_prioritize_display(self, data: Dict[str, Any]) -> List[Tuple[str, str, int]]:
         """
@@ -720,7 +775,9 @@ Prioritization Rules:
 8. Background services running: Low priority (priority 3)
 
 MANDATORY ITEMS (include ALL of these):
-1. claude_usage: If available, show weekly usage with compact progress bar (e.g., "36% ██████░░░░")
+1. claude_usage: If available, show weekly usage with compact progress bar (e.g., "██░░░░░░░░ 19%")
+   - Use 📊 emoji
+   - Format: bar first, then percentage
    - Priority 1 if usage > 80% (warning level)
    - Priority 2 if usage 50-80% (normal)
    - Priority 3 if usage < 50% (plenty remaining)
@@ -815,23 +872,9 @@ Priority meanings:
         claude_usage = data.get('claude_usage', {})
         if claude_usage.get('available'):
             percentage = claude_usage.get('percentage', 0)
-            reset_date = claude_usage.get('reset_date', '')
 
-            # Create compact progress bar
-            usage_bar = self._format_usage_bar(percentage, width=10)
-
-            # Add reset info if available (compress the date)
-            if reset_date:
-                try:
-                    # Parse reset date and format compactly (e.g., "11/19 3pm")
-                    from datetime import datetime
-                    reset_dt = datetime.fromisoformat(reset_date.replace('Z', '+00:00'))
-                    reset_compact = reset_dt.strftime("%m/%d %I%p").lower().replace(' 0', ' ')
-                    usage_display = f"{usage_bar} rst {reset_compact}"
-                except Exception:
-                    usage_display = usage_bar
-            else:
-                usage_display = usage_bar
+            # Create compact progress bar (bar first, then percentage)
+            usage_display = self._format_usage_bar(percentage, width=10)
 
             # Priority based on usage level
             if percentage >= 80:
@@ -841,7 +884,7 @@ Priority meanings:
             else:
                 priority = 3  # Plenty remaining
 
-            items.append(('💳', usage_display, priority))
+            items.append(('📊', usage_display, priority))
 
         # CRITICAL: Health monitoring system (highest priority)
         health_status = data.get('health_status', {})
@@ -859,10 +902,11 @@ Priority meanings:
             # Show degraded status
             items.append(('⚠️', f"{unhealthy_count} unhealthy", 1))
         elif overall_health == 'healthy':
-            # Only show "all healthy" if there were recent checks
+            # Show specific count of healthy services
             checks = health_status.get('checks', {})
             if checks:
-                items.append(('✅', 'All healthy', 2))
+                service_count = len(checks)
+                items.append(('✅', f"{service_count} services OK", 2))
 
         # Critical: Dynamic self-healing status
         self_healing = data.get('self_healing', {})
@@ -920,6 +964,24 @@ Priority meanings:
             items.append(('⚠️', 'Temporal down', 1))
         if not data.get('autokitteh_running'):
             items.append(('⚠️', 'AK down', 1))
+
+        # Cluster status - show reachable/total nodes
+        cluster_status = data.get('cluster_status', {})
+        if cluster_status.get('available'):
+            total = cluster_status.get('total', 0)
+            reachable = cluster_status.get('reachable', 0)
+
+            if total > 0:
+                # Determine priority based on health
+                if reachable == total:
+                    # All nodes healthy
+                    items.append(('🌐', f"{reachable}/{total}nodes", 2))
+                elif reachable >= total - 1:
+                    # One node down - warning
+                    items.append(('🌐', f"{reachable}/{total}nodes", 1))
+                else:
+                    # Multiple nodes down - critical
+                    items.append(('⚠️', f"{reachable}/{total}nodes", 0))
 
         # Normal: Agent activity
         agent_count = data.get('agent_count', 0)

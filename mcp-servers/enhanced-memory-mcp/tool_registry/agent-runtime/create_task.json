@@ -1,0 +1,11 @@
+{
+  "name": "create_task",
+  "description": "Create manual task in queue",
+  "parameters": {
+    "title": "str",
+    "description": "str",
+    "priority": "int = 5"
+  },
+  "returns": "Task ID and metadata",
+  "cost_estimate": "low"
+}

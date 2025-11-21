@@ -412,12 +412,52 @@ class DarwinGodelMachine:
 
         return complexity
 
-    def _estimate_improvement(self, code_before: str, code_after: str) -> float:
-        """Estimate performance improvement (0.0-1.0)"""
-        # Simplified estimation based on code size and complexity
-        size_ratio = len(code_before) / max(len(code_after), 1)
+    def _estimate_improvement(self, code_before: str, code_after: str,
+                             use_pysr: bool = True) -> float:
+        """
+        Estimate performance improvement (0.0-1.0).
 
-        # Assume shorter, simpler code is better (within reason)
+        Args:
+            code_before: Original code
+            code_after: Modified code
+            use_pysr: Use PySR-discovered equation (default: True)
+
+        Returns:
+            Estimated improvement score
+        """
+        # Calculate features
+        size_ratio = len(code_before) / max(len(code_after), 1)
+        complexity_before = self._calculate_complexity(code_before)
+        complexity_after = self._calculate_complexity(code_after)
+        complexity_reduction = complexity_before - complexity_after
+
+        if use_pysr:
+            try:
+                # Use PySR-discovered equation
+                from equation_integration import get_integrator
+
+                integrator = get_integrator()
+                safety_score = self._calculate_safety_score(code_after)
+
+                improvement = integrator.darwin_godel_improvement(
+                    size_ratio=size_ratio,
+                    complexity_reduction=complexity_reduction,
+                    safety_score=safety_score,
+                    modification_type_encoded=0,  # Could be enhanced with actual type
+                    was_reverted=0  # Unknown at estimation time
+                )
+
+                logger.info(f"PySR improvement estimate: {improvement:.4f} "
+                          f"(complexity_reduction={complexity_reduction}, "
+                          f"size_ratio={size_ratio:.2f})")
+
+                return float(improvement)
+
+            except Exception as e:
+                logger.warning(f"PySR equation failed, using fallback heuristic: {e}")
+                # Fall through to original heuristic
+
+        # Original heuristic (fallback)
         if 0.8 <= size_ratio <= 1.2:
             # Similar size - minimal change
             return 0.05

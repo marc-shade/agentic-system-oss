@@ -1,0 +1,10 @@
+{
+  "name": "execute_code",
+  "description": "Execute Python code in sandbox with memory APIs",
+  "parameters": {
+    "code": "str",
+    "context_vars": "Optional[Dict]"
+  },
+  "returns": "Execution result with stdout/stderr",
+  "cost_estimate": "medium"
+}

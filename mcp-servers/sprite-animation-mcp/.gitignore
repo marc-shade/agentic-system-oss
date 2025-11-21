@@ -1,0 +1,16 @@
+node_modules/
+build/
+dist/
+*.log
+.DS_Store
+output/
+*.gif
+*.png
+!examples/**/*.png
+!examples/**/*.gif
+.env
+coverage/
+.vscode/
+*.swp
+*.swo
+*~

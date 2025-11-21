@@ -1,0 +1,7 @@
+{
+  "server": "sequential-thinking",
+  "tool_count": 1,
+  "tools": [
+    "sequentialthinking"
+  ]
+}

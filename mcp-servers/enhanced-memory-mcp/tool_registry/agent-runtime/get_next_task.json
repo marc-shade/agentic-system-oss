@@ -1,0 +1,7 @@
+{
+  "name": "get_next_task",
+  "description": "Get highest priority task with met dependencies",
+  "parameters": {},
+  "returns": "Next task or null",
+  "cost_estimate": "low"
+}

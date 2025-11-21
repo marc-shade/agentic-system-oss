@@ -1,0 +1,9 @@
+{
+  "name": "create_entities",
+  "description": "Create entities with compression and versioning",
+  "parameters": {
+    "entities": "List[Dict] - entities with name, entityType, observations"
+  },
+  "returns": "Dict with created count and results",
+  "cost_estimate": "medium"
+}

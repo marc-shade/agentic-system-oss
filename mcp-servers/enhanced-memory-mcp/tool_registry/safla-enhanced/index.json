@@ -1,0 +1,11 @@
+{
+  "server": "safla-enhanced",
+  "tool_count": 5,
+  "tools": [
+    "generate_embeddings",
+    "store_memory",
+    "retrieve_memories",
+    "analyze_text",
+    "detect_patterns"
+  ]
+}

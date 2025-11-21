@@ -1,0 +1,12 @@
+{
+  "server": "enhanced-memory",
+  "tool_count": 6,
+  "tools": [
+    "create_entities",
+    "search_nodes",
+    "execute_code",
+    "memory_diff",
+    "memory_branch",
+    "detect_memory_conflicts"
+  ]
+}

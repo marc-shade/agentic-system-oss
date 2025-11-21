@@ -251,7 +251,8 @@ print("Database initialized successfully")
 
 def update_status(state: str, error_count: int = 0, healing_count: int = 0, fixed_count: int = 0, message: str = ""):
     """Update status file for statusline display."""
-    status_file = Path('/tmp/self_healing_status.json')
+    # Store on SSDRAID0 (not /tmp - see FILE_LOCATION_POLICY.md)
+    status_file = Path('/Volumes/SSDRAID0/agentic-system/logs/self_healing/status.json')
     status = {
         'state': state,  # idle, analyzing, healing, completed
         'error_count': error_count,

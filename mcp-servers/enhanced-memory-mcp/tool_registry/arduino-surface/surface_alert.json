@@ -1,0 +1,9 @@
+{
+  "name": "surface_alert",
+  "description": "Play alert pattern (success/warning/error/info)",
+  "parameters": {
+    "type": "str"
+  },
+  "returns": "Confirmation",
+  "cost_estimate": "low"
+}

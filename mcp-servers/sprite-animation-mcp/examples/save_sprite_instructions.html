@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Save Corgi Sprite Sheet</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .sprite-info {
+            background: #f0f8ff;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: left;
+        }
+        .steps {
+            text-align: left;
+            margin: 30px 0;
+        }
+        .steps ol {
+            line-height: 2;
+        }
+        .sprite-preview {
+            margin: 20px 0;
+            padding: 20px;
+            background: #333;
+            border-radius: 8px;
+        }
+        code {
+            background: #f4f4f4;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #4a90e2;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            margin-top: 20px;
+        }
+        .button:hover {
+            background: #357abd;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🐕 Save Your Corgi Sprite Sheet</h1>
+        
+        <div class="sprite-info">
+            <h3>Sprite Sheet Details:</h3>
+            <ul>
+                <li><strong>Grid:</strong> 5 columns × 4 rows (20 frames total)</li>
+                <li><strong>Animation:</strong> Walking/running cycle</li>
+                <li><strong>Special frames:</strong> Last row shows turning animation</li>
+            </ul>
+        </div>
+
+        <div class="steps">
+            <h3>📋 Steps to Save the Sprite:</h3>
+            <ol>
+                <li>Go back to your Claude conversation</li>
+                <li>Right-click on the Corgi sprite image</li>
+                <li>Select "Save Image As..."</li>
+                <li>Navigate to: <code>/Users/marc/Documents/Cline/MCP/sprite-animation-mcp/examples/</code></li>
+                <li>Save as: <code>corgi_sprite.png</code></li>
+            </ol>
+        </div>
+
+        <div class="sprite-preview">
+            <p style="color: white; text-align: center;">
+                The sprite sheet contains a cute pixel art Corgi with:<br>
+                • Orange/tan fur color<br>
+                • Cream-colored chest<br>
+                • Walking animation frames<br>
+                • Special turn animation in the last row
+            </p>
+        </div>
+
+        <h3>✅ After Saving:</h3>
+        <p>Run this command in Terminal:</p>
+        <code style="display: block; padding: 10px; background: #2a2a2a; color: #0f0;">
+            /Users/marc/Documents/Cline/MCP/sprite-animation-mcp/setup_avatar.sh
+        </code>
+
+        <a href="#" class="button" onclick="alert('Please save the sprite sheet first!')">Continue Setup</a>
+    </div>
+</body>
+</html>

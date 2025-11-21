@@ -1,0 +1,12 @@
+{
+  "name": "sequentialthinking",
+  "description": "Multi-step reasoning with revision capability",
+  "parameters": {
+    "thought": "str - current thinking step",
+    "thoughtNumber": "int",
+    "totalThoughts": "int",
+    "nextThoughtNeeded": "bool"
+  },
+  "returns": "Reasoning chain state",
+  "cost_estimate": "medium"
+}

@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "@toon-format/cli": "^1.0.0",
+    "@toon-format/toon": "^1.0.0"
+  }
+}

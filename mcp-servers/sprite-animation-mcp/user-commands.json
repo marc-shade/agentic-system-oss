@@ -1,0 +1,105 @@
+{
+  "name": "MCP Orchestrator User Commands",
+  "version": "1.0.0",
+  "description": "Custom slash commands and user commands for Claude Code orchestration",
+  "commands": {
+    "orchestrate": {
+      "description": "Deploy cascading AI agents for complex tasks",
+      "usage": "/orchestrate <task_description>",
+      "example": "/orchestrate Build a full-stack web application with authentication",
+      "action": "Deploy agent teams based on task complexity"
+    },
+    "distribute": {
+      "description": "Distribute task across worker nodes",
+      "usage": "/distribute <task> --nodes <node_list>",
+      "example": "/distribute analyze_codebase --nodes ai-mac-mini,macbook-air",
+      "action": "Execute task in parallel across specified nodes"
+    },
+    "cascade": {
+      "description": "Execute cascading agent workflow",
+      "usage": "/cascade <workflow_type>",
+      "example": "/cascade development",
+      "workflows": [
+        "development",
+        "research",
+        "content_creation",
+        "analysis",
+        "deployment"
+      ]
+    },
+    "agents": {
+      "description": "List available AI agents by category",
+      "usage": "/agents [category]",
+      "example": "/agents development",
+      "action": "Show agents from ai-prompt-library"
+    },
+    "deploy-agent": {
+      "description": "Deploy specific agent or agent team",
+      "usage": "/deploy-agent <agent_name>",
+      "example": "/deploy-agent python-architect",
+      "action": "Load and execute specific agent from library"
+    },
+    "status": {
+      "description": "Show orchestration and node status",
+      "usage": "/status",
+      "action": "Display current orchestration status and worker node health"
+    },
+    "sync": {
+      "description": "Sync with master node configuration",
+      "usage": "/sync",
+      "action": "Pull latest configurations and updates from master node"
+    },
+    "cost": {
+      "description": "Track token usage across distributed operations",
+      "usage": "/cost",
+      "action": "Show aggregated cost metrics from all operations"
+    },
+    "test-mcp": {
+      "description": "Test MCP server functionality",
+      "usage": "/test-mcp <server_name>",
+      "example": "/test-mcp ai-prompt-library",
+      "action": "Run diagnostics on specified MCP server"
+    },
+    "parallel": {
+      "description": "Execute command in parallel mode",
+      "usage": "/parallel <command>",
+      "example": "/parallel test all servers",
+      "action": "Run command across all available resources"
+    },
+    "python-setup": {
+      "description": "Setup Python 3.11+ virtual environments",
+      "usage": "/python-setup [--upgrade]",
+      "example": "/python-setup --upgrade",
+      "action": "Deploy modern Python environments with FastMCP across cluster"
+    },
+    "venv-status": {
+      "description": "Check virtual environment status",
+      "usage": "/venv-status",
+      "action": "Display Python virtual environment health across all nodes"
+    },
+    "fastmcp-test": {
+      "description": "Test FastMCP compatibility",
+      "usage": "/fastmcp-test [server_name]",
+      "example": "/fastmcp-test memvid-server",
+      "action": "Validate FastMCP servers in virtual environment"
+    }
+  },
+  "aliases": {
+    "orch": "orchestrate",
+    "dist": "distribute",
+    "cas": "cascade",
+    "da": "deploy-agent",
+    "st": "status",
+    "tm": "test-mcp",
+    "par": "parallel",
+    "py": "python-setup",
+    "venv": "venv-status",
+    "fmt": "fastmcp-test"
+  },
+  "integration": {
+    "with_native_commands": true,
+    "preserve_existing": true,
+    "priority": "user_commands_first"
+  },
+  "help_text": "Type /help <command> for detailed information about any command"
+}

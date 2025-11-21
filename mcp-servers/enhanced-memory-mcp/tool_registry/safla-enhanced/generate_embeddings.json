@@ -1,0 +1,9 @@
+{
+  "name": "generate_embeddings",
+  "description": "Generate embeddings (1.75M+ ops/sec)",
+  "parameters": {
+    "texts": "List[str]"
+  },
+  "returns": "Embedding vectors",
+  "cost_estimate": "low"
+}

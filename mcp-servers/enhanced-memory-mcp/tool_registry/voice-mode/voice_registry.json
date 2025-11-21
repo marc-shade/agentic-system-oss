@@ -1,0 +1,7 @@
+{
+  "name": "voice_registry",
+  "description": "Get available voice providers and voices",
+  "parameters": {},
+  "returns": "Registry of TTS/STT endpoints",
+  "cost_estimate": "low"
+}

@@ -1,0 +1,9 @@
+{
+  "name": "detect_memory_conflicts",
+  "description": "Find duplicate/conflicting memories",
+  "parameters": {
+    "threshold": "float = 0.85"
+  },
+  "returns": "List of detected conflicts",
+  "cost_estimate": "high"
+}

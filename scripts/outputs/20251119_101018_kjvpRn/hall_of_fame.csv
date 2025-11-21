@@ -1,0 +1,11 @@
+Complexity,Loss,Equation
+1,0.009940759,"0.61301494"
+3,0.0029838877,"0.80550504 * success_rate"
+4,0.0020082996,"exp(success_rate) * 0.2849385"
+6,0.0015438155,"log(1.2493485 + (avg_quality_score * success_rate))"
+7,0.0010858356,"(success_rate / 1.6934394) + (avg_quality_score * 0.21370707)"
+8,0.0009576678,"(success_rate * log(avg_quality_score + 1.0462985)) - -0.15735872"
+9,0.0009392586,"(avg_quality_score * 0.3006259) + ((success_rate / 1.7255411) - 0.061968908)"
+11,0.0009143654,"(((avg_quality_score * avg_quality_score) * 0.2373963) + (success_rate / 1.6603864)) - -0.010249578"
+13,0.00091337034,"sqrt((sqrt(success_rate / sqrt(log(log_exec_time))) * 0.87214595) * (success_rate * avg_quality_score))"
+15,0.0009114425,"sqrt(success_rate * ((avg_quality_score * 0.87214595) * sqrt(success_rate / sqrt(log(log_exec_time + -0.47478345)))))"

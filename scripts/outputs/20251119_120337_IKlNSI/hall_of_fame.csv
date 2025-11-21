@@ -1,0 +1,9 @@
+Complexity,Loss,Equation
+1,0.21634333,"0.5757623"
+4,0.13994163,"0.06492042 * complexity_reduction"
+6,0.041576788,"(complexity_reduction + 7.4314246) * 0.048285164"
+8,0.041263524,"(8.3664665 + (complexity_reduction - was_reverted)) * 0.047103263"
+10,0.041015375,"((safety_score + 7.09638) - (was_reverted - complexity_reduction)) * 0.048285164"
+11,0.03586025,"(-0.06833351 - (complexity_reduction * -0.0013053754)) * (-6.1487856 - complexity_reduction)"
+13,0.03577277,"(-5.417865 - (complexity_reduction + 0.75559855)) * (-0.06655654 - (complexity_reduction * -0.0011567705))"
+15,0.035248224,"0.46634823 - (((complexity_reduction + -0.559708) - was_reverted) * (-0.057674937 - (complexity_reduction * -0.0010767746)))"

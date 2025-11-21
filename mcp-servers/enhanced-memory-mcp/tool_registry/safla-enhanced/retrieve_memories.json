@@ -1,0 +1,10 @@
+{
+  "name": "retrieve_memories",
+  "description": "Search SAFLA memory system",
+  "parameters": {
+    "query": "str",
+    "limit": "int = 5"
+  },
+  "returns": "Matching memories",
+  "cost_estimate": "low"
+}

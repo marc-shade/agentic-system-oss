@@ -1,0 +1,128 @@
+{
+  "summary": {
+    "total_servers": 4,
+    "passed": 4,
+    "failed": 0,
+    "success_rate": "100.0%"
+  },
+  "migration_stats": {
+    "total_json_dumps_remaining": 0,
+    "total_toon_response_calls": 63,
+    "migration_complete": true
+  },
+  "token_savings": {
+    "avg_savings_vs_formatted": "0.0%",
+    "avg_savings_vs_compact": "0.0%",
+    "estimated_total_savings": "0.0%"
+  },
+  "servers": [
+    {
+      "server": "agi-mcp",
+      "imports_valid": true,
+      "syntax_clean": true,
+      "json_dumps_remaining": 0,
+      "toon_response_calls": 32,
+      "token_savings": {
+        "json_formatted": {
+          "size": 0,
+          "estimated_tokens": 0
+        },
+        "json_compact": {
+          "size": 0,
+          "estimated_tokens": 0
+        },
+        "toon": {
+          "size": 0,
+          "estimated_tokens": 0
+        },
+        "savings_vs_formatted": "0.0%",
+        "savings_vs_compact": "0.0%"
+      },
+      "errors": [],
+      "warnings": [
+        "Found json.dumps with indent=2 (should be toon_response)"
+      ],
+      "status": "PASS"
+    },
+    {
+      "server": "video-transcript-mcp",
+      "imports_valid": true,
+      "syntax_clean": true,
+      "json_dumps_remaining": 0,
+      "toon_response_calls": 13,
+      "token_savings": {
+        "json_formatted": {
+          "size": 0,
+          "estimated_tokens": 0
+        },
+        "json_compact": {
+          "size": 0,
+          "estimated_tokens": 0
+        },
+        "toon": {
+          "size": 0,
+          "estimated_tokens": 0
+        },
+        "savings_vs_formatted": "0.0%",
+        "savings_vs_compact": "0.0%"
+      },
+      "errors": [],
+      "warnings": [
+        "Found json.dumps with indent=2 (should be toon_response)"
+      ],
+      "status": "PASS"
+    },
+    {
+      "server": "research-paper-mcp",
+      "imports_valid": true,
+      "syntax_clean": true,
+      "json_dumps_remaining": 0,
+      "toon_response_calls": 13,
+      "token_savings": {
+        "json_formatted": {
+          "size": 0,
+          "estimated_tokens": 0
+        },
+        "json_compact": {
+          "size": 0,
+          "estimated_tokens": 0
+        },
+        "toon": {
+          "size": 0,
+          "estimated_tokens": 0
+        },
+        "savings_vs_formatted": "0.0%",
+        "savings_vs_compact": "0.0%"
+      },
+      "errors": [],
+      "warnings": [],
+      "status": "PASS"
+    },
+    {
+      "server": "nuclei-mcp",
+      "imports_valid": true,
+      "syntax_clean": true,
+      "json_dumps_remaining": 0,
+      "toon_response_calls": 5,
+      "token_savings": {
+        "json_formatted": {
+          "size": 0,
+          "estimated_tokens": 0
+        },
+        "json_compact": {
+          "size": 0,
+          "estimated_tokens": 0
+        },
+        "toon": {
+          "size": 0,
+          "estimated_tokens": 0
+        },
+        "savings_vs_formatted": "0.0%",
+        "savings_vs_compact": "0.0%"
+      },
+      "errors": [],
+      "warnings": [],
+      "status": "PASS"
+    }
+  ]
+}

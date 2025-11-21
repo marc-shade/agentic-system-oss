@@ -1,0 +1,37 @@
+{
+  "name": "@mcp/sprite-animation-mcp",
+  "version": "1.0.0",
+  "description": "MCP server for sprite sheet animation processing and generation",
+  "main": "build/index.js",
+  "types": "build/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/index.ts",
+    "test": "jest",
+    "prepare": "npm run build"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.1",
+    "sharp": "^0.33.5",
+    "gif-encoder-2": "^1.0.5",
+    "canvas": "^2.11.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/jest": "^29.5.0",
+    "typescript": "^5.0.0",
+    "tsx": "^4.0.0",
+    "jest": "^29.0.0",
+    "ts-jest": "^29.0.0"
+  },
+  "keywords": [
+    "mcp",
+    "sprite",
+    "animation",
+    "game-development",
+    "pixel-art"
+  ],
+  "author": "Marc Shade",
+  "license": "MIT",
+  "type": "module"
+}

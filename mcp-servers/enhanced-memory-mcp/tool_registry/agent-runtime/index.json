@@ -1,0 +1,10 @@
+{
+  "server": "agent-runtime",
+  "tool_count": 4,
+  "tools": [
+    "create_goal",
+    "decompose_goal",
+    "create_task",
+    "get_next_task"
+  ]
+}

@@ -1,0 +1,11 @@
+Extracting transcript for video ID: cCv5mdduymA
+
+✅ Successfully extracted transcript!
+📹 Video ID: cCv5mdduymA
+🗣️ Language: en
+📝 Length: 86858 characters
+
+📄 First 1000 characters of transcript:
+==================================================
+Kind: captions Language: en Hello community. So great that you are Hello community. So great that you are Hello community. So great that you are back today. Today we look into the back today. Today we look into the back today. Today we look into the future. Let's have a look at the next future. Let's have a look at the next future. Let's have a look at the next step of the agentic web. Now this will step of the agentic web. Now this will step of the agentic web. Now this will be a complete new technological paradigm be a complete new technological paradigm be a complete new technological paradigm that we are faced with because the that we are faced with because the that we are faced with because the current state-of-the-art ini is defined current state-of-the-art ini is defined current state-of-the-art ini is defined by a fundamental architectural mismatch by a fundamental architectural mismatch by a fundamental architectural mismatch with the next generation of AI. Why? with the next ...
+==================================================

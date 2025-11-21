@@ -1,0 +1,11 @@
+{
+  "name": "surface_display",
+  "description": "Write text to LCD display",
+  "parameters": {
+    "row": "int 0-1",
+    "col": "int 0-15",
+    "text": "str max 16"
+  },
+  "returns": "Confirmation",
+  "cost_estimate": "low"
+}

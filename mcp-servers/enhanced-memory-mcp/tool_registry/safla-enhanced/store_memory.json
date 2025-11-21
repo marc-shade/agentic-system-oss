@@ -1,0 +1,10 @@
+{
+  "name": "store_memory",
+  "description": "Store in SAFLA hybrid memory",
+  "parameters": {
+    "content": "str",
+    "memory_type": "str = episodic"
+  },
+  "returns": "Storage confirmation",
+  "cost_estimate": "low"
+}

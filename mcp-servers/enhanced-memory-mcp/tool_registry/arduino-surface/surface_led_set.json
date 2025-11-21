@@ -1,0 +1,12 @@
+{
+  "name": "surface_led_set",
+  "description": "Set RGB LED color",
+  "parameters": {
+    "tier": "int = 0",
+    "r": "int 0-255",
+    "g": "int",
+    "b": "int"
+  },
+  "returns": "Confirmation",
+  "cost_estimate": "low"
+}

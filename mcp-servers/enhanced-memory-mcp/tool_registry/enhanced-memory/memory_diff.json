@@ -1,0 +1,11 @@
+{
+  "name": "memory_diff",
+  "description": "Get diff between entity versions",
+  "parameters": {
+    "entity_name": "str",
+    "version1": "int",
+    "version2": "int"
+  },
+  "returns": "Unified diff between versions",
+  "cost_estimate": "low"
+}

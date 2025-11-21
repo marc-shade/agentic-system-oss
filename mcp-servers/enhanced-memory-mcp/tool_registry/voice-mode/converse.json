@@ -1,0 +1,12 @@
+{
+  "name": "converse",
+  "description": "Speak message and optionally listen for response",
+  "parameters": {
+    "message": "str - text to speak",
+    "wait_for_response": "bool = True",
+    "voice": "Optional[str] - TTS voice",
+    "tts_provider": "Optional[str] - openai or kokoro"
+  },
+  "returns": "Voice response or confirmation",
+  "cost_estimate": "medium"
+}

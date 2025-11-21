@@ -530,9 +530,38 @@ class SkillEvolutionSystem:
                 "min_required": min_samples
             }
 
-        # Compare performance (simple comparison - would use proper statistical tests)
-        score_a = (metric_a.success_rate * 0.5 + metric_a.avg_quality_score * 0.5)
-        score_b = (metric_b.success_rate * 0.5 + metric_b.avg_quality_score * 0.5)
+        # Compare performance using PySR-discovered equation (or fallback to heuristic)
+        try:
+            from equation_integration import get_integrator
+            import numpy as np
+
+            integrator = get_integrator()
+
+            # Score version A
+            score_a = integrator.skill_evolution_score(
+                success_rate=metric_a.success_rate,
+                avg_quality_score=metric_a.avg_quality_score,
+                log_exec_time=np.log1p(metric_a.avg_execution_time_ms or 1000),
+                total_executions=metric_a.total_executions,
+                version_age_days=0  # Could be calculated from version timestamp
+            )
+
+            # Score version B
+            score_b = integrator.skill_evolution_score(
+                success_rate=metric_b.success_rate,
+                avg_quality_score=metric_b.avg_quality_score,
+                log_exec_time=np.log1p(metric_b.avg_execution_time_ms or 1000),
+                total_executions=metric_b.total_executions,
+                version_age_days=0
+            )
+
+            logger.info(f"PySR skill scores - A: {score_a:.4f}, B: {score_b:.4f}")
+
+        except Exception as e:
+            logger.warning(f"PySR equation failed, using fallback heuristic: {e}")
+            # Fallback to original 50/50 weights
+            score_a = (metric_a.success_rate * 0.5 + metric_a.avg_quality_score * 0.5)
+            score_b = (metric_b.success_rate * 0.5 + metric_b.avg_quality_score * 0.5)
 
         difference = abs(score_a - score_b)
         confidence = min(1.0, difference * 5)  # Simplified confidence calculation

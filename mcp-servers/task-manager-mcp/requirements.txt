@@ -1,0 +1,1 @@
+../SHARED/requirements/mcp_basic.txt

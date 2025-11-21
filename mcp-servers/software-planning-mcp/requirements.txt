@@ -1,0 +1,8 @@
+# MCP Core
+mcp>=1.0.0
+
+# Software project planning
+pydantic>=2.0.0
+python-dotenv>=1.0.0
+networkx>=3.0  # For dependency graphs
+pyyaml>=6.0    # For configuration files

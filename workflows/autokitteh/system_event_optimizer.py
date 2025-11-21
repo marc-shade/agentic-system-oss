@@ -26,7 +26,9 @@ class SystemEventOptimizer:
         self.agent = IntelligentConfigAgent()
         self.settings_file = Path.home() / ".claude" / "settings.json"
         self.mcp_config_file = Path.home() / ".claude.json"
-        self.event_log = Path("/tmp/autokitteh_events.jsonl")
+        # Store on SSDRAID0 (not /tmp - see FILE_LOCATION_POLICY.md)
+        base = Path("/Volumes/SSDRAID0/agentic-system")
+        self.event_log = base / "logs/autokitteh/events.jsonl"
 
     def log_event(self, event: Dict):
         """Log event for analysis"""

@@ -1,0 +1,912 @@
+{
+  "test_timestamp": "2025-11-19T12:56:50.825336",
+  "total_trials": 90,
+  "systems_tested": [
+    "skill_evolution",
+    "darwin_godel",
+    "meta_learning"
+  ],
+  "system_performance": {
+    "skill_evolution": {
+      "system": "skill_evolution",
+      "total_trials": 30,
+      "equation_wins": 30,
+      "heuristic_wins": 0,
+      "ties": 0,
+      "avg_equation_error": 0.0538245940965192,
+      "avg_heuristic_error": 0.2219592186848996,
+      "median_equation_error": 0.05172162227021537,
+      "median_heuristic_error": 0.22261493112489505,
+      "improvement_percentage": 75.75023267092578,
+      "p_value": 1.0613108079923887e-22,
+      "statistically_significant": true
+    },
+    "darwin_godel": {
+      "system": "darwin_godel",
+      "total_trials": 30,
+      "equation_wins": 26,
+      "heuristic_wins": 4,
+      "ties": 0,
+      "avg_equation_error": 0.15596356872409015,
+      "avg_heuristic_error": 0.5376270874444438,
+      "median_equation_error": 0.15536017686196896,
+      "median_heuristic_error": 0.7,
+      "improvement_percentage": 70.9903811830897,
+      "p_value": 9.045150345351803e-09,
+      "statistically_significant": true
+    },
+    "meta_learning": {
+      "system": "meta_learning",
+      "total_trials": 30,
+      "equation_wins": 30,
+      "heuristic_wins": 0,
+      "ties": 0,
+      "avg_equation_error": 0.009990307956727054,
+      "avg_heuristic_error": 0.15549243833484197,
+      "median_equation_error": 0.007750216165665458,
+      "median_heuristic_error": 0.15310487008129597,
+      "improvement_percentage": 93.57505222523191,
+      "p_value": 7.510763124721736e-20,
+      "statistically_significant": true
+    }
+  },
+  "overall_summary": {
+    "total_equation_wins": 86,
+    "total_heuristic_wins": 4,
+    "overall_improvement_percentage": 75.98256192629353,
+    "avg_equation_error": 0.07325949025911214,
+    "avg_heuristic_error": 0.30502624815472845
+  },
+  "detailed_results": [
+    {
+      "trial_id": 0,
+      "system": "darwin_godel",
+      "equation_result": 0.793394031564634,
+      "heuristic_result": 0.3,
+      "ground_truth": 1.0,
+      "equation_error": 0.20660596843536605,
+      "heuristic_error": 0.7,
+      "equation_closer": true,
+      "input_features": {
+        "size_ratio": 1.8491878048972046,
+        "complexity_reduction": 9,
+        "safety_score": 0.6807561748013209,
+        "modification_type": 4,
+        "was_reverted": 0
+      }
+    },
+    {
+      "trial_id": 1,
+      "system": "darwin_godel",
+      "equation_result": 0.455397883564634,
+      "heuristic_result": 0.1,
+      "ground_truth": 0.6249719048966761,
+      "equation_error": 0.16957402133204208,
+      "heuristic_error": 0.5249719048966761,
+      "equation_closer": true,
+      "input_features": {
+        "size_ratio": 1.8200430840001671,
+        "complexity_reduction": 2,
+        "safety_score": 0.9531173099777295,
+        "modification_type": 4,
+        "was_reverted": 0
+      }
+    },
+    {
+      "trial_id": 2,
+      "system": "darwin_godel",
+      "equation_result": 0.648538539564634,
+      "heuristic_result": 0.3,
+      "ground_truth": 1.0,
+      "equation_error": 0.35146146043536597,
+      "heuristic_error": 0.7,
+      "equation_closer": true,
+      "input_features": {
+        "size_ratio": 0.8177395958407456,
+        "complexity_reduction": 6,
+        "safety_score": 0.8591371531616318,
+        "modification_type": 0,
+        "was_reverted": 0
+      }
+    },
+    {
+      "trial_id": 3,
+      "system": "darwin_godel",
+      "equation_result": 0.745108867564634,
+      "heuristic_result": 0.3,
+      "ground_truth": 1.0,
+      "equation_error": 0.254891132435366,
+      "heuristic_error": 0.7,
+      "equation_closer": true,
+      "input_features": {
+        "size_ratio": 0.8697512918603639,
+        "complexity_reduction": 8,
+        "safety_score": 0.7031855288593303,
+        "modification_type": 0,
+        "was_reverted": 0
+      }
+    },
+    {
+      "trial_id": 4,
+      "system": "darwin_godel",
+      "equation_result": 1.034819851564634,
+      "heuristic_result": 0.3,
+      "ground_truth": 1.0,
+      "equation_error": 0.034819851564634074,
+      "heuristic_error": 0.7,
+      "equation_closer": true,
+      "input_features": {
+        "size_ratio": 1.6284121646593277,
+        "complexity_reduction": 14,
+        "safety_score": 0.7813203458639965,
+        "modification_type": 3,
+        "was_reverted": 0
+      }
+    },
+    {
+      "trial_id": 5,
+      "system": "darwin_godel",
+      "equation_result": 0.503683047564634,
+      "heuristic_result": 0.15000000000000002,
+      "ground_truth": 0.7839805411776594,
+      "equation_error": 0.28029749361302536,
+      "heuristic_error": 0.6339805411776593,
+      "equation_closer": true,
+      "input_features": {
+        "size_ratio": 1.379009841638379,
+        "complexity_reduction": 3,
+        "safety_score": 0.9738637134254761,
+        "modification_type": 2,
+        "was_reverted": 0
+      }
+    },
+    {
+      "trial_id": 6,
+      "system": "darwin_godel",
+      "equation_result": 0.11740173556463404,
+      "heuristic_result": 0.20081521455089257,
+      "ground_truth": 0.0,
+      "equation_error": 0.11740173556463404,
+      "heuristic_error": 0.20081521455089257,
+      "equation_closer": true,
+      "input_features": {
+        "size_ratio": 1.4016304291017851,
+        "complexity_reduction": -5,
+        "safety_score": 0.6847081973997086,
+        "modification_type": 2,
+        "was_reverted": 0
+      }
+    },
+    {
+      "trial_id": 7,
+      "system": "darwin_godel",
+      "equation_result": 0.889964359564634,
+      "heuristic_result": 0.3,
+      "ground_truth": 1.0,
+      "equation_error": 0.11003564043536596,
+      "heuristic_error": 0.7,
+      "equation_closer": true,
+      "input_features": {
+        "size_ratio": 1.5628172396176967,
+        "complexity_reduction": 11,
+        "safety_score": 0.6082619815434086,
+        "modification_type": 3,
+        "was_reverted": 0
+      }
+    },
+    {
+      "trial_id": 8,
+      "system": "darwin_godel",
+      "equation_result": 0.9865346875646339,
+      "heuristic_result": 0.3,
+      "ground_truth": 1.0,
+      "equation_error": 0.013465312435366084,
+      "heuristic_error": 0.7,
+      "equation_closer": true,
+      "input_features": {
+        "size_ratio": 0.9837363866576592,
+        "complexity_reduction": 13,
+        "safety_score": 0.6224493517718428,
+        "modification_type": 0,
+        "was_reverted": 0
+      }
+    },
+    {
+      "trial_id": 9,
+      "system": "darwin_godel",
+      "equation_result": 0.889964359564634,
+      "heuristic_result": 0.3,
+      "ground_truth": 1.0,
+      "equation_error": 0.11003564043536596,
+      "heuristic_error": 0.7,
+      "equation_closer": true,
+      "input_features": {
+        "size_ratio": 0.7889024013254391,
+        "complexity_reduction": 11,
+        "safety_score": 0.8282110288822453,
+        "modification_type": 4,
+        "was_reverted": 0
+      }
+    },
+    {
+      "trial_id": 10,
+      "system": "darwin_godel",
+      "equation_result": 0.551968211564634,
+      "heuristic_result": 0.2,
+      "ground_truth": 0.930519234116867,
+      "equation_error": 0.37855102255223294,
+      "heuristic_error": 0.7305192341168669,
+      "equation_closer": true,
+      "input_features": {
+        "size_ratio": 1.1451277885012514,
+        "complexity_reduction": 4,
+        "safety_score": 0.7733763684449453,
+        "modification_type": 0,
+        "was_reverted": 1
+      }
+    },
+    {
+      "trial_id": 11,
+      "system": "darwin_godel",
+      "equation_result": 0.938249523564634,
+      "heuristic_result": 0.3,
+      "ground_truth": 1.0,
+      "equation_error": 0.06175047643536602,
+      "heuristic_error": 0.7,
+      "equation_closer": true,
+      "input_features": {
+        "size_ratio": 1.167951138514273,
+        "complexity_reduction": 12,
+        "safety_score": 0.7236499978072914,
+        "modification_type": 1,
+        "was_reverted": 0
+      }
+    },
+    {
+      "trial_id": 12,
+      "system": "darwin_godel",
+      "equation_result": 0.9865346875646339,
+      "heuristic_result": 0.3,
+      "ground_truth": 1.0,
+      "equation_error": 0.013465312435366084,
+      "heuristic_error": 0.7,
+      "equation_closer": true,
+      "input_features": {
+        "size_ratio": 1.5205245223683292,
+        "complexity_reduction": 13,
+        "safety_score": 0.9070612674042945,
+        "modification_type": 2,
+        "was_reverted": 0
+      }
+    },
+    {
+      "trial_id": 13,
+      "system": "darwin_godel",
+      "equation_result": 0.841679195564634,
+      "heuristic_result": 0.3,
+      "ground_truth": 1.0,
+      "equation_error": 0.158320804435366,
+      "heuristic_error": 0.7,
+      "equation_closer": true,
+      "input_features": {
+        "size_ratio": 1.8682522745053483,
+        "complexity_reduction": 10,
+        "safety_score": 0.8283319560711139,
+        "modification_type": 0,
+        "was_reverted": 0
+      }
+    },
+    {
+      "trial_id": 14,
+      "system": "darwin_godel",
+      "equation_result": 1.034819851564634,
+      "heuristic_result": 0.3,
+      "ground_truth": 1.0,
+      "equation_error": 0.034819851564634074,
+      "heuristic_error": 0.7,
+      "equation_closer": true,
+      "input_features": {
+        "size_ratio": 1.0700731074044132,
+        "complexity_reduction": 14,
+        "safety_score": 0.670164185520038,
+        "modification_type": 0,
+        "was_reverted": 0
+      }
+    },
+    {
+      "trial_id": 15,
+      "system": "darwin_godel",
+      "equation_result": 0.16568689956463403,
+      "heuristic_result": 0.11313863911673439,
+      "ground_truth": 0.0,
+      "equation_error": 0.16568689956463403,
+      "heuristic_error": 0.11313863911673439,
+      "equation_closer": false,
+      "input_features": {
+        "size_ratio": 1.2262772782334688,
+        "complexity_reduction": -4,
+        "safety_score": 0.6258150338258153,
+        "modification_type": 0,
+        "was_reverted": 0
+      }
+    },
+    {
+      "trial_id": 16,
+      "system": "darwin_godel",
+      "equation_result": 0.21397206356463402,
+      "heuristic_result": 0.3,
+      "ground_truth": 0.0,
+      "equation_error": 0.21397206356463402,
+      "heuristic_error": 0.3,
+      "equation_closer": true,
+      "input_features": {
+        "size_ratio": 1.6848514274812258,
+        "complexity_reduction": -3,
+        "safety_score": 0.8530216183028452,
+        "modification_type": 3,
+        "was_reverted": 0
+      }
+    },
+    {
+      "trial_id": 17,
+      "system": "darwin_godel",
+      "equation_result": 0.938249523564634,
+      "heuristic_result": 0.3,
+      "ground_truth": 1.0,
+      "equation_error": 0.06175047643536602,
+      "heuristic_error": 0.7,
+      "equation_closer": true,
+      "input_features": {
+        "size_ratio": 1.7616855187538665,
+        "complexity_reduction": 12,
+        "safety_score": 0.9066658217416694,
+        "modification_type": 3,
+        "was_reverted": 0
+      }
+    },
+    {
+      "trial_id": 18,
+      "system": "darwin_godel",
+      "equation_result": 0.407112719564634,
+      "heuristic_result": 0.05,
+      "ground_truth": 0.4237951558141032,
+      "equation_error": 0.01668243624946919,
+      "heuristic_error": 0.3737951558141032,
+      "equation_closer": true,
+      "input_features": {
+        "size_ratio": 1.7954377107177177,
+        "complexity_reduction": 1,
+        "safety_score": 0.9616758982822091,
+        "modification_type": 1,
+        "was_reverted": 0
+      }
+    },
+    {
+      "trial_id": 19,
+      "system": "darwin_godel",
+      "equation_result": 0.358827555564634,
+      "heuristic_result": 0.17402360468040745,
+      "ground_truth": 0.1807668458402122,
+      "equation_error": 0.17806070972442184,
+      "heuristic_error": 0.006743241159804736,
+      "equation_closer": false,
+      "input_features": {
+        "size_ratio": 1.348047209360815,
+        "complexity_reduction": 0,
+        "safety_score": 0.9730808326942045,
+        "modification_type": 0,
+        "was_reverted": 0
+      }
+    },
+    {
+      "trial_id": 20,
+      "system": "darwin_godel",
+      "equation_result": 0.26225722756463404,
+      "heuristic_result": 0.3,
+      "ground_truth": 0.0,
+      "equation_error": 0.26225722756463404,
+      "heuristic_error": 0.3,
+      "equation_closer": true,
+      "input_features": {
+        "size_ratio": 1.6233807432038345,
+        "complexity_reduction": -2,
+        "safety_score": 0.972424695722642,
+        "modification_type": 4,
+        "was_reverted": 1
+      }
+    },
+    {
+      "trial_id": 21,
+      "system": "darwin_godel",
+      "equation_result": 0.407112719564634,
+      "heuristic_result": 0.05,
+      "ground_truth": 0.3336957326483139,
+      "equation_error": 0.07341698691632009,
+      "heuristic_error": 0.28369573264831394,
+      "equation_closer": true,
+      "input_features": {
+        "size_ratio": 1.286399490222557,
+        "complexity_reduction": 1,
+        "safety_score": 0.700371890840388,
+        "modification_type": 3,
+        "was_reverted": 0
+      }
+    },
+    {
+      "trial_id": 22,
+      "system": "darwin_godel",
+      "equation_result": 0.358827555564634,
+      "heuristic_result": 0.3,
+      "ground_truth": 0.18489507008179268,
+      "equation_error": 0.17393248548284135,
+      "heuristic_error": 0.11510492991820731,
+      "equation_closer": false,
+      "input_features": {
+        "size_ratio": 1.8340615434321985,
+        "complexity_reduction": 0,
+        "safety_score": 0.6765927715904856,
+        "modification_type": 0,
+        "was_reverted": 0
+      }
+    },
+    {
+      "trial_id": 23,
+      "system": "darwin_godel",
+      "equation_result": 0.600253375564634,
+      "heuristic_result": 0.25,
+      "ground_truth": 1.0,
+      "equation_error": 0.399746624435366,
+      "heuristic_error": 0.75,
+      "equation_closer": true,
+      "input_features": {
+        "size_ratio": 0.7022714170097341,
+        "complexity_reduction": 5,
+        "safety_score": 0.7696203145675775,
+        "modification_type": 4,
+        "was_reverted": 0
+      }
+    },
+    {
+      "trial_id": 24,
+      "system": "darwin_godel",
+      "equation_result": 0.503683047564634,
+      "heuristic_result": 0.15000000000000002,
+      "ground_truth": 0.6560825968532059,
+      "equation_error": 0.1523995492885719,
+      "heuristic_error": 0.5060825968532059,
+      "equation_closer": true,
+      "input_features": {
+        "size_ratio": 0.5370464135092962,
+        "complexity_reduction": 3,
+        "safety_score": 0.6825197033485084,
+        "modification_type": 2,
+        "was_reverted": 0
+      }
+    },
+    {
+      "trial_id": 25,
+      "system": "darwin_godel",
+      "equation_result": 0.938249523564634,
+      "heuristic_result": 0.3,
+      "ground_truth": 1.0,
+      "equation_error": 0.06175047643536602,
+      "heuristic_error": 0.7,
+      "equation_closer": true,
+      "input_features": {
+        "size_ratio": 0.7895470739921318,
+        "complexity_reduction": 12,
+        "safety_score": 0.8666476756510779,
+        "modification_type": 2,
+        "was_reverted": 0
+      }
+    },
+    {
+      "trial_id": 26,
+      "system": "darwin_godel",
+      "equation_result": 0.9865346875646339,
+      "heuristic_result": 0.3,
+      "ground_truth": 1.0,
+      "equation_error": 0.013465312435366084,
+      "heuristic_error": 0.7,
+      "equation_closer": true,
+      "input_features": {
+        "size_ratio": 0.8028577010463285,
+        "complexity_reduction": 13,
+        "safety_score": 0.6615177388236854,
+        "modification_type": 3,
+        "was_reverted": 0
+      }
+    },
+    {
+      "trial_id": 27,
+      "system": "darwin_godel",
+      "equation_result": 0.841679195564634,
+      "heuristic_result": 0.3,
+      "ground_truth": 1.0,
+      "equation_error": 0.158320804435366,
+      "heuristic_error": 0.7,
+      "equation_closer": true,
+      "input_features": {
+        "size_ratio": 1.4498965462695912,
+        "complexity_reduction": 10,
+        "safety_score": 0.971372119291887,
+        "modification_type": 4,
+        "was_reverted": 0
+      }
+    },
+    {
+      "trial_id": 28,
+      "system": "darwin_godel",
+      "equation_result": 0.358827555564634,
+      "heuristic_result": 0.3,
+      "ground_truth": 0.21003456691914849,
+      "equation_error": 0.14879298864548554,
+      "heuristic_error": 0.0899654330808515,
+      "equation_closer": false,
+      "input_features": {
+        "size_ratio": 1.9755120284716743,
+        "complexity_reduction": 0,
+        "safety_score": 0.749889093813207,
+        "modification_type": 1,
+        "was_reverted": 0
+      }
+    },
+    {
+      "trial_id": 29,
+      "system": "darwin_godel",
+      "equation_result": 0.6968237035646341,
+      "heuristic_result": 0.3,
+      "ground_truth": 1.0,
+      "equation_error": 0.3031762964353659,
+      "heuristic_error": 0.7,
+      "equation_closer": true,
+      "input_features": {
+        "size_ratio": 0.9216598070977274,
+        "complexity_reduction": 7,
+        "safety_score": 0.6458717636316048,
+        "modification_type": 3,
+        "was_reverted": 0
+      }
+    },
+    {
+      "trial_id": 0,
+      "system": "meta_learning",
+      "equation_result": 0.6243038741963237,
+      "heuristic_result": 0.8208801706951407,
+      "ground_truth": 0.6291301325294181,
+      "equation_error": 0.004826258333094358,
+      "heuristic_error": 0.19175003816572267,
+      "equation_closer": true,
+      "input_features": {
+        "success_rate": 0.7256977525059329,
+        "avg_quality_score": 0.9160625888843485,
+        "exec_time_ms": 3329.00659663708,
+        "total_tasks": 141,
+        "task_type": 3
+      }
+    },
+    {
+      "trial_id": 1,
+      "system": "meta_learning",
+      "equation_result": 0.6411493022720255,
+      "heuristic_result": 0.7264850029175058,
+      "ground_truth": 0.617344275554644,
+      "equation_error": 0.023805026717381494,
+      "heuristic_error": 0.10914072736286184,
+      "equation_closer": true,
+      "input_features": {
+        "success_rate": 0.8774763524900057,
+        "avg_quality_score": 0.575493653345006,
+        "exec_time_ms": 3564.1563694547817,
+        "total_tasks": 73,
+        "task_type": 3
+      }
+    },
+    {
+      "trial_id": 2,
+      "system": "meta_learning",
+      "equation_result": 0.6558953955905797,
+      "heuristic_result": 0.7298968982729006,
+      "ground_truth": 0.6326451678299034,
+      "equation_error": 0.023250227760676312,
+      "heuristic_error": 0.09725173044299718,
+      "equation_closer": true,
+      "input_features": {
+        "success_rate": 0.9127405505442738,
+        "avg_quality_score": 0.5470532460015274,
+        "exec_time_ms": 2727.5173071639924,
+        "total_tasks": 45,
+        "task_type": 2
+      }
+    },
+    {
+      "trial_id": 3,
+      "system": "meta_learning",
+      "equation_result": 0.49092570596986984,
+      "heuristic_result": 0.6156578702978646,
+      "ground_truth": 0.47130173319360785,
+      "equation_error": 0.01962397277626199,
+      "heuristic_error": 0.1443561371042567,
+      "equation_closer": true,
+      "input_features": {
+        "success_rate": 0.604513060245275,
+        "avg_quality_score": 0.6268026803504543,
+        "exec_time_ms": 2819.559943847161,
+        "total_tasks": 53,
+        "task_type": 3
+      }
+    },
+    {
+      "trial_id": 4,
+      "system": "meta_learning",
+      "equation_result": 0.6352206799969851,
+      "heuristic_result": 0.8559017496722378,
+      "ground_truth": 0.6584015174553749,
+      "equation_error": 0.023180837458389836,
+      "heuristic_error": 0.19750023221686286,
+      "equation_closer": true,
+      "input_features": {
+        "success_rate": 0.714944473132207,
+        "avg_quality_score": 0.9968590262122685,
+        "exec_time_ms": 1055.0464275291665,
+        "total_tasks": 178,
+        "task_type": 3
+      }
+    },
+    {
+      "trial_id": 5,
+      "system": "meta_learning",
+      "equation_result": 0.5600752222147132,
+      "heuristic_result": 0.7130308845936907,
+      "ground_truth": 0.5590980342850616,
+      "equation_error": 0.000977187929651624,
+      "heuristic_error": 0.15393285030862913,
+      "equation_closer": true,
+      "input_features": {
+        "success_rate": 0.6775767350791421,
+        "avg_quality_score": 0.7484850341082393,
+        "exec_time_ms": 1337.5626921623766,
+        "total_tasks": 128,
+        "task_type": 4
+      }
+    },
+    {
+      "trial_id": 6,
+      "system": "meta_learning",
+      "equation_result": 0.6314181395969107,
+      "heuristic_result": 0.8424800961850711,
+      "ground_truth": 0.6394529531435946,
+      "equation_error": 0.008034813546683894,
+      "heuristic_error": 0.2030271430414765,
+      "equation_closer": true,
+      "input_features": {
+        "success_rate": 0.7200772425692603,
+        "avg_quality_score": 0.9648829498008819,
+        "exec_time_ms": 3661.2307447191847,
+        "total_tasks": 129,
+        "task_type": 1
+      }
+    },
+    {
+      "trial_id": 7,
+      "system": "meta_learning",
+      "equation_result": 0.5880420117749031,
+      "heuristic_result": 0.8085268122015088,
+      "ground_truth": 0.5952836203526045,
+      "equation_error": 0.007241608577701397,
+      "heuristic_error": 0.21324319184890428,
+      "equation_closer": true,
+      "input_features": {
+        "success_rate": 0.6434756806104611,
+        "avg_quality_score": 0.9735779437925566,
+        "exec_time_ms": 3972.955062389872,
+        "total_tasks": 48,
+        "task_type": 1
+      }
+    },
+    {
+      "trial_id": 8,
+      "system": "meta_learning",
+      "equation_result": 0.6618788201591782,
+      "heuristic_result": 0.7581513102566717,
+      "ground_truth": 0.6490759875092545,
+      "equation_error": 0.012802832649923657,
+      "heuristic_error": 0.10907532274741716,
+      "equation_closer": true,
+      "input_features": {
+        "success_rate": 0.8965707112145771,
+        "avg_quality_score": 0.6197319092987663,
+        "exec_time_ms": 1768.7635001608492,
+        "total_tasks": 155,
+        "task_type": 2
+      }
+    },
+    {
+      "trial_id": 9,
+      "system": "meta_learning",
+      "equation_result": 0.6442545997605299,
+      "heuristic_result": 0.8202298349999886,
+      "ground_truth": 0.6464837754243051,
+      "equation_error": 0.002229175663775229,
+      "heuristic_error": 0.17374605957568345,
+      "equation_closer": true,
+      "input_features": {
+        "success_rate": 0.7793822160498696,
+        "avg_quality_score": 0.8610774539501077,
+        "exec_time_ms": 2825.739027283154,
+        "total_tasks": 98,
+        "task_type": 2
+      }
+    },
+    {
+      "trial_id": 10,
+      "system": "meta_learning",
+      "equation_result": 0.5259042079042799,
+      "heuristic_result": 0.6493028108052876,
+      "ground_truth": 0.5183277335344474,
+      "equation_error": 0.007576474369832553,
+      "heuristic_error": 0.13097507727084023,
+      "equation_closer": true,
+      "input_features": {
+        "success_rate": 0.6591781060655576,
+        "avg_quality_score": 0.6394275155450178,
+        "exec_time_ms": 992.0077581348208,
+        "total_tasks": 183,
+        "task_type": 3
+      }
+    },
+    {
+      "trial_id": 11,
+      "system": "meta_learning",
+      "equation_result": 0.7242404260810833,
+      "heuristic_result": 0.8716432292287388,
+      "ground_truth": 0.7211998039402734,
+      "equation_error": 0.003040622140809912,
+      "heuristic_error": 0.15044342528846544,
+      "equation_closer": true,
+      "input_features": {
+        "success_rate": 0.9333363511050683,
+        "avg_quality_score": 0.8099501073524094,
+        "exec_time_ms": 3563.2320391299836,
+        "total_tasks": 148,
+        "task_type": 3
+      }
+    },
+    {
+      "trial_id": 12,
+      "system": "meta_learning",
+      "equation_result": 0.6606116730454648,
+      "heuristic_result": 0.8247318536247392,
+      "ground_truth": 0.6565083730322508,
+      "equation_error": 0.004103300013213906,
+      "heuristic_error": 0.16822348059248837,
+      "equation_closer": true,
+      "input_features": {
+        "success_rate": 0.8176852257349493,
+        "avg_quality_score": 0.831778481514529,
+        "exec_time_ms": 4287.23577597471,
+        "total_tasks": 43,
+        "task_type": 1
+      }
+    },
+    {
+      "trial_id": 13,
+      "system": "meta_learning",
+      "equation_result": 0.6550416887283728,
+      "heuristic_result": 0.760821641765585,
+      "ground_truth": 0.6381577364297696,
+      "equation_error": 0.016883952298603178,
+      "heuristic_error": 0.12266390533581539,
+      "equation_closer": true,
+      "input_features": {
+        "success_rate": 0.875396831004323,
+        "avg_quality_score": 0.646246452526847,
+        "exec_time_ms": 3278.446027594202,
+        "total_tasks": 86,
+        "task_type": 4
+      }
+    },
+    {
+      "trial_id": 14,
+      "system": "meta_learning",
+      "equation_result": 0.5907601943288924,
+      "heuristic_result": 0.7414655967025293,
+      "ground_truth": 0.5868502946366494,
+      "equation_error": 0.00390989969224298,
+      "heuristic_error": 0.15461530206587992,
+      "equation_closer": true,
+      "input_features": {
+        "success_rate": 0.7267572653313203,
+        "avg_quality_score": 0.7561739280737383,
+        "exec_time_ms": 2008.4660086649458,
+        "total_tasks": 59,
+        "task_type": 2
+      }
+    },
+    {
+      "trial_id": 15,
+      "system": "meta_learning",
+      "equation_result": 0.6687707463923653,
+      "heuristic_result": 0.8565946988146684,
+      "ground_truth": 0.676021479107598,
+      "equation_error": 0.007250732715232688,
+      "heuristic_error": 0.1805732197070704,
+      "equation_closer": true,
+      "input_features": {
+        "success_rate": 0.8031962288436393,
+        "avg_quality_score": 0.9099931687856977,
+        "exec_time_ms": 2667.8978700666653,
+        "total_tasks": 181,
+        "task_type": 4
+      }
+    },
+    {
+      "trial_id": 16,
+      "system": "meta_learning",
+      "equation_result": 0.5760962235871423,
+      "heuristic_result": 0.7145344286243074,
+      "ground_truth": 0.5672610935202403,
+      "equation_error": 0.008835130066901953,
+      "heuristic_error": 0.14727333510406704,
+      "equation_closer": true,
+      "input_features": {
+        "success_rate": 0.7183890352493526,
+        "avg_quality_score": 0.710679821999262,
+        "exec_time_ms": 2202.1147266633907,
+        "total_tasks": 131,
+        "task_type": 2
+      }
+    },
+    {
+      "trial_id": 17,
+      "system": "meta_learning",
+      "equation_result": 0.6001352590193876,
+      "heuristic_result": 0.7990736129347454,
+      "ground_truth": 0.6080592169808859,
+      "equation_error": 0.007923957961498362,
+      "heuristic_error": 0.1910143959538595,
+      "equation_closer": true,
+      "input_features": {
+        "success_rate": 0.6862924887647659,
+        "avg_quality_score": 0.911854737104725,
+        "exec_time_ms": 2268.397691073257,
+        "total_tasks": 157,
+        "task_type": 4
+      }
+    },
+    {
+      "trial_id": 18,
+      "system": "meta_learning",
+      "equation_result": 0.620680688209972,
+      "heuristic_result": 0.8205459224373072,
+      "ground_truth": 0.6299698728982757,
+      "equation_error": 0.009289184688303642,
+      "heuristic_error": 0.1905760495390315,
+      "equation_closer": true,
+      "input_features": {
+        "success_rate": 0.7164613996187781,
+        "avg_quality_score": 0.9246304452558363,
+        "exec_time_ms": 2273.714991269583,
+        "total_tasks": 102,
+        "task_type": 3
+      }
+    },
+    {
+      "trial_id": 19,
+      "system": "meta_learning",
+      "equation_result": 0.6175030364018268,
+      "heuristic_result": 0.7811200927493346,
+      "ground_truth": 0.6120833483989214,
+      "equation_error": 0.005419688002905376,
+      "heuristic_error": 0.16903674435041316,
+      "equation_closer": true,
+      "input_features": {
+        "success_rate": 0.7527492096462258,
+        "avg_quality_score": 0.8094909758524433,
+        "exec_time_ms": 3793.6483132483727,
+        "total_tasks": 143,
+        "task_type": 1
+      }
+    }
+  ]
+}

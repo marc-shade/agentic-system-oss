@@ -8,6 +8,10 @@ import json
 import time
 import requests
 from datetime import datetime
+from pathlib import Path
+
+# Store on SSDRAID0 (not /tmp - see FILE_LOCATION_POLICY.md)
+AGENTIC_BASE = Path("/Volumes/SSDRAID0/agentic-system")
 
 
 def monitor_claude_execution(event):
@@ -31,8 +35,9 @@ def monitor_claude_execution(event):
             print(f"ERROR: {result.stderr}")
             return {"status": "error", "message": result.stderr}
 
-        # Metrics are now saved to /tmp/claude_performance_metrics.json
-        with open("/tmp/claude_performance_metrics.json") as f:
+        # Metrics are now saved to SSDRAID0
+        metrics_file = AGENTIC_BASE / "logs/performance/claude_metrics.json"
+        with open(metrics_file) as f:
             metrics = json.load(f)
 
         # Alert if error rate is high
@@ -94,11 +99,13 @@ def analyze_patterns(event):
         print(maint_result.stdout)
 
         # Load pattern analysis results
-        with open("/tmp/claude_pattern_analysis.json") as f:
+        pattern_file = AGENTIC_BASE / "logs/performance/pattern_analysis.json"
+        with open(pattern_file) as f:
             patterns = json.load(f)
 
         # Trigger deep learning if critical issues found
-        with open("/tmp/claude_maintenance_alerts.json") as f:
+        alerts_file = AGENTIC_BASE / "logs/alerts/maintenance_alerts.json"
+        with open(alerts_file) as f:
             alerts = json.load(f)
 
         if alerts.get("alerts_by_severity", {}).get("critical", 0) > 0:
@@ -163,11 +170,13 @@ def deep_learning(event):
         print(bench_result.stdout)
 
         # Load optimization results
-        with open("/tmp/claude_optimizations_applied.json") as f:
+        optimizations_file = AGENTIC_BASE / "logs/optimizations/applied.json"
+        with open(optimizations_file) as f:
             optimizations = json.load(f)
 
         # Load learning summary
-        with open("/tmp/claude_learning_summary.json") as f:
+        summary_file = AGENTIC_BASE / "logs/learning/summary.json"
+        with open(summary_file) as f:
             summary = json.load(f)
 
         # Send voice notification about improvements

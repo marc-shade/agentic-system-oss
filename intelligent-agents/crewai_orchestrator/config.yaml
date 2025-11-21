@@ -1,0 +1,86 @@
+crews:
+  development:
+    name: "Development Crew"
+    description: "Full software development lifecycle"
+    agents:
+      - researcher
+      - coder
+      - reviewer
+      - documenter
+    max_rpm: 10
+    verbose: true
+    memory: true
+
+  research:
+    name: "Research Crew"
+    description: "Deep research and analysis"
+    agents:
+      - researcher
+      - analyst
+    max_rpm: 15
+    verbose: true
+    memory: true
+
+  optimization:
+    name: "Optimization Crew"
+    description: "System performance and code optimization"
+    agents:
+      - analyst
+      - coder
+      - reviewer
+    max_rpm: 10
+    verbose: true
+    memory: true
+
+agents:
+  researcher:
+    role: "Senior Research Analyst"
+    goal: "Conduct thorough research and gather comprehensive information"
+    backstory: "Expert researcher with deep knowledge of software systems and emerging technologies"
+    allow_delegation: true
+    verbose: true
+
+  coder:
+    role: "Senior Software Engineer"
+    goal: "Write clean, efficient, production-ready code"
+    backstory: "Experienced developer specializing in Python, system architecture, and best practices"
+    allow_delegation: false
+    verbose: true
+
+  reviewer:
+    role: "Code Review Specialist"
+    goal: "Ensure code quality, security, and adherence to best practices"
+    backstory: "Quality-focused engineer with expertise in code review, security, and performance"
+    allow_delegation: false
+    verbose: true
+
+  documenter:
+    role: "Technical Documentation Specialist"
+    goal: "Create clear, comprehensive documentation"
+    backstory: "Technical writer who transforms complex systems into accessible documentation"
+    allow_delegation: false
+    verbose: true
+
+  analyst:
+    role: "System Analyst"
+    goal: "Analyze systems for optimization opportunities and improvements"
+    backstory: "Data-driven analyst specializing in performance metrics and system optimization"
+    allow_delegation: true
+    verbose: true
+
+mcp_integration:
+  enhanced_memory:
+    enabled: true
+    entity_prefix: "crewai_"
+  agent_runtime:
+    enabled: true
+    persist_tasks: true
+  voice_mode:
+    enabled: true
+    announce_milestones: true
+
+performance:
+  max_iterations: 15
+  timeout_seconds: 300
+  retry_on_failure: true
+  max_retries: 3

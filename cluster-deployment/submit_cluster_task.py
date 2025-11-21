@@ -32,6 +32,10 @@ from pathlib import Path
 from typing import Dict, Optional
 import uuid
 
+# Add cluster-deployment to path for TOON imports
+sys.path.insert(0, str(Path(__file__).parent))
+from toon_serialization import encode_task, decode_toon
+
 
 class ClusterTaskSubmitter:
     """Submit tasks to cluster nodes via GitHub"""
@@ -110,8 +114,8 @@ class ClusterTaskSubmitter:
         if result.returncode != 0:
             self._git("checkout", "-b", task_branch, cwd=repo_dir)
 
-        # Create empty commit with task as message
-        message = json.dumps(task, indent=2)
+        # Create empty commit with task as message (TOON encoded)
+        message = encode_task(task)
         self._git("commit", "--allow-empty", "-m", message, cwd=repo_dir)
         self._git("push", "-u", "origin", task_branch, cwd=repo_dir)
 
@@ -162,10 +166,11 @@ class ClusterTaskSubmitter:
             commit_hash, message = line.split('|', 1)
 
             try:
-                result_data = json.loads(message)
+                # Try TOON decode first, fallback to JSON
+                result_data = decode_toon(message)
                 result_data['commit_hash'] = commit_hash
                 results.append(result_data)
-            except json.JSONDecodeError:
+            except (json.JSONDecodeError, ValueError):
                 continue
 
         return results

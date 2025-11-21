@@ -1,0 +1,17 @@
+[project]
+name = "content-creator-mcp"
+version = "1.0.0"
+description = "AI-powered content generation MCP server with SEO optimization"
+requires-python = ">=3.10"
+dependencies = [
+    "fastmcp>=0.1.0",
+    "pydantic>=2.0.0",
+    "python-dateutil>=2.8.0"
+]
+
+[project.scripts]
+content-creator-mcp = "server:app"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

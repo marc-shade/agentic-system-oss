@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Corgi Avatar - Standalone</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: transparent;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        
+        #avatar-widget {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        #avatar-canvas {
+            width: 150px;
+            height: 150px;
+            image-rendering: pixelated;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: crisp-edges;
+            cursor: pointer;
+            display: block;
+        }
+        
+        .avatar-info {
+            text-align: center;
+            margin-top: 10px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        @keyframes wiggle {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-3deg); }
+            75% { transform: rotate(3deg); }
+        }
+        
+        .wiggle {
+            animation: wiggle 0.3s ease-in-out;
+        }
+    </style>
+</head>
+<body>
+    <div id="avatar-widget">
+        <canvas id="avatar-canvas"></canvas>
+        <div class="avatar-info">Click me! 🐕</div>
+    </div>
+    
+    <script>
+        // This script will load the sprite from the local file
+        const canvas = document.getElementById('avatar-canvas');
+        const ctx = canvas.getContext('2d');
+        const spriteSheet = new Image();
+        
+        // Configuration
+        const config = {
+            columns: 5,
+            rows: 4,
+            frameWidth: 51,
+            frameHeight: 50,
+            fps: 10
+        };
+        
+        // Animation state
+        let currentFrame = 0;
+        let isAnimating = true;
+        let lastFrameTime = 0;
+        
+        // Set canvas size
+        canvas.width = config.frameWidth;
+        canvas.height = config.frameHeight;
+        
+        // Load sprite sheet - using relative path
+        spriteSheet.onload = function() {
+            console.log('Sprite loaded successfully!');
+            requestAnimationFrame(animate);
+        };
+        
+        spriteSheet.onerror = function() {
+            console.error('Failed to load sprite sheet');
+            // Draw placeholder
+            ctx.fillStyle = '#FF6B6B';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#FFF';
+            ctx.font = '20px Arial';
+            ctx.fillText('🐕', 15, 35);
+        };
+        
+        // Try to load the sprite
+        spriteSheet.src = 'corgi_sprite.png';
+        
+        function animate(timestamp) {
+            if (!lastFrameTime) lastFrameTime = timestamp;
+            
+            const deltaTime = timestamp - lastFrameTime;
+            const frameInterval = 1000 / config.fps;
+            
+            if (deltaTime >= frameInterval && isAnimating) {
+                // Clear canvas
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // Calculate sprite position
+                const col = currentFrame % config.columns;
+                const row = Math.floor(currentFrame / config.columns);
+                
+                // Draw current frame
+                ctx.drawImage(
+                    spriteSheet,
+                    col * config.frameWidth,
+                    row * config.frameHeight,
+                    config.frameWidth,
+                    config.frameHeight,
+                    0,
+                    0,
+                    config.frameWidth,
+                    config.frameHeight
+                );
+                
+                // Update frame
+                currentFrame = (currentFrame + 1) % (config.columns * config.rows);
+                lastFrameTime = timestamp;
+            }
+            
+            requestAnimationFrame(animate);
+        }
+        
+        // Click handler
+        canvas.addEventListener('click', function() {
+            const widget = document.getElementById('avatar-widget');
+            widget.classList.add('wiggle');
+            setTimeout(() => widget.classList.remove('wiggle'), 300);
+            
+            // Jump to random frame
+            currentFrame = Math.floor(Math.random() * (config.columns * config.rows));
+        });
+        
+        // Hover effect
+        canvas.addEventListener('mouseenter', function() {
+            canvas.style.transform = 'scale(1.1)';
+            canvas.style.transition = 'transform 0.2s ease';
+        });
+        
+        canvas.addEventListener('mouseleave', function() {
+            canvas.style.transform = 'scale(1)';
+        });
+    </script>
+</body>
+</html>

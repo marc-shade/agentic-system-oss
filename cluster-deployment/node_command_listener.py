@@ -7,6 +7,8 @@ Listen on port 9999 for commands from orchestrator
 Execute commands and return results
 Simple text-based protocol for easy debugging
 
+Now uses TOON format for 50% token reduction on responses.
+
 Usage:
     python3 node_command_listener.py [node_id] [port]
 
@@ -23,6 +25,10 @@ import threading
 import time
 from datetime import datetime
 from pathlib import Path
+
+# Add cluster-deployment to path for TOON imports
+sys.path.insert(0, str(Path(__file__).parent))
+from toon_serialization import encode_result, encode_metrics
 
 class NodeCommandListener:
     def __init__(self, node_id, port=9999):
@@ -127,14 +133,16 @@ class NodeCommandListener:
                             "uptime": time.time(),
                             "timestamp": datetime.now().isoformat()
                         }
-                        response = json.dumps(status, indent=2) + "\n> "
+                        # Use TOON encoding for status response (50% token reduction)
+                        response = encode_metrics(status) + "\n> "
                         client_socket.send(response.encode())
 
                     elif command.lower().startswith('exec '):
                         # Execute command
                         cmd = command[5:].strip()
                         result = self.execute_command(cmd)
-                        response = json.dumps(result, indent=2) + "\n> "
+                        # Use TOON encoding for result (50% token reduction)
+                        response = encode_result(result) + "\n> "
                         client_socket.send(response.encode())
 
                     else:

@@ -22,6 +22,10 @@ from typing import Dict, List, Optional
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+# Add cluster-deployment to path for TOON imports
+sys.path.insert(0, str(Path(__file__).parent))
+from toon_serialization import encode_heartbeat, encode_result, decode_toon, encode_task
+
 
 class GitHubNodeDaemon:
     """Daemon for GitHub-based cross-network node communication"""
@@ -139,10 +143,11 @@ class GitHubNodeDaemon:
             commit_hash, message = line.split('|', 1)
 
             try:
-                task_data = json.loads(message)
+                # Try TOON decode first, fallback to JSON
+                task_data = decode_toon(message)
                 task_data['commit_hash'] = commit_hash
                 tasks.append(task_data)
-            except json.JSONDecodeError:
+            except (json.JSONDecodeError, ValueError):
                 print(f"[{self.node_id}] Invalid task format in commit {commit_hash}")
 
         if tasks:
@@ -238,32 +243,34 @@ class GitHubNodeDaemon:
         }
 
     def submit_result(self, result: Dict):
-        """Submit task result via git commit"""
+        """Submit task result via git commit using TOON format"""
         repo_dir = self.local_path / "repo"
 
         # Checkout result branch
         self._git("checkout", self.result_branch, cwd=repo_dir)
 
-        # Create empty commit with result as message
-        message = json.dumps(result, indent=2)
+        # Create empty commit with result as message (TOON encoded)
+        message = encode_result(result)
         self._git("commit", "--allow-empty", "-m", message, cwd=repo_dir)
         self._git("push", "origin", self.result_branch, cwd=repo_dir)
 
         print(f"[{self.node_id}] Result submitted for task {result['task_id']}")
 
     def send_heartbeat(self):
-        """Send heartbeat to cluster"""
+        """Send heartbeat to cluster using TOON format (50% token reduction)"""
         repo_dir = self.local_path / "repo"
 
         # Checkout heartbeat branch
         self._git("checkout", self.heartbeat_branch, cwd=repo_dir)
 
-        # Create heartbeat file
-        heartbeat_file = repo_dir / "heartbeat" / f"{self.node_id}.json"
+        # Create heartbeat file (TOON format)
+        heartbeat_file = repo_dir / "heartbeat" / f"{self.node_id}.toon"
         heartbeat_file.parent.mkdir(exist_ok=True)
 
         heartbeat_data = self._get_health_status()
-        heartbeat_file.write_text(json.dumps(heartbeat_data, indent=2))
+        # Use specialized heartbeat encoder for maximum compression
+        heartbeat_encoded = encode_heartbeat(self.node_id, heartbeat_data)
+        heartbeat_file.write_text(heartbeat_encoded)
 
         # Commit and push
         self._git("add", str(heartbeat_file), cwd=repo_dir)

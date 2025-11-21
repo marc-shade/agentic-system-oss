@@ -41,8 +41,10 @@ class PerformanceMetrics:
     """Collect and analyze Claude Code performance metrics"""
 
     def __init__(self):
-        self.metrics_file = Path("/tmp/claude_performance_metrics.json")
-        self.learning_memory = Path("/tmp/claude_learning_memory.jsonl")
+        # Store on SSDRAID0 (not /tmp - see FILE_LOCATION_POLICY.md)
+        base = Path("/Volumes/SSDRAID0/agentic-system")
+        self.metrics_file = base / "logs/performance/claude_metrics.json"
+        self.learning_memory = base / "logs/learning/learning_memory.jsonl"
 
     def collect_metrics(self) -> Dict:
         """Collect current performance metrics"""
@@ -351,8 +353,10 @@ if TEMPORAL_AVAILABLE:
                 "optimizations": result
             }
 
-            # Log to learning memory
-            learning_memory = Path("/tmp/claude_learning_memory.jsonl")
+            # Log to learning memory (SSDRAID0)
+            base = Path("/Volumes/SSDRAID0/agentic-system")
+            learning_memory = base / "logs/learning/learning_memory.jsonl"
+            learning_memory.parent.mkdir(parents=True, exist_ok=True)
             with open(learning_memory, 'a') as f:
                 f.write(json.dumps(learning_record) + '\n')
 
@@ -418,7 +422,9 @@ def main_standalone():
         "optimizations": result
     }
 
-    learning_memory = Path("/tmp/claude_learning_memory.jsonl")
+    base = Path("/Volumes/SSDRAID0/agentic-system")
+    learning_memory = base / "logs/learning/learning_memory.jsonl"
+    learning_memory.parent.mkdir(parents=True, exist_ok=True)
     with open(learning_memory, 'a') as f:
         f.write(json.dumps(learning_record) + '\n')
 

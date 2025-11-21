@@ -8,14 +8,21 @@ Extends enhanced-memory MCP with cluster capabilities:
 - Cross-node memory queries
 - Memory attribution by node
 - Automatic sync to cluster
+
+Now uses TOON format for 50% token reduction on memory serialization.
 """
 
 import json
 import sqlite3
+import sys
 from pathlib import Path
 from typing import Dict, List, Optional, Any
 import logging
 from datetime import datetime
+
+# Add cluster-deployment to path for TOON imports
+sys.path.insert(0, str(Path(__file__).parent))
+from toon_serialization import encode_toon, decode_toon
 
 logger = logging.getLogger("cluster-memory")
 
@@ -137,12 +144,13 @@ class ClusterMemoryManager:
 
         logger.info(f"Shared memory database initialized at {self.shared_db}")
 
-    def create_entity(self, name: str, entity_type: str, observations: List[str], scope: str = "personal") -> bool:
+    def create_entity(self, name: str, entity_type: str, observations: List[str], scope: str = "personal", use_toon: bool = True) -> bool:
         """
         Create entity in appropriate scope
 
         Args:
             scope: "personal" (node-specific) or "shared" (cluster-wide)
+            use_toon: Use TOON encoding (50% token reduction) vs JSON
         """
         db_path = self.personal_db if scope == "personal" else self.shared_db
 
@@ -150,18 +158,22 @@ class ClusterMemoryManager:
             conn = sqlite3.connect(db_path)
             cursor = conn.cursor()
 
-            observations_json = json.dumps(observations)
+            # Use TOON encoding for 50% token reduction
+            if use_toon:
+                observations_serialized = encode_toon(observations)
+            else:
+                observations_serialized = json.dumps(observations)
 
             if scope == "personal":
                 cursor.execute("""
                     INSERT OR REPLACE INTO entities (name, entity_type, observations, node_id, updated_at)
                     VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
-                """, (name, entity_type, observations_json, self.node_id))
+                """, (name, entity_type, observations_serialized, self.node_id))
             else:
                 cursor.execute("""
                     INSERT OR REPLACE INTO entities (name, entity_type, observations, created_by_node, updated_by_node, updated_at)
                     VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-                """, (name, entity_type, observations_json, self.node_id, self.node_id))
+                """, (name, entity_type, observations_serialized, self.node_id, self.node_id))
 
             conn.commit()
             conn.close()
@@ -217,10 +229,16 @@ class ClusterMemoryManager:
 
                 results = []
                 for row in cursor.fetchall():
+                    # Try TOON decode first, fallback to JSON
+                    try:
+                        observations = decode_toon(row[2])
+                    except (ValueError, json.JSONDecodeError):
+                        observations = json.loads(row[2])
+
                     results.append({
                         'name': row[0],
                         'entity_type': row[1],
-                        'observations': json.loads(row[2]),
+                        'observations': observations,
                         'created_by_node': row[3],
                         'updated_by_node': row[4],
                         'updated_at': row[5],
@@ -235,10 +253,16 @@ class ClusterMemoryManager:
 
                 results = []
                 for row in cursor.fetchall():
+                    # Try TOON decode first, fallback to JSON
+                    try:
+                        observations = decode_toon(row[2])
+                    except (ValueError, json.JSONDecodeError):
+                        observations = json.loads(row[2])
+
                     results.append({
                         'name': row[0],
                         'entity_type': row[1],
-                        'observations': json.loads(row[2]),
+                        'observations': observations,
                         'node_id': row[3],
                         'updated_at': row[4],
                         'scope': 'personal'

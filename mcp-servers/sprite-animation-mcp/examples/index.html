@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🐕 Claude Corgi Avatar Hub</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            color: white;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            text-align: center;
+            font-size: 3em;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .subtitle {
+            text-align: center;
+            font-size: 1.5em;
+            margin-bottom: 40px;
+            opacity: 0.9;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
+        .card h2 {
+            margin-top: 0;
+            font-size: 1.8em;
+            margin-bottom: 15px;
+        }
+        
+        .card p {
+            opacity: 0.9;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        
+        .button {
+            display: inline-block;
+            padding: 12px 30px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            border: 2px solid white;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+        
+        .button:hover {
+            background: white;
+            color: #764ba2;
+        }
+        
+        .preview {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 50px;
+        }
+        
+        .status {
+            background: rgba(0, 255, 0, 0.2);
+            border: 1px solid rgba(0, 255, 0, 0.5);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .info {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 30px;
+            margin-top: 40px;
+        }
+        
+        code {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🐕 Claude Corgi Avatar Hub</h1>
+        <p class="subtitle">Your animated Corgi companion for Claude Desktop & Claude Code</p>
+        
+        <div class="status">
+            ✅ Local server running at <code>http://localhost:8080</code>
+        </div>
+        
+        <div class="grid">
+            <div class="card">
+                <div class="preview">🎮</div>
+                <h2>Interactive Avatar</h2>
+                <p>Full-featured animated Corgi with controls for speed, animation toggle, and random actions.</p>
+                <a href="claude_corgi_avatar.html" class="button">Launch Avatar</a>
+            </div>
+            
+            <div class="card">
+                <div class="preview">🖼️</div>
+                <h2>Standalone Widget</h2>
+                <p>Lightweight avatar widget perfect for embedding in your applications or websites.</p>
+                <a href="corgi_avatar_standalone.html" class="button">View Widget</a>
+            </div>
+            
+            <div class="card">
+                <div class="preview">🎨</div>
+                <h2>Integration Demo</h2>
+                <p>See how the Corgi avatar integrates with a Claude-like chat interface.</p>
+                <a href="claude_desktop_integration.html" class="button">View Demo</a>
+            </div>
+            
+            <div class="card">
+                <div class="preview">📋</div>
+                <h2>Quick Commands</h2>
+                <p>Copy-paste commands for creating animations, GIFs, and more using the MCP tools.</p>
+                <a href="QUICK_COMMANDS.md" class="button">View Commands</a>
+            </div>
+            
+            <div class="card">
+                <div class="preview">📖</div>
+                <h2>Setup Guide</h2>
+                <p>Complete documentation for setting up and using the sprite animation system.</p>
+                <a href="avatar_setup.md" class="button">Read Guide</a>
+            </div>
+            
+            <div class="card">
+                <div class="preview">🎬</div>
+                <h2>Sprite Sheet</h2>
+                <p>View the original Corgi sprite sheet with all 20 animation frames.</p>
+                <a href="corgi_sprite.png" class="button">View Sprite</a>
+            </div>
+        </div>
+        
+        <div class="info">
+            <h2>🚀 Quick Start</h2>
+            <p>Your Corgi avatar system is ready to use! Here's how to get started:</p>
+            <ol>
+                <li><strong>View Avatars:</strong> Click any of the cards above to see different avatar implementations</li>
+                <li><strong>Embed in Projects:</strong> Use the standalone widget HTML in your 2 Acre Studios projects</li>
+                <li><strong>Use MCP Tools:</strong> After restarting Claude Desktop, use the sprite animation tools to create custom animations</li>
+            </ol>
+            
+            <h3>Server Info</h3>
+            <p>This page is being served from: <code>http://localhost:8080</code></p>
+            <p>All files are located in: <code>/Users/marc/Documents/Cline/MCP/sprite-animation-mcp/examples/</code></p>
+            
+            <h3>Stop Server</h3>
+            <p>To stop the web server, press <code>Ctrl+C</code> in the terminal.</p>
+        </div>
+    </div>
+</body>
+</html>

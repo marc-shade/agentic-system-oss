@@ -1,0 +1,10 @@
+{
+  "name": "search_nodes",
+  "description": "Search entities by name or type",
+  "parameters": {
+    "query": "str",
+    "limit": "int = 10"
+  },
+  "returns": "Dict with matching entities",
+  "cost_estimate": "low"
+}

@@ -1,0 +1,10 @@
+{
+  "name": "decompose_goal",
+  "description": "AI-powered goal decomposition into tasks",
+  "parameters": {
+    "goal_id": "int",
+    "strategy": "str = sequential"
+  },
+  "returns": "List of created task IDs",
+  "cost_estimate": "high"
+}

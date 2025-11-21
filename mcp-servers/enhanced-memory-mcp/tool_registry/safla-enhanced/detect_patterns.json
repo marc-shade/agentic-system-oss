@@ -1,0 +1,10 @@
+{
+  "name": "detect_patterns",
+  "description": "Find anomalies, trends, correlations",
+  "parameters": {
+    "data": "array",
+    "pattern_type": "str = all"
+  },
+  "returns": "Detected patterns",
+  "cost_estimate": "high"
+}

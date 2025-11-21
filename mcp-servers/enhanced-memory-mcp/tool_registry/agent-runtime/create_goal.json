@@ -1,0 +1,10 @@
+{
+  "name": "create_goal",
+  "description": "Create persistent goal that survives sessions",
+  "parameters": {
+    "name": "str",
+    "description": "str"
+  },
+  "returns": "Goal ID and metadata",
+  "cost_estimate": "low"
+}

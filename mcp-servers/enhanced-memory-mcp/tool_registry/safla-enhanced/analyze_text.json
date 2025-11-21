@@ -1,0 +1,10 @@
+{
+  "name": "analyze_text",
+  "description": "Deep semantic analysis with entities/sentiment",
+  "parameters": {
+    "text": "str",
+    "analysis_type": "str = all"
+  },
+  "returns": "Analysis results",
+  "cost_estimate": "medium"
+}

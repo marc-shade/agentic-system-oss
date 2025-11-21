@@ -3,6 +3,8 @@
 Orchestrator Remote Execution Client
 Send commands to cluster nodes via telnet-style protocol
 
+Now uses TOON format for 50% token reduction on responses.
+
 Usage:
     python3 orchestrator_remote_exec.py <node_ip> <command> [port]
 
@@ -21,6 +23,11 @@ import socket
 import sys
 import json
 import time
+from pathlib import Path
+
+# Add cluster-deployment to path for TOON imports
+sys.path.insert(0, str(Path(__file__).parent))
+from toon_serialization import decode_toon, is_toon_format
 
 def send_command(node_ip, command, port=9999, timeout=10):
     """Send command to node and return response"""
@@ -87,12 +94,20 @@ def main():
     response = send_command(node_ip, command, port)
     print(response)
 
-    # Try to parse as JSON for pretty printing
+    # Try to parse as TOON or JSON for pretty printing
     try:
-        if response.startswith('{'):
+        if is_toon_format(response):
+            # Decode TOON format
+            data = decode_toon(response)
+            print("\n" + "=" * 60)
+            print("Parsed Response (TOON):")
+            print("=" * 60)
+            print(json.dumps(data, indent=2))
+        elif response.startswith('{'):
+            # JSON format
             data = json.loads(response)
             print("\n" + "=" * 60)
-            print("Parsed Response:")
+            print("Parsed Response (JSON):")
             print("=" * 60)
             print(json.dumps(data, indent=2))
 
