@@ -1,0 +1,37 @@
+# Embedded git repositories (submodules)
+agentic-cluster-comms/
+caveman-compression/
+chatterbox-server/
+claude-flow/
+mcp-servers/nuclei-mcp/
+openai-edge-tts/
+
+# Temporary workspace
+tmp-workspace/
+
+# Voice cache
+voice-cache/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# OS
+.DS_Store
