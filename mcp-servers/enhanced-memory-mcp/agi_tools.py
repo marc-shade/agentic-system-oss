@@ -20,7 +20,12 @@ def register_agi_tools(app: FastMCP, db_path: str):
     # AGENT IDENTITY TOOLS
     # ============================================================================
 
-    @app.tool()
+    @app.tool(
+        outputSchema={
+            "type": "object",
+            "additionalProperties": True
+        }
+    )
     def get_agent_identity(agent_id: str = "default_agent") -> Dict[str, Any]:
         """
         Get persistent agent identity
@@ -179,7 +184,12 @@ def register_agi_tools(app: FastMCP, db_path: str):
     # ACTION OUTCOME TRACKING TOOLS
     # ============================================================================
 
-    @app.tool()
+    @app.tool(
+        outputSchema={
+            "type": "object",
+            "additionalProperties": True
+        }
+    )
     def record_action_outcome(
         action_type: str,
         action_description: str,
@@ -277,7 +287,12 @@ def register_agi_tools(app: FastMCP, db_path: str):
         tracker = ActionTracker()
         return tracker.get_learnings_for_action(action_type, limit)
 
-    @app.tool()
+    @app.tool(
+        outputSchema={
+            "type": "object",
+            "additionalProperties": True
+        }
+    )
     def should_retry_action(
         original_action_id: int,
         proposed_changes: str
@@ -298,7 +313,12 @@ def register_agi_tools(app: FastMCP, db_path: str):
         tracker = ActionTracker()
         return tracker.should_retry_action(original_action_id, proposed_changes)
 
-    @app.tool()
+    @app.tool(
+        outputSchema={
+            "type": "object",
+            "additionalProperties": True
+        }
+    )
     def get_action_statistics() -> Dict[str, Any]:
         """
         Get overall action outcome statistics
