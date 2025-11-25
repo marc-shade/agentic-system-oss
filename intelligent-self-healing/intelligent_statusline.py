@@ -16,10 +16,27 @@ import json
 import sys
 import os
 import subprocess
+import platform
 from pathlib import Path
 from typing import Dict, Any, List, Tuple, Optional
 from datetime import datetime
 import anthropic
+
+# Platform detection
+IS_MACOS = platform.system() == "Darwin"
+IS_LINUX = platform.system() == "Linux"
+
+# Storage path detection - Support multiple mount points
+if IS_MACOS:
+    # Try SSDRAID0 first (mac-studio), then FILES (completeu-server)
+    if Path("/Volumes/SSDRAID0/agentic-system").exists():
+        STORAGE_BASE = Path("/Volumes/SSDRAID0/agentic-system")
+    elif Path("/Volumes/FILES/agentic-system").exists():
+        STORAGE_BASE = Path("/Volumes/FILES/agentic-system")
+    else:
+        STORAGE_BASE = Path("/Volumes/SSDRAID0/agentic-system")  # Default
+else:  # Linux
+    STORAGE_BASE = Path("/mnt/agentic-system")
 
 # ANSI color codes for rich terminal display
 class Colors:
@@ -569,7 +586,11 @@ class IntelligentStatusLine:
             return {"status": "error", "display": "🧠❌"}
 
     def _check_raid_health(self) -> Dict[str, Any]:
-        """Check RAID array health from /proc/mdstat"""
+        """Check RAID array health from /proc/mdstat (Linux only)"""
+        # RAID is Linux-only (mdadm)
+        if IS_MACOS:
+            return {'status': 'not_applicable', 'healthy': True}
+
         try:
             with open('/proc/mdstat', 'r') as f:
                 content = f.read()
@@ -600,27 +621,54 @@ class IntelligentStatusLine:
             return {'status': 'error', 'healthy': False}
 
     def _check_system_services(self) -> Dict[str, Any]:
-        """Check critical system services status"""
+        """Check critical system services status (platform-aware)"""
         try:
-            services = ['agentic-guardian', 'agentic-memory-db', 'builder-node-api']
-            running = 0
-            total = len(services)
+            if IS_LINUX:
+                # Linux: Check systemd services
+                services = ['agentic-guardian', 'agentic-memory-db', 'builder-node-api']
+                running = 0
+                total = len(services)
 
-            for service in services:
-                result = subprocess.run(
-                    ['systemctl', 'is-active', service],
-                    capture_output=True,
-                    text=True,
-                    timeout=1
-                )
-                if result.stdout.strip() == 'active':
-                    running += 1
+                for service in services:
+                    result = subprocess.run(
+                        ['systemctl', 'is-active', service],
+                        capture_output=True,
+                        text=True,
+                        timeout=1
+                    )
+                    if result.stdout.strip() == 'active':
+                        running += 1
 
-            return {
-                'running': running,
-                'total': total,
-                'all_healthy': running == total
-            }
+                return {
+                    'running': running,
+                    'total': total,
+                    'all_healthy': running == total
+                }
+            else:
+                # macOS: Check key processes instead
+                services_to_check = [
+                    ('temporal', 'Temporal'),
+                    ('autokitteh', 'AutoKitteh'),
+                    ('qdrant', 'Qdrant')
+                ]
+                running = 0
+                total = len(services_to_check)
+
+                for process_name, display_name in services_to_check:
+                    result = subprocess.run(
+                        ['pgrep', '-f', process_name],
+                        capture_output=True,
+                        text=True,
+                        timeout=1
+                    )
+                    if result.stdout.strip():
+                        running += 1
+
+                return {
+                    'running': running,
+                    'total': total,
+                    'all_healthy': running == total
+                }
         except Exception:
             return {'running': 0, 'total': 3, 'all_healthy': False}
 
@@ -668,7 +716,7 @@ class IntelligentStatusLine:
     def _check_background_jobs(self) -> int:
         """Check active background jobs from build executor"""
         try:
-            log_file = Path('/mnt/agentic-system/logs/build_executor.log')
+            log_file = STORAGE_BASE / "logs" / "build_executor.log"
             if not log_file.exists():
                 return 0
 
@@ -1016,7 +1064,11 @@ Priority meanings:
         # Normal: Claude Code status (only show hook info if abnormal)
         if data.get('claude_running'):
             hook_count = data.get('hook_count', 0)
-            expected_hooks = 8  # Normal state: 8 configured hook events
+            # Platform-aware hook expectations
+            if IS_MACOS:
+                expected_hooks = 4  # macOS: SessionStart, PreToolUse, PostToolUse, Stop
+            else:
+                expected_hooks = 6  # Linux builder node: Additional hooks
 
             # Only show hook count if it's different from expected
             if hook_count != expected_hooks:
@@ -1061,8 +1113,13 @@ Priority meanings:
 
         # Normal: MCP configuration (ALWAYS show)
         mcp_count = data.get('mcp_count', 0)
-        expected_mcp_min = 6
-        expected_mcp_max = 10
+        # Platform-aware MCP expectations
+        if IS_MACOS:
+            expected_mcp_min = 8   # macOS orchestrator: enhanced-memory, agent-runtime, etc.
+            expected_mcp_max = 20  # Can have many MCP servers for integrations
+        else:
+            expected_mcp_min = 3   # Linux builder: fewer MCPs needed
+            expected_mcp_max = 10  # Builder doesn't need as many
 
         if mcp_count < expected_mcp_min:
             items.append(('⚠️', f"{mcp_count}mcp low!", 1))  # Warning - too few
