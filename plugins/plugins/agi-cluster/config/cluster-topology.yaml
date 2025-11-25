@@ -1,0 +1,103 @@
+# AGI Cluster Topology Configuration
+# Define your cluster nodes and their roles
+
+cluster:
+  name: "agi-cluster"
+  version: "1.0.0"
+
+nodes:
+  # Orchestrator node - coordinates cluster activities
+  mac-studio:
+    role: orchestrator
+    hostname: mac-studio.local
+    ip: 192.168.1.79
+    ssh: marc@mac-studio.local
+    capabilities:
+      - coordination
+      - planning
+      - decision-making
+    hardware:
+      type: mac-studio
+      cpu: "Apple M2 Ultra"
+      ram: "192GB"
+      gpu: "M2 Ultra GPU"
+    services:
+      - enhanced-memory
+      - agent-runtime
+
+  # Builder node - handles compute-intensive tasks
+  macpro51:
+    role: builder
+    hostname: macpro51.local
+    ip: 192.168.1.87
+    ssh: marc@macpro51.local
+    capabilities:
+      - compilation
+      - testing
+      - code-generation
+    hardware:
+      type: mac-pro-5,1
+      cpu: "Dual Xeon X5680"
+      ram: "126GB"
+      gpu: "GTX 680"
+    services:
+      - security-scanner
+      - code-analysis
+
+  # Researcher node - handles knowledge tasks
+  macbook-air-m3:
+    role: researcher
+    hostname: macbook-air-m3.local
+    ip: 192.168.1.55
+    ssh: marc@macbook-air-m3.local
+    capabilities:
+      - research
+      - analysis
+      - documentation
+    hardware:
+      type: macbook-air
+      cpu: "Apple M3"
+      ram: "24GB"
+    services:
+      - research-paper
+      - web-search
+
+# Communication settings
+communication:
+  # Primary: Direct HTTP API
+  http:
+    enabled: true
+    port: 8888
+
+  # Secondary: Database-backed (for persistence)
+  database:
+    enabled: true
+    shared_path: /mnt/agentic-system/cluster-inbox
+
+  # Tertiary: File-based (fallback)
+  file:
+    enabled: true
+    inbox_path: /mnt/agentic-system/cluster-inbox
+
+# Task routing rules
+routing:
+  # Route by task type to specialized nodes
+  code_generation:
+    primary: macpro51
+    fallback: mac-studio
+
+  research:
+    primary: macbook-air-m3
+    fallback: mac-studio
+
+  coordination:
+    primary: mac-studio
+
+  security_scan:
+    primary: macpro51
+
+# Shared storage
+storage:
+  primary: /mnt/agentic-system
+  backup: /Volumes/SSDRAID0  # Mac Studio mount point
+  sync_interval: 300  # seconds

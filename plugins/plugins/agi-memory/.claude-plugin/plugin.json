@@ -1,0 +1,47 @@
+{
+  "name": "agi-memory",
+  "version": "1.0.0",
+  "description": "Persistent AGI memory with SQLite - goals, tasks, outcomes, and quality conscience. Requires Python 3.10+.",
+  "author": "Marc & Agentic Team",
+  "license": "MIT",
+  "homepage": "https://github.com/your-org/agi-plugins",
+  "tier": 2,
+  "tags": ["agi", "memory", "persistence", "goals", "tasks", "quality"],
+  "dependencies": ["agi-core"],
+  "capabilities": [
+    "Persistent goals and task management",
+    "Action outcome recording and learning",
+    "Quality conscience (Ember) for production readiness",
+    "Memory consolidation commands",
+    "Cross-session context persistence"
+  ],
+  "infrastructure": {
+    "required": ["python>=3.10"],
+    "optional": ["redis"]
+  },
+  "mcp_servers": [
+    {
+      "name": "agent-runtime",
+      "description": "Goal decomposition and task queue management",
+      "command": "python3",
+      "args": ["mcp/agent-runtime/server.py"]
+    },
+    {
+      "name": "agi",
+      "description": "Meta-learning, outcome recording, and self-improvement",
+      "command": "python3",
+      "args": ["mcp/agi/server.py"]
+    },
+    {
+      "name": "ember",
+      "description": "Quality conscience keeper for production readiness",
+      "command": "node",
+      "args": ["mcp/ember/dist/index.js"]
+    }
+  ],
+  "files": {
+    "commands": ["agi-consolidate.md", "agi-goals.md"],
+    "mcp": ["agent-runtime/", "agi/", "ember/"],
+    "scripts": ["setup.sh", "init-databases.py"]
+  }
+}

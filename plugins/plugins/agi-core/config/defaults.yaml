@@ -1,0 +1,82 @@
+# AGI-Core Plugin Default Configuration
+# Copy to ~/.claude/agi/config.yaml and customize
+
+# Plugin tier (auto-detected if not specified)
+tier: auto  # core, memory, extended, cluster, or auto
+
+# Behavioral settings
+behaviors:
+  # Action outcome recording
+  action_recording:
+    enabled: true
+    log_file: ~/.claude/agi/action_log.jsonl  # Local file for core tier
+
+  # Knowledge gap identification
+  gap_identification:
+    enabled: true
+    severity_threshold: 0.7  # Trigger research above this
+
+  # Meta-prompting
+  meta_prompting:
+    enabled: true
+    auto_activate_threshold: 3  # Files affected to auto-trigger
+
+  # Metacognitive monitoring
+  metacognition:
+    enabled: true
+    confidence_reporting: true
+
+# Thinking modes
+thinking:
+  deep_triggers:
+    - "think"
+    - "think harder"
+    - "think deeply"
+  ultra_triggers:
+    - "ultrathink"
+    - "maximum depth"
+    - "deepest analysis"
+
+# Agent preferences
+agents:
+  # Default model for each agent (can be overridden)
+  deep-thinker:
+    model: opus
+    timeout: 300  # seconds
+  architect:
+    model: opus
+    timeout: 300
+  code-reviewer:
+    model: sonnet
+    timeout: 180
+  debugger:
+    model: sonnet
+    timeout: 180
+  researcher:
+    model: opus
+    timeout: 300
+
+# Session settings
+session:
+  auto_init: false  # Auto-run /agi-init on start
+  persist_context: false  # Requires agi-memory plugin
+
+# Safety settings (immutable in production)
+safety:
+  require_approval_for:
+    - self_modification
+    - code_execution
+    - capability_installation
+  autonomous_allowed:
+    - memory_consolidation
+    - knowledge_research
+    - performance_tracking
+
+# Upgrade hints (shown in /agi-status)
+upgrade_hints:
+  show: true
+  next_tier: agi-memory
+  benefits:
+    - "Persistent goals and tasks"
+    - "Action outcome storage"
+    - "Cross-session memory"

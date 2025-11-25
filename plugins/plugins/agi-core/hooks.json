@@ -1,0 +1,33 @@
+{
+  "$schema": "https://claude.ai/schemas/hooks.json",
+  "hooks": [
+    {
+      "event": "on_session_start",
+      "description": "Initialize AGI behavioral context",
+      "actions": [
+        {
+          "type": "log",
+          "message": "AGI-Core session initialized"
+        }
+      ]
+    },
+    {
+      "event": "on_tool_use",
+      "description": "Track significant tool usage for outcome learning",
+      "conditions": {
+        "tools": ["Write", "Edit", "Bash"]
+      },
+      "actions": [
+        {
+          "type": "log",
+          "message": "Tool use: {{tool_name}} - {{description}}"
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "plugin": "agi-core",
+    "version": "1.0.0",
+    "description": "Basic hooks for AGI behavioral tracking"
+  }
+}
