@@ -40,11 +40,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Database path
-<<<<<<< HEAD
-DB_PATH = Path("/Volumes/SSDRAID0/agentic-system/databases/meta_learning.db")
-=======
 DB_PATH = Path("/mnt/agentic-system/databases/meta_learning.db")
->>>>>>> origin/main
 
 
 @dataclass
@@ -220,23 +216,10 @@ class MetaLearningEngine:
 
         conn.close()
 
-<<<<<<< HEAD
-    def recommend_agent(self, task_type: str, context: Optional[Dict] = None,
-                       use_pysr: bool = True) -> Tuple[str, float]:
-        """
-        Recommend best agent for a task type based on learned performance.
-
-        Args:
-            task_type: Type of task
-            context: Optional context dictionary
-            use_pysr: Use PySR-discovered equation for scoring (default: True)
-
-=======
     def recommend_agent(self, task_type: str, context: Optional[Dict] = None) -> Tuple[str, float]:
         """
         Recommend best agent for a task type based on learned performance.
 
->>>>>>> origin/main
         Returns:
             Tuple of (agent_name, confidence)
         """
@@ -245,16 +228,10 @@ class MetaLearningEngine:
 
         # Get agent performance for this task type
         cursor.execute("""
-<<<<<<< HEAD
-            SELECT agent_name, success_rate, avg_quality_score, total_tasks, avg_execution_time_ms
-            FROM agent_performance
-            WHERE task_type = ?
-=======
             SELECT agent_name, success_rate, avg_quality_score, total_tasks
             FROM agent_performance
             WHERE task_type = ?
             ORDER BY (success_rate * 0.5 + avg_quality_score * 0.5) DESC
->>>>>>> origin/main
         """, (task_type,))
 
         results = cursor.fetchall()
@@ -264,65 +241,18 @@ class MetaLearningEngine:
             # No learning data yet - return default
             return ("general-purpose", 0.0)
 
-<<<<<<< HEAD
-        # Score each agent
-        scored_agents = []
-        for agent_name, success_rate, quality_score, total_tasks, exec_time_ms in results:
-            if use_pysr:
-                try:
-                    # Use PySR-discovered equation
-                    from equation_integration import get_integrator
-                    import numpy as np
-
-                    integrator = get_integrator()
-                    log_exec_time = np.log1p(exec_time_ms or 1000)  # Default 1000ms if None
-
-                    performance_score = integrator.meta_learning_agent_score(
-                        success_rate=success_rate,
-                        avg_quality_score=quality_score,
-                        log_exec_time=log_exec_time,
-                        total_tasks=total_tasks,
-                        task_type_encoded=0  # Could be enhanced with actual encoding
-                    )
-
-                    logger.info(f"PySR agent score for '{agent_name}': {performance_score:.4f}")
-
-                except Exception as e:
-                    logger.warning(f"PySR equation failed, using fallback: {e}")
-                    # Fallback to original 50/50 heuristic
-                    performance_score = (success_rate * 0.5 + quality_score * 0.5)
-            else:
-                # Original heuristic (fallback)
-                performance_score = (success_rate * 0.5 + quality_score * 0.5)
-
-            scored_agents.append((agent_name, performance_score, success_rate, quality_score, total_tasks))
-
-        # Sort by performance score
-        scored_agents.sort(key=lambda x: x[1], reverse=True)
-
-        # Top performer
-        agent_name, performance_score, success_rate, quality_score, total_tasks = scored_agents[0]
-=======
         # Top performer
         agent_name, success_rate, quality_score, total_tasks = results[0]
->>>>>>> origin/main
 
         # Calculate confidence based on amount of data
         confidence = min(1.0, total_tasks / 20.0)  # Full confidence after 20 tasks
 
         # Adjust confidence by performance
-<<<<<<< HEAD
-        confidence *= performance_score
-
-        logger.info(f"Recommended agent '{agent_name}' for task type '{task_type}' "
-                   f"(confidence={confidence:.2f}, score={performance_score:.4f})")
-=======
         performance_score = (success_rate * 0.5 + quality_score * 0.5)
         confidence *= performance_score
 
         logger.info(f"Recommended agent '{agent_name}' for task type '{task_type}' "
                    f"(confidence={confidence:.2f})")
->>>>>>> origin/main
 
         return (agent_name, confidence)
 

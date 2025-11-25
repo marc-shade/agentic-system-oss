@@ -1,0 +1,74 @@
+# Agent Coordination Evaluation Suite
+# ====================================
+
+name: agent_coordination
+version: "1.0.0"
+description: "Evaluate multi-agent coordination quality including task distribution and communication"
+
+grader:
+  module: graders.agent_coordination_grader
+  function: grade_coordination
+
+dataset: datasets/coordination_scenarios.jsonl
+
+dimensions:
+  - name: task_distribution
+    weight: 0.25
+    threshold: 0.6
+    description: "Work divided appropriately among agents"
+  - name: communication
+    weight: 0.25
+    threshold: 0.7
+    description: "Clear and efficient inter-agent messaging"
+  - name: conflict_resolution
+    weight: 0.15
+    threshold: 0.6
+    description: "Disagreements handled constructively"
+  - name: resource_efficiency
+    weight: 0.20
+    threshold: 0.6
+    description: "No redundant work, minimal overhead"
+  - name: goal_achievement
+    weight: 0.15
+    threshold: 0.7
+    description: "Collective objective achieved"
+
+passing_threshold: 0.70
+
+test_cases:
+  - name: "Simple delegation"
+    input:
+      task: "Build a REST API with authentication"
+      agents: ["coordinator", "backend_dev", "security_expert"]
+    expected:
+      min_score: 0.7
+      expected_distribution: balanced
+
+  - name: "Complex multi-step"
+    input:
+      task: "Research, design, and implement a caching layer"
+      agents: ["coordinator", "researcher", "architect", "coder"]
+    expected:
+      min_score: 0.7
+      expected_phases: ["research", "design", "implement", "verify"]
+
+  - name: "Conflict scenario"
+    input:
+      task: "Choose between Redis and Memcached"
+      agents: ["coordinator", "expert_1", "expert_2"]
+      scenario: "disagreement"
+    expected:
+      min_score: 0.6
+      should_resolve: true
+
+metrics:
+  - pass_rate
+  - average_agents_utilized
+  - communication_efficiency
+  - conflict_resolution_rate
+  - goal_completion_rate
+
+reporting:
+  format: json
+  include_agent_breakdown: true
+  include_coordination_graph: true

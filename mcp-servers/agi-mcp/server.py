@@ -27,22 +27,6 @@ from typing import Any, Dict, List, Optional
 # Add intelligent-agents to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "intelligent-agents"))
 
-<<<<<<< HEAD
-# Add SHARED to path for TOON utilities
-sys.path.insert(0, str(Path(__file__).parent.parent / "SHARED"))
-
-# Import TOON utilities for token-optimized responses
-try:
-    from toon_utils import toon_response, estimate_token_savings
-    TOON_ENABLED = True
-except ImportError:
-    # Fallback to JSON if TOON not available
-    TOON_ENABLED = False
-    def toon_response(data, **kwargs):
-        return json.dumps(data, indent=2)
-
-=======
->>>>>>> origin/main
 # Import all AGI components
 from meta_learning_engine import MetaLearningEngine, TaskOutcome
 from multi_agent_coordinator import MultiAgentCoordinator
@@ -127,11 +111,7 @@ async def agi_record_outcome(
 
         return [TextContent(
             type="text",
-<<<<<<< HEAD
-            text=toon_response({
-=======
             text=json.dumps({
->>>>>>> origin/main
                 "status": "success",
                 "message": f"Recorded outcome for task {task_id}",
                 "outcome": {
@@ -140,22 +120,14 @@ async def agi_record_outcome(
                     "success": success,
                     "execution_time_ms": execution_time_ms
                 }
-<<<<<<< HEAD
-            })
-=======
             }, indent=2)
->>>>>>> origin/main
         )]
 
     except Exception as e:
         logger.error(f"Error recording outcome: {e}", exc_info=True)
         return [TextContent(
             type="text",
-<<<<<<< HEAD
-            text=toon_response({"status": "error", "message": str(e)})
-=======
             text=json.dumps({"status": "error", "message": str(e)})
->>>>>>> origin/main
         )]
 
 
@@ -182,31 +154,19 @@ async def agi_recommend_agent(
 
         return [TextContent(
             type="text",
-<<<<<<< HEAD
-            text=toon_response({
-=======
             text=json.dumps({
->>>>>>> origin/main
                 "status": "success",
                 "recommended_agent": agent,
                 "confidence": confidence,
                 "task_type": task_type
-<<<<<<< HEAD
-            })
-=======
             }, indent=2)
->>>>>>> origin/main
         )]
 
     except Exception as e:
         logger.error(f"Error recommending agent: {e}", exc_info=True)
         return [TextContent(
             type="text",
-<<<<<<< HEAD
-            text=toon_response({"status": "error", "message": str(e)})
-=======
             text=json.dumps({"status": "error", "message": str(e)})
->>>>>>> origin/main
         )]
 
 
@@ -231,31 +191,19 @@ async def agi_detect_patterns(
 
         return [TextContent(
             type="text",
-<<<<<<< HEAD
-            text=toon_response({
-=======
             text=json.dumps({
->>>>>>> origin/main
                 "status": "success",
                 "patterns_detected": len(patterns),
                 "lookback_days": lookback_days,
                 "patterns": patterns
-<<<<<<< HEAD
-            })
-=======
             }, indent=2)
->>>>>>> origin/main
         )]
 
     except Exception as e:
         logger.error(f"Error detecting patterns: {e}", exc_info=True)
         return [TextContent(
             type="text",
-<<<<<<< HEAD
-            text=toon_response({"status": "error", "message": str(e)})
-=======
             text=json.dumps({"status": "error", "message": str(e)})
->>>>>>> origin/main
         )]
 
 
@@ -275,28 +223,17 @@ async def agi_get_learning_summary() -> List[TextContent]:
 
         return [TextContent(
             type="text",
-<<<<<<< HEAD
-            text=toon_response({
-                "status": "success",
-                "summary": summary
-            })
-=======
             text=json.dumps({
                 "status": "success",
                 "summary": summary
             }, indent=2)
->>>>>>> origin/main
         )]
 
     except Exception as e:
         logger.error(f"Error getting learning summary: {e}", exc_info=True)
         return [TextContent(
             type="text",
-<<<<<<< HEAD
-            text=toon_response({"status": "error", "message": str(e)})
-=======
             text=json.dumps({"status": "error", "message": str(e)})
->>>>>>> origin/main
         )]
 
 
@@ -327,28 +264,17 @@ async def agi_execute_task(
 
         return [TextContent(
             type="text",
-<<<<<<< HEAD
-            text=toon_response({
-                "status": "success",
-                "result": result
-            })
-=======
             text=json.dumps({
                 "status": "success",
                 "result": result
             }, indent=2)
->>>>>>> origin/main
         )]
 
     except Exception as e:
         logger.error(f"Error executing task: {e}", exc_info=True)
         return [TextContent(
             type="text",
-<<<<<<< HEAD
-            text=toon_response({"status": "error", "message": str(e)})
-=======
             text=json.dumps({"status": "error", "message": str(e)})
->>>>>>> origin/main
         )]
 
 
@@ -368,28 +294,17 @@ async def agi_get_system_status() -> List[TextContent]:
 
         return [TextContent(
             type="text",
-<<<<<<< HEAD
-            text=toon_response({
-                "status": "success",
-                "system_status": status
-            })
-=======
             text=json.dumps({
                 "status": "success",
                 "system_status": status
             }, indent=2)
->>>>>>> origin/main
         )]
 
     except Exception as e:
         logger.error(f"Error getting system status: {e}", exc_info=True)
         return [TextContent(
             type="text",
-<<<<<<< HEAD
-            text=toon_response({"status": "error", "message": str(e)})
-=======
             text=json.dumps({"status": "error", "message": str(e)})
->>>>>>> origin/main
         )]
 
 
@@ -424,33 +339,21 @@ async def agi_register_skill(
 
         return [TextContent(
             type="text",
-<<<<<<< HEAD
-            text=toon_response({
-=======
             text=json.dumps({
->>>>>>> origin/main
                 "status": "success",
                 "skill": {
                     "name": skill.skill_name,
                     "version": skill.version,
                     "created_at": skill.created_at.isoformat()
                 }
-<<<<<<< HEAD
-            })
-=======
             }, indent=2)
->>>>>>> origin/main
         )]
 
     except Exception as e:
         logger.error(f"Error registering skill: {e}", exc_info=True)
         return [TextContent(
             type="text",
-<<<<<<< HEAD
-            text=toon_response({"status": "error", "message": str(e)})
-=======
             text=json.dumps({"status": "error", "message": str(e)})
->>>>>>> origin/main
         )]
 
 
@@ -481,33 +384,21 @@ async def agi_start_ab_test(
 
         return [TextContent(
             type="text",
-<<<<<<< HEAD
-            text=toon_response({
-=======
             text=json.dumps({
->>>>>>> origin/main
                 "status": "success",
                 "test_id": test_id,
                 "skill_name": skill_name,
                 "version_a": version_a,
                 "version_b": version_b,
                 "split_ratio": split_ratio
-<<<<<<< HEAD
-            })
-=======
             }, indent=2)
->>>>>>> origin/main
         )]
 
     except Exception as e:
         logger.error(f"Error starting A/B test: {e}", exc_info=True)
         return [TextContent(
             type="text",
-<<<<<<< HEAD
-            text=toon_response({"status": "error", "message": str(e)})
-=======
             text=json.dumps({"status": "error", "message": str(e)})
->>>>>>> origin/main
         )]
 
 
@@ -533,30 +424,18 @@ async def agi_promote_skill(
 
         return [TextContent(
             type="text",
-<<<<<<< HEAD
-            text=toon_response({
-                "status": "success" if success else "failed",
-                "skill_name": skill_name,
-                "promoted_version": version
-            })
-=======
             text=json.dumps({
                 "status": "success" if success else "failed",
                 "skill_name": skill_name,
                 "promoted_version": version
             }, indent=2)
->>>>>>> origin/main
         )]
 
     except Exception as e:
         logger.error(f"Error promoting skill: {e}", exc_info=True)
         return [TextContent(
             type="text",
-<<<<<<< HEAD
-            text=toon_response({"status": "error", "message": str(e)})
-=======
             text=json.dumps({"status": "error", "message": str(e)})
->>>>>>> origin/main
         )]
 
 
@@ -587,28 +466,17 @@ async def agi_execute_goal(
 
         return [TextContent(
             type="text",
-<<<<<<< HEAD
-            text=toon_response({
-                "status": "success",
-                "result": result
-            })
-=======
             text=json.dumps({
                 "status": "success",
                 "result": result
             }, indent=2)
->>>>>>> origin/main
         )]
 
     except Exception as e:
         logger.error(f"Error executing goal: {e}", exc_info=True)
         return [TextContent(
             type="text",
-<<<<<<< HEAD
-            text=toon_response({"status": "error", "message": str(e)})
-=======
             text=json.dumps({"status": "error", "message": str(e)})
->>>>>>> origin/main
         )]
 
 
@@ -632,28 +500,17 @@ async def agi_get_goal_progress(
 
         return [TextContent(
             type="text",
-<<<<<<< HEAD
-            text=toon_response({
-                "status": "success",
-                "progress": progress
-            })
-=======
             text=json.dumps({
                 "status": "success",
                 "progress": progress
             }, indent=2)
->>>>>>> origin/main
         )]
 
     except Exception as e:
         logger.error(f"Error getting goal progress: {e}", exc_info=True)
         return [TextContent(
             type="text",
-<<<<<<< HEAD
-            text=toon_response({"status": "error", "message": str(e)})
-=======
             text=json.dumps({"status": "error", "message": str(e)})
->>>>>>> origin/main
         )]
 
 
@@ -686,11 +543,7 @@ async def agi_synthesize_context(
 
         return [TextContent(
             type="text",
-<<<<<<< HEAD
-            text=toon_response({
-=======
             text=json.dumps({
->>>>>>> origin/main
                 "status": "success",
                 "context": {
                     "chunks": len(context.chunks),
@@ -699,22 +552,14 @@ async def agi_synthesize_context(
                     "sources": [{"type": chunk.source_type, "relevance": chunk.relevance_score}
                                for chunk in context.chunks[:5]]  # First 5 sources
                 }
-<<<<<<< HEAD
-            })
-=======
             }, indent=2)
->>>>>>> origin/main
         )]
 
     except Exception as e:
         logger.error(f"Error synthesizing context: {e}", exc_info=True)
         return [TextContent(
             type="text",
-<<<<<<< HEAD
-            text=toon_response({"status": "error", "message": str(e)})
-=======
             text=json.dumps({"status": "error", "message": str(e)})
->>>>>>> origin/main
         )]
 
 
@@ -754,32 +599,20 @@ async def agi_propose_modification(
 
         return [TextContent(
             type="text",
-<<<<<<< HEAD
-            text=toon_response({
-=======
             text=json.dumps({
->>>>>>> origin/main
                 "status": "success",
                 "modification_id": modification.modification_id,
                 "type": modification.modification_type.value,
                 "description": modification.description,
                 "proof_status": modification.proof_status.value
-<<<<<<< HEAD
-            })
-=======
             }, indent=2)
->>>>>>> origin/main
         )]
 
     except Exception as e:
         logger.error(f"Error proposing modification: {e}", exc_info=True)
         return [TextContent(
             type="text",
-<<<<<<< HEAD
-            text=toon_response({"status": "error", "message": str(e)})
-=======
             text=json.dumps({"status": "error", "message": str(e)})
->>>>>>> origin/main
         )]
 
 
@@ -807,11 +640,7 @@ async def agi_apply_modification(
         if not modification:
             return [TextContent(
                 type="text",
-<<<<<<< HEAD
-                text=toon_response({
-=======
                 text=json.dumps({
->>>>>>> origin/main
                     "status": "error",
                     "message": f"Modification {modification_id} not found"
                 })
@@ -821,31 +650,19 @@ async def agi_apply_modification(
         # For now, return status
         return [TextContent(
             type="text",
-<<<<<<< HEAD
-            text=toon_response({
-=======
             text=json.dumps({
->>>>>>> origin/main
                 "status": "info",
                 "message": "Modification application requires full object reconstruction",
                 "modification_id": modification_id,
                 "current_status": modification
-<<<<<<< HEAD
-            })
-=======
             }, indent=2)
->>>>>>> origin/main
         )]
 
     except Exception as e:
         logger.error(f"Error applying modification: {e}", exc_info=True)
         return [TextContent(
             type="text",
-<<<<<<< HEAD
-            text=toon_response({"status": "error", "message": str(e)})
-=======
             text=json.dumps({"status": "error", "message": str(e)})
->>>>>>> origin/main
         )]
 
 
@@ -870,28 +687,17 @@ async def agi_get_improvement_history(
 
         return [TextContent(
             type="text",
-<<<<<<< HEAD
-            text=toon_response({
-                "status": "success",
-                "history": history
-            })
-=======
             text=json.dumps({
                 "status": "success",
                 "history": history
             }, indent=2)
->>>>>>> origin/main
         )]
 
     except Exception as e:
         logger.error(f"Error getting improvement history: {e}", exc_info=True)
         return [TextContent(
             type="text",
-<<<<<<< HEAD
-            text=toon_response({"status": "error", "message": str(e)})
-=======
             text=json.dumps({"status": "error", "message": str(e)})
->>>>>>> origin/main
         )]
 
 

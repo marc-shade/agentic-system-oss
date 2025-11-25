@@ -1,0 +1,11 @@
+{
+  "suite_name": "consolidation_quality",
+  "timestamp": "2025-11-25T08:23:19.595746",
+  "total_samples": 5,
+  "passed_samples": 5,
+  "failed_samples": 0,
+  "avg_score": 1.0,
+  "pass_rate": 1.0,
+  "gate_threshold": 0.7,
+  "gate_passed": true
+}

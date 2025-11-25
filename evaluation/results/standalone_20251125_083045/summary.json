@@ -1,0 +1,11 @@
+{
+  "suite_name": "memory_quality_standalone",
+  "timestamp": "2025-11-25T08:30:45.095706",
+  "total_samples": 10,
+  "passed_samples": 9,
+  "failed_samples": 1,
+  "avg_score": 0.95,
+  "pass_rate": 0.9,
+  "gate_threshold": 0.7,
+  "gate_passed": true
+}

@@ -17,11 +17,7 @@ from typing import Dict, List, Any, Optional
 import pickle
 
 # Import OTEL wrapper
-<<<<<<< HEAD
-sys.path.append('/Volumes/SSDRAID0/agentic-system/mcp/mcp-otel-wrapper')
-=======
 sys.path.append('/Volumes/FILES/agentic-system/mcp/mcp-otel-wrapper')
->>>>>>> origin/main
 from mcp_otel_wrapper import mcp_otel_trace, extract_trace_context, inject_trace_context
 
 # Set up logging to stderr only

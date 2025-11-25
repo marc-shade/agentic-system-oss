@@ -106,12 +106,7 @@ class ClusterExecutionServer:
                 continue
 
             try:
-<<<<<<< HEAD
-                # BatchMode prevents password prompts, StrictHostKeyChecking prevents host key prompts
-                cmd = f"ssh -o ConnectTimeout=2 -o BatchMode=yes -o StrictHostKeyChecking=no marc@{node_info['ip']} 'python3 -c \"import psutil, os; print(psutil.cpu_percent()); print(psutil.virtual_memory().percent); print(os.getloadavg()[0])\"'"
-=======
                 cmd = f"ssh -o ConnectTimeout=2 {node_info['ip']} 'python3 -c \"import psutil, os; print(psutil.cpu_percent()); print(psutil.virtual_memory().percent); print(os.getloadavg()[0])\"'"
->>>>>>> origin/main
                 result = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=5)
 
                 if result.returncode == 0:
@@ -255,130 +250,6 @@ class ClusterExecutionServer:
 
         return results
 
-<<<<<<< HEAD
-    def get_tmux_sessions(self) -> Dict:
-        """Get all tmux sessions across cluster for AI agent observability"""
-        sessions = {
-            "local_node": self.local_node_id,
-            "nodes": {}
-        }
-
-        # Get local tmux sessions
-        try:
-            result = subprocess.run(
-                "tmux list-sessions -F '#{session_name}|#{session_created}|#{session_windows}|#{session_attached}'",
-                shell=True,
-                capture_output=True,
-                text=True,
-                timeout=5
-            )
-
-            if result.returncode == 0:
-                local_sessions = []
-                for line in result.stdout.strip().split('\n'):
-                    if line:
-                        parts = line.split('|')
-                        local_sessions.append({
-                            "name": parts[0],
-                            "created": parts[1],
-                            "windows": parts[2],
-                            "attached": parts[3] == "1"
-                        })
-                sessions["nodes"][self.local_node_id] = {
-                    "reachable": True,
-                    "sessions": local_sessions
-                }
-            else:
-                sessions["nodes"][self.local_node_id] = {
-                    "reachable": True,
-                    "sessions": [],
-                    "note": "No active tmux sessions"
-                }
-        except:
-            sessions["nodes"][self.local_node_id] = {
-                "reachable": True,
-                "sessions": [],
-                "error": "Failed to query local tmux"
-            }
-
-        # Get remote tmux sessions
-        for node_id, node_info in CLUSTER_NODES.items():
-            if node_id == self.local_node_id:
-                continue
-
-            try:
-                cmd = f"ssh -o ConnectTimeout=2 -o BatchMode=yes -o StrictHostKeyChecking=no marc@{node_info['ip']} \"tmux list-sessions -F '{{{{session_name}}}}|{{{{session_created}}}}|{{{{session_windows}}}}|{{{{session_attached}}}}' 2>/dev/null\""
-                result = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=5)
-
-                if result.returncode == 0 and result.stdout.strip():
-                    remote_sessions = []
-                    for line in result.stdout.strip().split('\n'):
-                        if line:
-                            parts = line.split('|')
-                            remote_sessions.append({
-                                "name": parts[0],
-                                "created": parts[1],
-                                "windows": parts[2],
-                                "attached": parts[3] == "1"
-                            })
-                    sessions["nodes"][node_id] = {
-                        "reachable": True,
-                        "sessions": remote_sessions
-                    }
-                else:
-                    sessions["nodes"][node_id] = {
-                        "reachable": True,
-                        "sessions": [],
-                        "note": "No active tmux sessions"
-                    }
-            except Exception as e:
-                sessions["nodes"][node_id] = {
-                    "reachable": False,
-                    "error": str(e)
-                }
-
-        return sessions
-
-    def get_tmux_session_content(self, node_id: str, session_name: str) -> Dict:
-        """Get content of a specific tmux session for context retrieval"""
-        if node_id not in CLUSTER_NODES and node_id != self.local_node_id:
-            return {"error": f"Unknown node: {node_id}"}
-
-        try:
-            if node_id == self.local_node_id:
-                # Local session
-                cmd = f"tmux capture-pane -t {session_name} -p -S -"
-                result = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=5)
-            else:
-                # Remote session
-                node_info = CLUSTER_NODES[node_id]
-                cmd = f"ssh -o ConnectTimeout=2 -o BatchMode=yes -o StrictHostKeyChecking=no marc@{node_info['ip']} 'tmux capture-pane -t {session_name} -p -S -'"
-                result = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=5)
-
-            if result.returncode == 0:
-                return {
-                    "node": node_id,
-                    "session": session_name,
-                    "content": result.stdout,
-                    "success": True
-                }
-            else:
-                return {
-                    "node": node_id,
-                    "session": session_name,
-                    "error": f"Failed to capture session: {result.stderr}",
-                    "success": False
-                }
-        except Exception as e:
-            return {
-                "node": node_id,
-                "session": session_name,
-                "error": str(e),
-                "success": False
-            }
-
-=======
->>>>>>> origin/main
 
 # Create MCP server
 app = Server("cluster-execution")
@@ -523,74 +394,6 @@ Returns list of results, one per command, with execution details.""",
                 },
                 "required": ["commands"]
             }
-<<<<<<< HEAD
-        ),
-        Tool(
-            name="tmux_sessions",
-            description="""Get all tmux sessions across cluster for AI agent observability.
-
-TMUX INTEGRATION: Every offloaded task runs in a persistent tmux session,
-enabling the AI agent to observe long-running processes, maintain context,
-and inspect task execution even after completion.
-
-Shows for each node:
-- Active tmux sessions
-- Session names (including cluster-task-* sessions)
-- Creation time
-- Number of windows
-- Attachment status
-
-Use this to:
-- Discover all running tasks across the cluster
-- Find persistent contexts from previous operations
-- Monitor long-running builds or tests
-- Retrieve session content for debugging
-
-Returns JSON with sessions for each node.""",
-            inputSchema={
-                "type": "object",
-                "properties": {},
-                "required": []
-            }
-        ),
-        Tool(
-            name="tmux_session_content",
-            description="""Get content of a specific tmux session for context retrieval.
-
-CONTEXT BRIDGE: Retrieve the full terminal output and current state of any
-tmux session across the cluster. This enables the AI agent to see what
-happened in remote task execution, review build outputs, inspect test results,
-and maintain cross-session context.
-
-Use this to:
-- Review output from completed tasks
-- Debug failed remote executions
-- Retrieve build/test logs
-- Maintain context across Claude Code restarts
-- Inspect long-running processes
-
-Parameters:
-- node_id (required): Node where session is running
-- session_name (required): Name of tmux session
-
-Returns session content and metadata.""",
-            inputSchema={
-                "type": "object",
-                "properties": {
-                    "node_id": {
-                        "type": "string",
-                        "description": "Node ID where session is running",
-                        "enum": ["macpro51", "mac-studio", "macbook-air", "completeu-server"]
-                    },
-                    "session_name": {
-                        "type": "string",
-                        "description": "Name of the tmux session to retrieve"
-                    }
-                },
-                "required": ["node_id", "session_name"]
-            }
-=======
->>>>>>> origin/main
         )
     ]
 
@@ -677,58 +480,6 @@ STDERR:
 
             return [TextContent(type="text", text=output)]
 
-<<<<<<< HEAD
-        elif name == "tmux_sessions":
-            sessions = cluster.get_tmux_sessions()
-
-            output = f"""Tmux Sessions Across Cluster - Local Node: {sessions['local_node']}
-
-"""
-            total_sessions = 0
-            for node_id, node_data in sessions['nodes'].items():
-                if node_data.get('reachable', True):
-                    node_sessions = node_data.get('sessions', [])
-                    total_sessions += len(node_sessions)
-
-                    if node_sessions:
-                        output += f"✅ {node_id} ({len(node_sessions)} sessions):\n"
-                        for session in node_sessions:
-                            attached = "📎 attached" if session['attached'] else "detached"
-                            output += f"  - {session['name']} ({session['windows']} windows, {attached})\n"
-                    else:
-                        note = node_data.get('note', 'No sessions')
-                        output += f"⚪ {node_id}: {note}\n"
-                    output += "\n"
-                else:
-                    error = node_data.get('error', 'Unknown error')
-                    output += f"❌ {node_id}: {error}\n\n"
-
-            output += f"Total: {total_sessions} active tmux sessions across cluster\n"
-
-            return [TextContent(type="text", text=output)]
-
-        elif name == "tmux_session_content":
-            result = cluster.get_tmux_session_content(
-                node_id=arguments["node_id"],
-                session_name=arguments["session_name"]
-            )
-
-            if result.get('success'):
-                output = f"""Tmux Session Content
-Node: {result['node']}
-Session: {result['session']}
-
-{result['content']}"""
-            else:
-                output = f"""Failed to retrieve session content
-Node: {result['node']}
-Session: {result['session']}
-Error: {result.get('error', 'Unknown error')}"""
-
-            return [TextContent(type="text", text=output)]
-
-=======
->>>>>>> origin/main
         else:
             return [TextContent(type="text", text=f"Unknown tool: {name}")]
 

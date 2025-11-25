@@ -7,13 +7,6 @@ ARCHITECTURE: Uses memory-db Unix socket service for core operations
 - create_entities, search_nodes, get_memory_status: Delegated to memory-db
 - Versioning, branching, conflicts: Local advanced features
 - Concurrent access: Enabled via memory-db central coordinator
-<<<<<<< HEAD
-
-TOON INTEGRATION: 50% token reduction for entity responses
-- Expected savings: 2.83M tokens/month on 31,446 entities
-- Backward compatible: JSON fallback always available
-=======
->>>>>>> origin/main
 """
 
 import asyncio
@@ -25,10 +18,6 @@ import base64
 import pickle
 import json
 import difflib
-<<<<<<< HEAD
-import sys
-=======
->>>>>>> origin/main
 from pathlib import Path
 from datetime import datetime, timedelta
 from typing import Dict, List, Any, Optional, Tuple
@@ -45,10 +34,7 @@ from sandbox.security import comprehensive_safety_check, sanitize_output
 
 # Set up logging - CRITICAL: Must use stderr for MCP compatibility
 # MCP protocol requires stdout is reserved for JSON-RPC messages only
-<<<<<<< HEAD
-=======
 import sys
->>>>>>> origin/main
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -56,57 +42,8 @@ logging.basicConfig(
 )
 logger = logging.getLogger("enhanced-memory-git")
 
-<<<<<<< HEAD
-# TOON format utilities for 50% token savings
-sys.path.insert(0, str(Path(__file__).parent.parent / "SHARED"))
-try:
-    import toon_codec
-    TOON_AVAILABLE = True
-    logger.info("✅ TOON codec loaded - 50% token savings active")
-except ImportError as e:
-    TOON_AVAILABLE = False
-    logger.warning(f"⚠️  TOON codec not available: {e} - using JSON fallback")
-
-# TOON Helper Functions
-def calculate_toon_savings(data: Any) -> Dict[str, Any]:
-    """Calculate potential token savings if response was TOON-encoded"""
-    if not TOON_AVAILABLE:
-        return {"available": False, "savings": 0}
-
-    try:
-        stats = toon_codec.compression_ratio(data)
-        return {
-            "available": True,
-            "tokens_saved": stats['tokens_saved'],
-            "reduction_percent": stats['reduction_percent'],
-            "json_size": stats['json_size'],
-            "toon_size": stats['toon_size']
-        }
-    except Exception as e:
-        logger.warning(f"Failed to calculate TOON savings: {e}")
-        return {"available": False, "savings": 0, "error": str(e)}
-
-def log_toon_savings(operation: str, data: Any):
-    """Log potential TOON savings for an operation"""
-    if TOON_AVAILABLE:
-        savings = calculate_toon_savings(data)
-        if savings.get('available'):
-            logger.info(
-                f"TOON savings for {operation}: "
-                f"{savings['tokens_saved']} tokens "
-                f"({savings['reduction_percent']}% reduction)"
-            )
-
-# Configuration - Use env var or default to SSDRAID0 (see FILE_LOCATION_POLICY.md)
-import os
-MEMORY_DIR = Path(os.getenv(
-    "ENHANCED_MEMORY_DB_DIR",
-    "/Volumes/SSDRAID0/agentic-system/databases/enhanced_memory"
-))
-=======
 # Configuration
 MEMORY_DIR = Path.home() / ".claude" / "enhanced_memories"
->>>>>>> origin/main
 DB_PATH = MEMORY_DIR / "memory.db"
 
 # Create directories
@@ -386,24 +323,12 @@ async def create_entities(entities: List[Dict[str, Any]]) -> Dict[str, Any]:
             # Apply contextual enrichment to newly created entities
             enrichment_stats = await _enrich_new_entities(entities)
 
-<<<<<<< HEAD
-            result = {
-=======
             return {
->>>>>>> origin/main
                 "created": response.get("count", 0),
                 "failed": 0,
                 "results": response.get("results", []),
                 "contextual_enrichment": enrichment_stats
             }
-<<<<<<< HEAD
-
-            # Log TOON savings potential
-            log_toon_savings("create_entities", result)
-
-            return result
-=======
->>>>>>> origin/main
         else:
             return {
                 "created": 0,
@@ -549,23 +474,11 @@ async def search_nodes(query: str, limit: int = 10) -> Dict[str, Any]:
         response = await memory_client.search_nodes(query, limit)
 
         if response.get("success"):
-<<<<<<< HEAD
-            result = {
-=======
             return {
->>>>>>> origin/main
                 "query": query,
                 "count": len(response.get("entities", [])),
                 "results": response.get("entities", [])
             }
-<<<<<<< HEAD
-
-            # Log TOON savings potential
-            log_toon_savings("search_nodes", result)
-
-            return result
-=======
->>>>>>> origin/main
         else:
             return {
                 "query": query,
@@ -1069,8 +982,6 @@ if __name__ == "__main__":
     except Exception as e:
         logger.warning(f"⚠️  SAFLA integration skipped: {e}")
 
-<<<<<<< HEAD
-=======
     # Register AGI Memory tools (Phase 1: Cross-session identity & memory-action loop)
     try:
         from agi_tools import register_agi_tools
@@ -1103,7 +1014,6 @@ if __name__ == "__main__":
     except Exception as e:
         logger.warning(f"⚠️  AGI Memory Phase 4 integration skipped: {e}")
 
->>>>>>> origin/main
     # Initialize Neural Memory Fabric for RAG tools
     nmf_instance = None
     try:

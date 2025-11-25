@@ -92,17 +92,10 @@ def announce_deployment():
         # Create deployment announcement
         announcement = {
             "deployment_package_ready": True,
-<<<<<<< HEAD
-            "location": "/Volumes/SSDRAID0/agentic-system/cluster-deployment",
-            "created_by": manager.node_id,
-            "created_at": datetime.now().isoformat(),
-            "instructions": "Run: /Volumes/SSDRAID0/agentic-system/cluster-deployment/deploy-to-node.sh",
-=======
             "location": "/mnt/agentic-system/cluster-deployment",
             "created_by": manager.node_id,
             "created_at": datetime.now().isoformat(),
             "instructions": "Run: /mnt/agentic-system/cluster-deployment/deploy-to-node.sh",
->>>>>>> origin/main
             "status": {
                 "macbook-air": "COMPLETE",
                 "mac-studio": "PENDING",

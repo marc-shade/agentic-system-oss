@@ -256,15 +256,6 @@ def create_api_context(executor: Optional[CodeExecutor] = None) -> Dict[str, Cal
     """
     Create execution context with all API functions.
 
-<<<<<<< HEAD
-    Implements Anthropic's code execution pattern with:
-    - Progressive tool discovery (search_tools)
-    - Cross-MCP proxy (mcp.server.tool())
-    - PII tokenization (tokenize_pii/detokenize_pii)
-    - Lazy loading (get_tool_schema)
-
-=======
->>>>>>> origin/main
     Args:
         executor: CodeExecutor instance (for filesystem/skills access)
 
@@ -326,44 +317,4 @@ def create_api_context(executor: Optional[CodeExecutor] = None) -> Dict[str, Cal
             'list_skills': executor.list_skills,
         })
 
-<<<<<<< HEAD
-    # === NEW: Anthropic Pattern Enhancements ===
-
-    # Progressive Tool Discovery (90% token reduction for tool lookup)
-    try:
-        from .tool_discovery import (
-            search_tools_api, list_servers_api, list_tools_api, get_schema_api
-        )
-        context.update({
-            'search_tools': search_tools_api,
-            'list_servers': list_servers_api,
-            'list_tools': list_tools_api,
-            'get_tool_schema': get_schema_api,
-        })
-    except ImportError:
-        pass
-
-    # Cross-MCP Proxy (call any MCP from code)
-    try:
-        from .mcp_proxy import get_mcp_proxy, create_mcp_context
-        context.update(create_mcp_context())
-    except ImportError:
-        pass
-
-    # PII Tokenization (privacy protection)
-    try:
-        from .pii_tokenizer import create_pii_context
-        context.update(create_pii_context())
-    except ImportError:
-        pass
-
-    # Lazy Loading (on-demand schema loading)
-    try:
-        from .lazy_loader import create_lazy_context
-        context.update(create_lazy_context())
-    except ImportError:
-        pass
-
-=======
->>>>>>> origin/main
     return context

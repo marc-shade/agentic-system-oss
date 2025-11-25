@@ -1,0 +1,70 @@
+# Code Quality Evaluation Suite
+# ==============================
+
+name: code_quality
+version: "1.0.0"
+description: "Evaluate code generation quality across syntax, execution, style, security, and maintainability"
+
+grader:
+  module: graders.code_grader
+  function: grade_code
+
+dataset: datasets/code_generation.jsonl
+
+dimensions:
+  - name: syntax
+    weight: 0.20
+    threshold: 1.0  # Must pass
+    critical: true
+  - name: execution
+    weight: 0.30
+    threshold: 0.7
+  - name: style
+    weight: 0.15
+    threshold: 0.6
+  - name: security
+    weight: 0.15
+    threshold: 0.8
+    critical: true
+  - name: complexity
+    weight: 0.10
+    threshold: 0.6
+  - name: maintainability
+    weight: 0.10
+    threshold: 0.5
+
+passing_threshold: 0.70
+
+test_cases:
+  - name: "Simple function"
+    input:
+      prompt: "Write a function to calculate factorial"
+    expected:
+      min_score: 0.7
+      must_include: ["def", "factorial", "return"]
+      must_not_include: ["import os", "eval(", "exec("]
+
+  - name: "Error handling"
+    input:
+      prompt: "Write a function to read a JSON file safely"
+    expected:
+      min_score: 0.7
+      must_include: ["try", "except", "json"]
+
+  - name: "Class implementation"
+    input:
+      prompt: "Implement a Stack data structure class"
+    expected:
+      min_score: 0.7
+      must_include: ["class", "push", "pop"]
+
+metrics:
+  - pass_rate
+  - average_score
+  - dimension_scores
+  - critical_failure_rate
+
+reporting:
+  format: json
+  include_failed_samples: true
+  include_dimension_breakdown: true

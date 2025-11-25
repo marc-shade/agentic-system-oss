@@ -43,22 +43,6 @@ from mcp.server import NotificationOptions, Server
 import mcp.server.stdio
 import mcp.types as types
 
-<<<<<<< HEAD
-# Add SHARED to path for TOON utilities
-sys.path.insert(0, str(Path(__file__).parent.parent / "SHARED"))
-
-# Import TOON utilities for token-optimized responses
-try:
-    from toon_utils import toon_response, estimate_token_savings
-    TOON_ENABLED = True
-except ImportError:
-    # Fallback to JSON if TOON not available
-    TOON_ENABLED = False
-    def toon_response(data, **kwargs):
-        return json.dumps(data, indent=2)
-
-=======
->>>>>>> origin/main
 
 # Configure logging
 logging.basicConfig(
@@ -68,11 +52,7 @@ logging.basicConfig(
 logger = logging.getLogger("video-transcript-mcp")
 
 # Configuration
-<<<<<<< HEAD
-TRANSCRIPTS_DIR = Path("/Volumes/SSDRAID0/agentic-system/video-transcripts")
-=======
 TRANSCRIPTS_DIR = Path("/mnt/agentic-system/video-transcripts")
->>>>>>> origin/main
 TRANSCRIPTS_DIR.mkdir(exist_ok=True)
 
 
@@ -328,33 +308,21 @@ async def fetch_youtube_transcript(args: Dict) -> List[types.TextContent]:
 
         return [types.TextContent(
             type="text",
-<<<<<<< HEAD
-            text=toon_response({
-=======
             text=json.dumps({
->>>>>>> origin/main
                 "success": True,
                 "video_id": video_id,
                 "url": url,
                 "transcript": transcript,
                 "word_count": len(transcript.split()),
                 "auto_cleaned": auto_clean
-<<<<<<< HEAD
-            })
-=======
             }, indent=2)
->>>>>>> origin/main
         )]
 
     except Exception as e:
         logger.error(f"Transcript fetch failed: {e}", exc_info=True)
         return [types.TextContent(
             type="text",
-<<<<<<< HEAD
-            text=toon_response({
-=======
             text=json.dumps({
->>>>>>> origin/main
                 "success": False,
                 "error": str(e)
             })
@@ -404,32 +372,20 @@ async def clean_transcript(args: Dict) -> List[types.TextContent]:
 
         return [types.TextContent(
             type="text",
-<<<<<<< HEAD
-            text=toon_response({
-=======
             text=json.dumps({
->>>>>>> origin/main
                 "success": True,
                 "cleaned_transcript": cleaned,
                 "original_length": len(transcript),
                 "cleaned_length": len(cleaned),
                 "compression_ratio": len(transcript) / len(cleaned) if len(cleaned) > 0 else 1.0
-<<<<<<< HEAD
-            })
-=======
             }, indent=2)
->>>>>>> origin/main
         )]
 
     except Exception as e:
         logger.error(f"Transcript cleaning failed: {e}", exc_info=True)
         return [types.TextContent(
             type="text",
-<<<<<<< HEAD
-            text=toon_response({
-=======
             text=json.dumps({
->>>>>>> origin/main
                 "success": False,
                 "error": str(e)
             })
@@ -485,31 +441,19 @@ async def extract_concepts(args: Dict) -> List[types.TextContent]:
 
         return [types.TextContent(
             type="text",
-<<<<<<< HEAD
-            text=toon_response({
-=======
             text=json.dumps({
->>>>>>> origin/main
                 "success": True,
                 "concepts": concepts_sorted,
                 "concept_counts": {c: concept_counts[c] for c in concepts_sorted},
                 "total_concepts": len(concepts_sorted)
-<<<<<<< HEAD
-            })
-=======
             }, indent=2)
->>>>>>> origin/main
         )]
 
     except Exception as e:
         logger.error(f"Concept extraction failed: {e}", exc_info=True)
         return [types.TextContent(
             type="text",
-<<<<<<< HEAD
-            text=toon_response({
-=======
             text=json.dumps({
->>>>>>> origin/main
                 "success": False,
                 "error": str(e)
             })
@@ -558,31 +502,19 @@ async def extract_methodologies(args: Dict) -> List[types.TextContent]:
 
         return [types.TextContent(
             type="text",
-<<<<<<< HEAD
-            text=toon_response({
-=======
             text=json.dumps({
->>>>>>> origin/main
                 "success": True,
                 "methodologies": methodologies[:20],  # Top 20
                 "code_examples": code_examples[:10] if extract_code else [],
                 "total_methodologies": len(methodologies)
-<<<<<<< HEAD
-            })
-=======
             }, indent=2)
->>>>>>> origin/main
         )]
 
     except Exception as e:
         logger.error(f"Methodology extraction failed: {e}", exc_info=True)
         return [types.TextContent(
             type="text",
-<<<<<<< HEAD
-            text=toon_response({
-=======
             text=json.dumps({
->>>>>>> origin/main
                 "success": False,
                 "error": str(e)
             })
@@ -626,31 +558,19 @@ async def analyze_speakers(args: Dict) -> List[types.TextContent]:
 
         return [types.TextContent(
             type="text",
-<<<<<<< HEAD
-            text=toon_response({
-=======
             text=json.dumps({
->>>>>>> origin/main
                 "success": True,
                 "speaker_count": len(speakers),
                 "speakers": list(speakers.keys()),
                 "speaker_stats": speaker_stats
-<<<<<<< HEAD
-            })
-=======
             }, indent=2)
->>>>>>> origin/main
         )]
 
     except Exception as e:
         logger.error(f"Speaker analysis failed: {e}", exc_info=True)
         return [types.TextContent(
             type="text",
-<<<<<<< HEAD
-            text=toon_response({
-=======
             text=json.dumps({
->>>>>>> origin/main
                 "success": False,
                 "error": str(e)
             })
@@ -692,11 +612,7 @@ async def store_video_knowledge(args: Dict) -> List[types.TextContent]:
 
         return [types.TextContent(
             type="text",
-<<<<<<< HEAD
-            text=toon_response({
-=======
             text=json.dumps({
->>>>>>> origin/main
                 "success": True,
                 "entity_name": entity_name,
                 "observations_count": len(observations),
@@ -708,11 +624,7 @@ async def store_video_knowledge(args: Dict) -> List[types.TextContent]:
         logger.error(f"Knowledge storage failed: {e}", exc_info=True)
         return [types.TextContent(
             type="text",
-<<<<<<< HEAD
-            text=toon_response({
-=======
             text=json.dumps({
->>>>>>> origin/main
                 "success": False,
                 "error": str(e)
             })
