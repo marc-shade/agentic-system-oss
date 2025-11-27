@@ -29,7 +29,24 @@ class ConsolidationEngine:
     """Handles background memory consolidation"""
 
     def __init__(self):
-        pass
+        # Ensure WAL mode is enabled for better concurrent access
+        self._init_database()
+
+    def _init_database(self):
+        """Initialize database with optimal settings for concurrent access."""
+        try:
+            conn = sqlite3.connect(DB_PATH, timeout=30.0)
+            conn.execute("PRAGMA busy_timeout = 30000")  # 30 second timeout
+            conn.execute("PRAGMA journal_mode=WAL")  # WAL mode for concurrency
+            conn.close()
+        except Exception as e:
+            logger.warning(f"Could not init database settings: {e}")
+
+    def _get_connection(self):
+        """Get a database connection with proper timeout settings."""
+        conn = sqlite3.connect(DB_PATH, timeout=30.0)
+        conn.execute("PRAGMA busy_timeout = 30000")
+        return conn
 
     def schedule_consolidation(
         self,
@@ -50,7 +67,7 @@ class ConsolidationEngine:
         start_time = now - timedelta(hours=time_window_hours)
 
         # Count entities in time window
-        conn = sqlite3.connect(DB_PATH)
+        conn = self._get_connection()
         cursor = conn.cursor()
 
         cursor.execute(
@@ -66,12 +83,13 @@ class ConsolidationEngine:
         cursor.execute(
             '''
             INSERT INTO consolidation_jobs (
-                job_type, status,
+                agent_id, job_type, status,
                 time_window_start, time_window_end,
                 entity_count
-            ) VALUES (?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?)
             ''',
             (
+                'system-consolidation',  # Default agent_id for scheduled jobs
                 job_type, 'pending',
                 start_time.isoformat(), now.isoformat(),
                 entity_count
@@ -109,7 +127,7 @@ class ConsolidationEngine:
         """
         job_id = self.schedule_consolidation("pattern_extraction", time_window_hours)
 
-        conn = sqlite3.connect(DB_PATH)
+        conn = self._get_connection()
         cursor = conn.cursor()
 
         # Update job status
@@ -122,27 +140,47 @@ class ConsolidationEngine:
         start_time = datetime.now() - timedelta(hours=time_window_hours)
 
         try:
-            # Get recent episodic memories
+            # Get recent episodic memories from BOTH sources:
+            # 1. entities table with tier='episodic'
+            # 2. episodic_memory table (4-tier AGI system)
+
+            # Source 1: entities table
             cursor.execute(
                 '''
-                SELECT id, name, entity_type, tier
+                SELECT id, name, entity_type, 'entities' as source
                 FROM entities
                 WHERE tier = 'episodic'
                 AND created_at >= ?
                 ''',
                 (start_time.isoformat(),)
             )
+            entities_episodic = cursor.fetchall()
 
-            episodic_memories = cursor.fetchall()
+            # Source 2: episodic_memory table (4-tier AGI system)
+            cursor.execute(
+                '''
+                SELECT id, event_type, event_type, 'episodic_memory' as source
+                FROM episodic_memory
+                WHERE created_at >= ?
+                ''',
+                (start_time.isoformat(),)
+            )
+            agi_episodic = cursor.fetchall()
 
-            # Group by entity_type and look for patterns
+            # Combine both sources
+            episodic_memories = entities_episodic + agi_episodic
+
+            logger.info(f"Found {len(entities_episodic)} entity episodes + {len(agi_episodic)} AGI episodes")
+
+            # Group by entity_type/event_type and look for patterns
             type_counter = Counter()
-            for _, name, entity_type, _ in episodic_memories:
+            for _, name, entity_type, source in episodic_memories:
                 type_counter[entity_type] += 1
 
             # Extract patterns that occur frequently
             patterns_found = []
             patterns_promoted = 0
+            semantic_concepts_created = 0
 
             for entity_type, count in type_counter.items():
                 if count >= min_pattern_frequency:
@@ -151,10 +189,10 @@ class ConsolidationEngine:
                         "frequency": count
                     })
 
-                    # Create semantic memory for this pattern
+                    # Create semantic memory for this pattern in BOTH systems
                     pattern_name = f"pattern_{entity_type}_{datetime.now().strftime('%Y%m%d')}"
 
-                    # Check if pattern already exists
+                    # 1. Add to entities table (legacy)
                     cursor.execute(
                         'SELECT id FROM entities WHERE name = ?',
                         (pattern_name,)
@@ -169,6 +207,43 @@ class ConsolidationEngine:
                             (pattern_name, f"pattern_{entity_type}", "semantic")
                         )
                         patterns_promoted += 1
+
+                    # 2. Add to semantic_memory table (4-tier AGI system)
+                    concept_name = f"consolidated_{entity_type}"
+                    cursor.execute(
+                        'SELECT id FROM semantic_memory WHERE concept_name = ?',
+                        (concept_name,)
+                    )
+
+                    if not cursor.fetchone():
+                        cursor.execute(
+                            '''
+                            INSERT INTO semantic_memory (
+                                concept_name, concept_type, definition,
+                                confidence_score
+                            ) VALUES (?, ?, ?, ?)
+                            ''',
+                            (
+                                concept_name,
+                                "consolidated_pattern",
+                                f"Pattern extracted from {count} episodes of type '{entity_type}'",
+                                min(0.5 + (count * 0.1), 1.0)  # Higher count = higher confidence
+                            )
+                        )
+                        semantic_concepts_created += 1
+                    else:
+                        # Update existing concept confidence
+                        cursor.execute(
+                            '''
+                            UPDATE semantic_memory
+                            SET confidence_score = MIN(confidence_score + 0.05, 1.0),
+                                updated_at = CURRENT_TIMESTAMP
+                            WHERE concept_name = ?
+                            ''',
+                            (concept_name,)
+                        )
+
+            logger.info(f"Created {semantic_concepts_created} new semantic concepts")
 
             # Update job with results
             duration = (datetime.now() - datetime.fromisoformat(
@@ -191,21 +266,32 @@ class ConsolidationEngine:
                     datetime.now().isoformat(),
                     duration,
                     len(patterns_found),
-                    patterns_promoted,
-                    json.dumps({"patterns": patterns_found}),
+                    patterns_promoted + semantic_concepts_created,
+                    json.dumps({
+                        "patterns": patterns_found,
+                        "entities_episodic_count": len(entities_episodic),
+                        "agi_episodic_count": len(agi_episodic),
+                        "semantic_concepts_created": semantic_concepts_created
+                    }),
                     job_id
                 )
             )
 
             conn.commit()
 
-            logger.info(f"Pattern extraction complete: {len(patterns_found)} patterns, {patterns_promoted} promoted")
+            logger.info(f"Pattern extraction complete: {len(patterns_found)} patterns, "
+                       f"{patterns_promoted} promoted to entities, "
+                       f"{semantic_concepts_created} semantic concepts created")
 
             return {
                 "job_id": job_id,
                 "patterns_found": len(patterns_found),
                 "patterns_promoted": patterns_promoted,
-                "semantic_memories_created": patterns_promoted
+                "semantic_memories_created": semantic_concepts_created,
+                "sources_analyzed": {
+                    "entities_episodic": len(entities_episodic),
+                    "agi_episodic": len(agi_episodic)
+                }
             }
 
         except Exception as e:
@@ -250,7 +336,7 @@ class ConsolidationEngine:
 
         job_id = self.schedule_consolidation("causal_discovery", time_window_hours)
 
-        conn = sqlite3.connect(DB_PATH)
+        conn = self._get_connection()
         cursor = conn.cursor()
 
         cursor.execute(
@@ -378,7 +464,7 @@ class ConsolidationEngine:
         """
         job_id = self.schedule_consolidation("memory_compression", time_window_hours)
 
-        conn = sqlite3.connect(DB_PATH)
+        conn = self._get_connection()
         cursor = conn.cursor()
 
         cursor.execute(
@@ -510,7 +596,7 @@ class ConsolidationEngine:
 
     def get_consolidation_stats(self) -> Dict[str, Any]:
         """Get consolidation statistics"""
-        conn = sqlite3.connect(DB_PATH)
+        conn = self._get_connection()
         cursor = conn.cursor()
 
         # Total jobs
