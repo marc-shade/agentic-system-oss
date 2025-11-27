@@ -350,45 +350,76 @@ class ConsolidationEngine:
         try:
             temporal = TemporalReasoning()
 
-            # Get recent action outcomes
+            # Get recent action outcomes with context
             cursor.execute(
                 '''
                 SELECT
-                    ao.action_id,
-                    ao.entity_id,
-                    ao.action_type,
-                    ao.success_score,
-                    ao.executed_at,
-                    e.id as context_entity_id
-                FROM action_outcomes ao
-                LEFT JOIN entities e ON ao.action_context LIKE '%' || e.name || '%'
-                WHERE ao.executed_at >= ?
-                ORDER BY ao.executed_at
+                    action_id,
+                    action_type,
+                    action_context,
+                    success_score,
+                    executed_at
+                FROM action_outcomes
+                WHERE executed_at >= ?
+                AND action_context IS NOT NULL
+                AND action_context != ''
+                ORDER BY executed_at
                 ''',
                 (start_time.isoformat(),)
             )
 
             actions = cursor.fetchall()
+            logger.info(f"Analyzing {len(actions)} actions with context for causal patterns")
 
             links_created = 0
             chains = []
 
-            # Look for sequences: context → action → outcome
-            for i in range(len(actions) - 1):
-                current = actions[i]
-                next_action = actions[i + 1]
+            # Group actions by context (same file/resource)
+            context_actions = {}
+            for action_id, action_type, action_context, success_score, executed_at in actions:
+                if action_context not in context_actions:
+                    context_actions[action_context] = []
+                context_actions[action_context].append({
+                    'id': action_id,
+                    'type': action_type,
+                    'score': success_score,
+                    'time': executed_at
+                })
 
-                action_id, entity_id, action_type, success_score, executed_at, context_id = current
+            # Find causal patterns: sequences of actions on same context
+            pattern_counter = Counter()
+            for context, ctx_actions in context_actions.items():
+                if len(ctx_actions) >= 2:
+                    # Look at pairs of consecutive actions
+                    for i in range(len(ctx_actions) - 1):
+                        current = ctx_actions[i]
+                        next_act = ctx_actions[i + 1]
 
-                # If success was good, create causal link from context to action
-                if success_score >= min_confidence and context_id and entity_id:
-                    temporal.create_causal_link(
-                        cause_entity_id=context_id,
-                        effect_entity_id=entity_id,
-                        relationship_type="contributory",
-                        strength=success_score
+                        # Pattern: action_type_A → action_type_B with combined success
+                        pattern = f"{current['type']}->{next_act['type']}"
+                        avg_score = (current['score'] + next_act['score']) / 2
+                        pattern_counter[(pattern, avg_score >= min_confidence)] += 1
+
+            # Create causal links for patterns that tend to succeed
+            for (pattern, succeeded), count in pattern_counter.items():
+                if succeeded and count >= 2:  # Pattern seen at least twice with success
+                    # Store as a learned causal pattern
+                    cursor.execute(
+                        '''
+                        INSERT OR REPLACE INTO semantic_memory
+                        (concept_name, concept_type, definition, confidence_score)
+                        VALUES (?, 'causal_pattern', ?, ?)
+                        ''',
+                        (
+                            f"pattern_{pattern}",
+                            f"Causal pattern: {pattern} (observed {count} times with success)",
+                            min(0.5 + (count * 0.1), 0.95)
+                        )
                     )
                     links_created += 1
+                    chains.append(pattern)
+
+            logger.info(f"Discovered {links_created} causal patterns from {len(context_actions)} contexts")
 
             # Update job with results
             duration = (datetime.now() - datetime.fromisoformat(

@@ -2,12 +2,11 @@
 # Record an action outcome to the enhanced-memory database
 # Used by hooks to track success/failure of operations
 #
-# Usage: record-action-outcome.sh <action_type> <success_score> [description]
+# Usage: record-action-outcome.sh <action_type> <success_score> [description] [context] [session_id]
 #
 # Examples:
-#   record-action-outcome.sh "code_edit" 1.0 "Successfully edited auth module"
-#   record-action-outcome.sh "test_run" 0.0 "Tests failed with 3 errors"
-#   record-action-outcome.sh "build" 0.8 "Build succeeded with warnings"
+#   record-action-outcome.sh "Edit" 1.0 "Edited file" "/path/to/file.py" "session123"
+#   record-action-outcome.sh "Bash" 0.0 "Command failed" "git push" "session456"
 
 STORAGE_BASE="${AGENTIC_ROOT:-/home/marc/agentic-system}"
 # Use the correct enhanced-memory database path
@@ -16,35 +15,23 @@ MEMORY_DB="$HOME/.claude/enhanced_memories/memory.db"
 ACTION_TYPE="${1:-unknown}"
 SUCCESS_SCORE="${2:-0.5}"
 DESCRIPTION="${3:-}"
+ACTION_CONTEXT="${4:-}"
+SESSION_ID="${5:-}"
 
 # Validate success score is between 0 and 1
 if ! [[ "$SUCCESS_SCORE" =~ ^[0-9]*\.?[0-9]+$ ]]; then
     SUCCESS_SCORE="0.5"
 fi
 
-# Ensure table exists
-sqlite3 "$MEMORY_DB" "
-CREATE TABLE IF NOT EXISTS action_outcomes (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    action_type TEXT NOT NULL,
-    action_description TEXT,
-    expected_result TEXT,
-    actual_result TEXT,
-    success_score REAL DEFAULT 0.5,
-    session_id TEXT,
-    entity_id INTEGER,
-    action_context TEXT,
-    duration_ms INTEGER,
-    metadata TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-CREATE INDEX IF NOT EXISTS idx_action_outcomes_created ON action_outcomes(created_at);
-" 2>/dev/null
+# Escape single quotes for SQL
+SAFE_DESC=$(echo "$DESCRIPTION" | sed "s/'/''/g")
+SAFE_CONTEXT=$(echo "$ACTION_CONTEXT" | sed "s/'/''/g")
+SAFE_SESSION=$(echo "$SESSION_ID" | sed "s/'/''/g")
 
-# Insert the action outcome
+# Insert the action outcome with full context
 sqlite3 "$MEMORY_DB" "
-INSERT INTO action_outcomes (action_type, action_description, success_score)
-VALUES ('$ACTION_TYPE', '$(echo "$DESCRIPTION" | sed "s/'/''/g")', $SUCCESS_SCORE);
+INSERT INTO action_outcomes (action_type, action_description, success_score, action_context, session_id, agent_id)
+VALUES ('$ACTION_TYPE', '$SAFE_DESC', $SUCCESS_SCORE, '$SAFE_CONTEXT', '$SAFE_SESSION', 'macpro51');
 "
 
 # Clear the cache so statusline updates
