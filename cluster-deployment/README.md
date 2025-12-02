@@ -1,10 +1,3 @@
-<<<<<<< HEAD
-# Cluster Memory Deployment Package
-
-## 🌐 Multi-Node Agentic Cluster Memory System
-
-This package enables distributed memory management across all Mac nodes in the agentic cluster.
-=======
 # Cluster Deployment Package
 
 ## 🌐 Multi-Node Agentic Cluster System
@@ -13,7 +6,7 @@ This package enables distributed memory management and automatic task execution 
 
 ## ✨ What's Included
 
-### 🚀 Distributed Task Execution (NEW!)
+### 🚀 Distributed Task Execution
 **Status**: ✅ FULLY OPERATIONAL - 7/7 tests passed
 
 Automatic workload distribution across cluster nodes with aggressive offloading:
@@ -26,24 +19,14 @@ Automatic workload distribution across cluster nodes with aggressive offloading:
 See `DISTRIBUTED_EXECUTION.md` for complete documentation.
 
 ### 🧠 Cluster Memory System
-Shared memory management across all Mac nodes in the cluster.
->>>>>>> origin/main
+Shared memory management across all nodes in the cluster.
 
 ## Package Contents
 
 ```
 cluster-deployment/
-<<<<<<< HEAD
-├── README.md                      # This file
-├── DEPLOYMENT_INSTRUCTIONS.md     # Detailed setup guide
-├── INTEGRATION_CHANGES.md         # Technical integration details
-├── deploy-to-node.sh             # Automated deployment script
-├── cluster_memory.py             # Cluster memory manager
-├── test_cluster_memory.py        # Test suite
-└── server.py.integrated          # Pre-integrated server.py (from macbook-air)
-=======
 ├── README.md                          # This file
-├── DISTRIBUTED_EXECUTION.md           # 🚀 Distributed execution guide
+├── DISTRIBUTED_EXECUTION.md           # Distributed execution guide
 ├── WORKLOAD_DISTRIBUTION_DESIGN.md    # Architecture and design
 ├── distributed_task_router.py         # Core routing engine
 ├── cluster_offload.py                 # Simple task offload API
@@ -54,15 +37,11 @@ cluster-deployment/
 ├── cluster_memory.py                  # Cluster memory manager
 ├── test_cluster_memory.py             # Memory test suite
 └── server.py.integrated               # Pre-integrated server.py
->>>>>>> origin/main
 ```
 
 ## Quick Start
 
-<<<<<<< HEAD
-### On Each Node (mac-studio, macbook-air, macbook-pro):
-=======
-### 🚀 Distributed Task Execution (Ready to Use!)
+### 🚀 Distributed Task Execution
 
 **From any node**, automatically offload tasks to the cluster:
 
@@ -92,8 +71,7 @@ python3 distributed_task_router.py submit "echo 'Test' && hostname"
 python3 distributed_task_router.py cluster-status
 ```
 
-### 🧠 Cluster Memory (On macOS Nodes)
->>>>>>> origin/main
+### 🧠 Cluster Memory Setup
 
 ```bash
 # Navigate to deployment directory
@@ -124,45 +102,28 @@ Follow the detailed instructions in `INTEGRATION_CHANGES.md`
 
 ## Node Personas
 
-<<<<<<< HEAD
-Each Mac has a specialized persona:
-
-- **🎯 mac-studio (Orchestrator)**
-  - System coordination and high-level planning
-  - Priority: 1 (highest for conflict resolution)
-
-- **🔬 macbook-air (Researcher)**
-  - Analysis, documentation, investigation
-  - Priority: 2
-  - **Status: ✅ DEPLOYED AND TESTED**
-
-- **💻 macbook-pro (Developer)**
-  - Implementation, testing, debugging
-  - Priority: 2
-=======
 Each node has a specialized persona for automatic task routing:
 
 - **🏗️ macpro51 (Builder)** - Linux x86_64
   - Compilation, testing, containerization, benchmarking
   - Capabilities: docker, podman, raid, nvme
   - Priority: 3 (preferred for heavy workloads)
-  - **Status: ✅ DISTRIBUTED EXECUTION DEPLOYED**
+  - **Status: ✅ OPERATIONAL**
 
 - **🎯 mac-studio (Orchestrator)** - macOS ARM64
   - System coordination and high-level planning
   - Capabilities: orchestration, coordination, temporal
   - Priority: 1 (keep free for interactive work)
-  - **Status: ✅ DISTRIBUTED EXECUTION DEPLOYED**
+  - **Status: ✅ OPERATIONAL**
 
 - **🔬 macbook-air (Researcher)** - macOS ARM64
   - Analysis, documentation, investigation
   - Capabilities: research, documentation, analysis
   - Priority: 2
-  - **Status: ✅ DISTRIBUTED EXECUTION DEPLOYED**
+  - **Status: ✅ OPERATIONAL**
 
 - **💻 macbook-pro (Developer)** - macOS x86_64 (2010 model)
   - **Status: ❌ TOO OLD** (macOS 10.13.6, cannot run Claude Code)
->>>>>>> origin/main
 
 ## Memory Architecture
 
@@ -234,8 +195,6 @@ Once integrated, each node will have these MCP tools:
 
 ## Deployment Status
 
-<<<<<<< HEAD
-=======
 ### 🚀 Distributed Task Execution
 
 | Node | Status | Test Results | Notes |
@@ -253,16 +212,11 @@ Once integrated, each node will have these MCP tools:
 
 ### 🧠 Cluster Memory
 
->>>>>>> origin/main
 | Node | Status | Persona | Deployed By |
 |------|--------|---------|-------------|
 | macbook-air | ✅ COMPLETE | Researcher | Researcher |
 | mac-studio | ⏳ PENDING | Orchestrator | - |
-<<<<<<< HEAD
-| macbook-pro | ⏳ PENDING | Developer | - |
-=======
 | macbook-pro | ❌ NOT SUPPORTED | - | Too old |
->>>>>>> origin/main
 
 ## Next Steps
 
