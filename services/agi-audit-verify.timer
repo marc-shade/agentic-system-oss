@@ -1,0 +1,11 @@
+[Unit]
+Description=Hourly AGI Audit Log Integrity Verification
+Documentation=Verifies hash-chain integrity of immutable audit log
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=1h
+Persistent=true
+
+[Install]
+WantedBy=timers.target

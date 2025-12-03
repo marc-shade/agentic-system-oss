@@ -1,0 +1,16 @@
+[Unit]
+Description=AGI Audit Log Integrity Verification
+After=agi-guardian.service
+
+[Service]
+Type=oneshot
+ExecStart=/mnt/agentic-system/.venv/bin/python3 /mnt/agentic-system/scripts/verify-agi-audit-integrity.py
+User=root
+
+# Security settings
+ProtectSystem=strict
+ReadOnlyPaths=/mnt/agentic-system
+ReadWritePaths=/var/log/agi-guardian
+
+[Install]
+WantedBy=multi-user.target
