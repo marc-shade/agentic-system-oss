@@ -195,28 +195,86 @@ class SelfEvaluationSystem:
 
     async def rollback_modification(
         self,
-        to_commit: Optional[str] = None
+        to_commit: Optional[str] = None,
+        confidence: float = 0.5
     ) -> bool:
         """
-        Rollback to previous git commit.
+        Rollback to previous git commit with safety checks.
+
+        SAFETY ENHANCED (2025-12-03): Now includes:
+        - Minimum confidence threshold (70%) for destructive ops
+        - Stashing of untracked files before rollback
+        - Critical file pattern detection
+        - Rate limiting (max 1 rollback per 60s)
 
         Args:
             to_commit: Specific commit to rollback to (default: previous commit)
+            confidence: Decision confidence (0.0-1.0)
 
         Returns:
             True if rollback successful
         """
-        logger.info("Rolling back modification")
+        MIN_CONFIDENCE = 0.7  # Phase 1 safety: require 70% confidence
+        CRITICAL_PATTERNS = ["daemon.py", "mcp", "memory", "consolidation", "hook"]
+
+        logger.info(f"Rollback requested (confidence={confidence:.1%})")
+
+        # SAFETY CHECK 1: Minimum confidence threshold
+        if confidence < MIN_CONFIDENCE:
+            logger.warning(f"BLOCKED: Confidence {confidence:.1%} below threshold {MIN_CONFIDENCE:.0%}")
+            logger.warning("Rollback blocked to prevent collateral damage")
+            return False
+
+        # SAFETY CHECK 2: Rate limiting (check for recent rollbacks)
+        rate_limit_file = Path("/tmp/agi_last_rollback")
+        if rate_limit_file.exists():
+            last_rollback = float(rate_limit_file.read_text())
+            if (datetime.now().timestamp() - last_rollback) < 60:
+                logger.warning("BLOCKED: Rate limit - only 1 rollback per 60 seconds")
+                return False
 
         try:
+            # SAFETY CHECK 3: Inventory untracked files
+            untracked = self.repo.untracked_files
+            logger.info(f"Found {len(untracked)} untracked files")
+
+            # Identify critical files
+            critical_files = [
+                f for f in untracked
+                if any(pattern in f.lower() for pattern in CRITICAL_PATTERNS)
+            ]
+
+            if critical_files:
+                logger.warning(f"CRITICAL untracked files detected: {critical_files}")
+
+            # SAFETY ACTION: Stash all untracked files before rollback
+            if untracked:
+                logger.info("Stashing untracked files before rollback...")
+                # Create stash with untracked files
+                self.repo.git.stash('push', '--include-untracked', '-m',
+                                   f'Pre-rollback safety stash {datetime.now().isoformat()}')
+                logger.info("Untracked files stashed successfully")
+
+            # Execute rollback
             if to_commit:
-                # Rollback to specific commit
                 self.repo.git.reset('--hard', to_commit)
                 logger.info(f"Rolled back to commit {to_commit}")
             else:
-                # Rollback to previous commit (HEAD~1)
                 self.repo.git.reset('--hard', 'HEAD~1')
                 logger.info("Rolled back to previous commit")
+
+            # SAFETY ACTION: Restore stashed files
+            if untracked:
+                try:
+                    self.repo.git.stash('pop')
+                    logger.info("Restored untracked files from stash")
+                except Exception as stash_err:
+                    logger.error(f"Failed to restore stash: {stash_err}")
+                    logger.warning("Untracked files remain in stash - manual recovery needed")
+                    logger.warning("Run: git stash list && git stash pop")
+
+            # Update rate limit timestamp
+            rate_limit_file.write_text(str(datetime.now().timestamp()))
 
             return True
 
@@ -491,8 +549,12 @@ async def main():
         print(f"   Committed: {commit_hash[:8]}")
     elif comparison.decision == EvaluationDecision.ROLLBACK:
         print("4. ✗ Rolling back modification (regression detected)")
-        success = await evaluator.rollback_modification()
-        print(f"   Rollback: {'successful' if success else 'failed'}")
+        # Pass confidence score for safety threshold check
+        success = await evaluator.rollback_modification(confidence=comparison.confidence_score)
+        if success:
+            print(f"   Rollback: successful")
+        else:
+            print(f"   Rollback: BLOCKED by safety system (confidence too low or rate limited)")
     else:
         print("4. ? Uncertain - need more data")
 
