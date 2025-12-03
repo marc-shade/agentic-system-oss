@@ -26,12 +26,15 @@ import json
 import logging
 import os
 import subprocess
+import sys
 from dataclasses import dataclass, asdict
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from typing import Dict, List, Optional, Any, Tuple
 
+# Add monitoring module to path
+sys.path.insert(0, str(Path(__file__).parent.parent / "monitoring"))
 
 # Configure logging
 logging.basicConfig(
@@ -39,6 +42,21 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
+
+# Import observability (graceful degradation if not available)
+try:
+    from agi_otel_instrumentation import (
+        get_observability,
+        record_evaluation,
+        record_rollback,
+        record_rollback_blocked,
+        record_guardian_decision,
+        set_circuit_state
+    )
+    OBSERVABILITY_AVAILABLE = True
+except ImportError:
+    OBSERVABILITY_AVAILABLE = False
+    logger.warning("AGI observability not available - metrics disabled")
 
 
 class EvaluationDecision(Enum):
@@ -188,6 +206,14 @@ class SelfEvaluationSystem:
         logger.info(f"Evaluation complete: {comparison.decision.value} (confidence={comparison.confidence_score:.2%})")
         logger.info(f"Reasoning: {comparison.reasoning}")
 
+        # Record metrics for observability (Phase 3)
+        if OBSERVABILITY_AVAILABLE:
+            record_evaluation(
+                decision=comparison.decision.value,
+                confidence=comparison.confidence_score,
+                execution_delta=comparison.execution_time_delta_percent
+            )
+
         # Save comparison
         self._save_comparison(comparison)
 
@@ -258,9 +284,16 @@ class SelfEvaluationSystem:
                     logger.warning(f"BLOCKED by Guardian: {approval.reason}")
                     if approval.recommendations:
                         logger.info(f"Recommendations: {', '.join(approval.recommendations)}")
+                    # Record guardian rejection for observability
+                    if OBSERVABILITY_AVAILABLE:
+                        record_guardian_decision(False, "rollback", approval.reason)
+                        record_rollback_blocked(approval.reason)
                     return False
 
                 logger.info(f"Guardian APPROVED rollback (request_id={guardian_request_id})")
+                # Record guardian approval for observability
+                if OBSERVABILITY_AVAILABLE:
+                    record_guardian_decision(True, "rollback")
 
         except ImportError:
             logger.warning("Guardian client not available - falling back to local checks")
@@ -279,6 +312,8 @@ class SelfEvaluationSystem:
             if confidence < MIN_CONFIDENCE:
                 logger.warning(f"BLOCKED: Confidence {confidence:.1%} below threshold {MIN_CONFIDENCE:.0%}")
                 logger.warning("Rollback blocked to prevent collateral damage")
+                if OBSERVABILITY_AVAILABLE:
+                    record_rollback_blocked("local_low_confidence")
                 return False
 
             # Local rate limiting
@@ -287,6 +322,8 @@ class SelfEvaluationSystem:
                 last_rollback = float(rate_limit_file.read_text())
                 if (datetime.now().timestamp() - last_rollback) < 60:
                     logger.warning("BLOCKED: Rate limit - only 1 rollback per 60 seconds")
+                    if OBSERVABILITY_AVAILABLE:
+                        record_rollback_blocked("local_rate_limit")
                     return False
 
         # ========================================
@@ -355,6 +392,13 @@ class SelfEvaluationSystem:
                     )
             except Exception as e:
                 logger.warning(f"Failed to report outcome to guardian: {e}")
+
+        # Record rollback outcome for observability
+        if OBSERVABILITY_AVAILABLE:
+            record_rollback(
+                success=rollback_success,
+                reason=reason if rollback_success else "execution_error"
+            )
 
         return rollback_success
 
