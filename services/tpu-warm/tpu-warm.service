@@ -1,0 +1,23 @@
+[Unit]
+Description=TPU Warm Service - Hybrid TPU+CPU inference for Claude Code hooks
+After=network.target
+
+[Service]
+Type=simple
+User=marc
+Group=marc
+WorkingDirectory=/mnt/agentic-system/services/tpu-warm
+Environment=TPU_WARM_PORT=8780
+Environment=TPU_WARM_HOST=0.0.0.0
+Environment=AGENTIC_SYSTEM_PATH=/mnt/agentic-system
+Environment=PYTHONPATH=/mnt/agentic-system/mcp-servers/coral-tpu-mcp/src
+# Use coral-venv which has both pycoral (TPU) and sentence-transformers (CPU)
+ExecStart=/mnt/agentic-system/coral-venv/bin/python3 tpu_warm_service.py
+Restart=on-failure
+RestartSec=10
+
+# Memory limit
+MemoryMax=2G
+
+[Install]
+WantedBy=multi-user.target
