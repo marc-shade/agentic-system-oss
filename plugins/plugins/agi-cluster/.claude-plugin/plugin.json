@@ -1,0 +1,50 @@
+{
+  "name": "agi-cluster",
+  "version": "1.0.0",
+  "description": "Distributed multi-node AGI with inter-node communication and swarm intelligence.",
+  "author": "Marc & Agentic Team",
+  "license": "MIT",
+  "homepage": "https://github.com/your-org/agi-plugins",
+  "tier": 4,
+  "tags": ["agi", "distributed", "cluster", "swarm", "multi-node"],
+  "dependencies": ["agi-core", "agi-memory", "agi-extended"],
+  "capabilities": [
+    "Multi-node task distribution",
+    "Inter-node AI persona communication",
+    "Swarm intelligence coordination",
+    "Hardware-aware task routing",
+    "Specialized node roles (orchestrator, builder, researcher)",
+    "Collective intelligence patterns",
+    "Distributed self-improvement"
+  ],
+  "infrastructure": {
+    "required": ["multiple-nodes", "ssh-access"],
+    "optional": ["shared-storage", "hardware-monitoring"]
+  },
+  "mcp_servers": [
+    {
+      "name": "node-chat",
+      "description": "Inter-node AI persona communication",
+      "command": "python3",
+      "args": ["mcp/node-chat/server.py"]
+    },
+    {
+      "name": "cluster-execution",
+      "description": "Distributed task execution across nodes",
+      "command": "python3",
+      "args": ["mcp/cluster-execution/server.py"]
+    },
+    {
+      "name": "claude-flow",
+      "description": "Swarm orchestration and neural patterns",
+      "command": "npx",
+      "args": ["claude-flow"]
+    }
+  ],
+  "files": {
+    "commands": ["cluster-status.md", "cluster-deploy.md", "cluster-task.md", "cluster-chat.md"],
+    "mcp": ["node-chat/", "cluster-execution/", "claude-flow/"],
+    "config": ["cluster-topology.yaml", "node-profiles.yaml"],
+    "scripts": ["setup.sh", "deploy-to-node.sh", "sync-nodes.sh"]
+  }
+}

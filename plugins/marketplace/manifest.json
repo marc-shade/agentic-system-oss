@@ -1,0 +1,111 @@
+{
+  "$schema": "https://claude.ai/schemas/marketplace.json",
+  "name": "agentic-marketplace",
+  "version": "1.0.0",
+  "description": "AGI Development System plugins for Claude Code - Enhanced reasoning, persistent memory, and distributed intelligence",
+  "author": {
+    "name": "Marc & Agentic Team",
+    "url": "https://github.com/your-org/agi-plugins"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/your-org/agi-plugins",
+  "documentation": "https://github.com/your-org/agi-plugins/wiki",
+  "support": {
+    "issues": "https://github.com/your-org/agi-plugins/issues",
+    "discussions": "https://github.com/your-org/agi-plugins/discussions"
+  },
+  "plugins": [
+    {
+      "name": "agi-core",
+      "version": "1.0.0",
+      "path": "../plugins/agi-core",
+      "description": "Core AGI reasoning patterns and specialized agents. Zero infrastructure required.",
+      "tier": 1,
+      "tags": ["agi", "reasoning", "agents", "meta-cognition"],
+      "requires": [],
+      "infrastructure": {
+        "required": [],
+        "optional": []
+      },
+      "components": {
+        "agents": 5,
+        "commands": 3,
+        "skills": 1
+      }
+    },
+    {
+      "name": "agi-memory",
+      "version": "1.0.0",
+      "path": "../plugins/agi-memory",
+      "description": "Persistent memory with SQLite - goals, tasks, and outcome recording.",
+      "tier": 2,
+      "tags": ["agi", "memory", "persistence", "goals"],
+      "requires": ["agi-core"],
+      "infrastructure": {
+        "required": ["python>=3.10"],
+        "optional": ["redis"]
+      },
+      "components": {
+        "mcp_servers": 3,
+        "commands": 2
+      }
+    },
+    {
+      "name": "agi-extended",
+      "version": "1.0.0",
+      "path": "../plugins/agi-extended",
+      "description": "Full AGI with vector memory, research tools, and voice interaction.",
+      "tier": 3,
+      "tags": ["agi", "vector-db", "research", "voice"],
+      "requires": ["agi-core", "agi-memory"],
+      "infrastructure": {
+        "required": ["docker", "qdrant"],
+        "optional": ["redis", "ollama"]
+      },
+      "components": {
+        "mcp_servers": 5,
+        "commands": 3,
+        "docker_services": 2
+      }
+    },
+    {
+      "name": "agi-cluster",
+      "version": "1.0.0",
+      "path": "../plugins/agi-cluster",
+      "description": "Distributed multi-node AGI with inter-node communication and swarm intelligence.",
+      "tier": 4,
+      "tags": ["agi", "distributed", "cluster", "swarm"],
+      "requires": ["agi-core", "agi-memory", "agi-extended"],
+      "infrastructure": {
+        "required": ["multiple-nodes", "ssh-access", "shared-storage"],
+        "optional": ["hardware-monitoring"]
+      },
+      "components": {
+        "mcp_servers": 3,
+        "commands": 4,
+        "deployment_scripts": 5
+      }
+    }
+  ],
+  "bundles": [
+    {
+      "name": "agi-starter",
+      "description": "Quick start bundle with core and memory",
+      "plugins": ["agi-core", "agi-memory"]
+    },
+    {
+      "name": "agi-full",
+      "description": "Complete single-machine AGI installation",
+      "plugins": ["agi-core", "agi-memory", "agi-extended"]
+    },
+    {
+      "name": "agi-enterprise",
+      "description": "Full distributed AGI system",
+      "plugins": ["agi-core", "agi-memory", "agi-extended", "agi-cluster"]
+    }
+  ],
+  "installation": {
+    "instructions": "See README.md for installation instructions",
+    "quick_start": "/plugin install agi-core@agentic-marketplace"
+  }
+}

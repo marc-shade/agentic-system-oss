@@ -33,6 +33,7 @@ import subprocess
 from pathlib import Path
 from typing import Dict, List, Any, Optional
 import logging
+from node_discovery import NodeDiscovery
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -42,30 +43,12 @@ class ClusterStateAggregator:
     """Aggregates comprehensive cluster state from all nodes"""
 
     def __init__(self):
-        """Initialize aggregator with known nodes"""
-        # Known nodes and their IPs
-        self.known_nodes = {
-            "macpro51": {
-                "ip": "192.168.1.154",
-                "user": "marc",
-                "db_path": "/mnt/agentic-system/databases/cluster/comprehensive_state.db"
-            },
-            "mac-studio": {
-                "ip": "192.168.1.157",
-                "user": "marc",
-                "db_path": "~/agentic-system/databases/cluster/comprehensive_state.db"
-            },
-            "macbook-air": {
-                "ip": "192.168.1.76",
-                "user": "marc",
-                "db_path": "~/agentic-system/databases/cluster/comprehensive_state.db"
-            },
-            "completeu-server": {
-                "ip": "192.168.1.186",
-                "user": "marc",
-                "db_path": "~/agentic-system/databases/cluster/comprehensive_state.db"
-            }
-        }
+        """Initialize aggregator with dynamic node discovery"""
+        # Use dynamic discovery instead of hardcoded IPs!
+        self.discovery = NodeDiscovery()
+        self.known_nodes = self.discovery.get_all_nodes()
+
+        logger.info(f"Discovered {len(self.known_nodes)} cluster nodes dynamically")
 
     def _query_remote_node(self, node_id: str, node_info: Dict[str, str]) -> Optional[Dict[str, Any]]:
         """

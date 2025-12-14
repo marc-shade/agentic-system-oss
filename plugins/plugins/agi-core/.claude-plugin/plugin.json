@@ -1,0 +1,37 @@
+{
+  "name": "agi-core",
+  "version": "1.0.0",
+  "description": "Core AGI reasoning patterns, agents, and behavioral instructions for Claude Code. Zero infrastructure required.",
+  "author": "Marc & Agentic Team",
+  "license": "MIT",
+  "homepage": "https://github.com/your-org/agi-plugins",
+  "tier": 1,
+  "tags": ["agi", "reasoning", "agents", "meta-cognition"],
+  "dependencies": [],
+  "capabilities": [
+    "Specialized reasoning agents (deep-thinker, architect, code-reviewer, debugger, researcher)",
+    "AGI behavioral patterns via CLAUDE.md",
+    "Meta-prompting workflow for complex tasks",
+    "Action outcome recording (local file)",
+    "Knowledge gap identification",
+    "Metacognitive monitoring",
+    "Session initialization and status commands"
+  ],
+  "infrastructure": {
+    "required": [],
+    "optional": []
+  },
+  "files": {
+    "commands": ["agi-init.md", "agi-status.md", "agi-help.md"],
+    "agents": [
+      "deep-thinker.agent.md",
+      "architect.agent.md",
+      "code-reviewer.agent.md",
+      "debugger.agent.md",
+      "researcher.agent.md"
+    ],
+    "skills": ["meta-prompting.md"],
+    "hooks": "hooks.json",
+    "instructions": "CLAUDE.md"
+  }
+}

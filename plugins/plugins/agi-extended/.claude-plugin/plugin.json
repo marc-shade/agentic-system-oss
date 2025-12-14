@@ -1,0 +1,64 @@
+{
+  "name": "agi-extended",
+  "version": "1.0.0",
+  "description": "Full AGI with vector memory, research tools, and voice interaction. Requires Docker.",
+  "author": "Marc & Agentic Team",
+  "license": "MIT",
+  "homepage": "https://github.com/your-org/agi-plugins",
+  "tier": 3,
+  "tags": ["agi", "vector-db", "research", "voice", "rag", "semantic-memory"],
+  "dependencies": ["agi-core", "agi-memory"],
+  "capabilities": [
+    "Vector-based semantic memory with RAG",
+    "Episodic, semantic, and procedural memory types",
+    "Memory versioning and compression",
+    "Research paper integration (arXiv, Semantic Scholar)",
+    "Video transcript extraction and learning",
+    "Voice interaction (speech-to-text, text-to-speech)",
+    "Self-improvement cycles",
+    "Autonomous research capabilities"
+  ],
+  "infrastructure": {
+    "required": ["docker", "python>=3.10"],
+    "optional": ["redis", "ollama"]
+  },
+  "mcp_servers": [
+    {
+      "name": "enhanced-memory",
+      "description": "Vector memory with RAG, versioning, and compression",
+      "command": "python3",
+      "args": ["mcp/enhanced-memory/server.py"]
+    },
+    {
+      "name": "research-paper",
+      "description": "arXiv and Semantic Scholar integration",
+      "command": "python3",
+      "args": ["mcp/research-paper/server.py"]
+    },
+    {
+      "name": "video-transcript",
+      "description": "YouTube transcript extraction and analysis",
+      "command": "python3",
+      "args": ["mcp/video-transcript/server.py"]
+    },
+    {
+      "name": "voice-mode",
+      "description": "Speech-to-text and text-to-speech",
+      "command": "python3",
+      "args": ["mcp/voice-mode/server.py"]
+    }
+  ],
+  "docker_services": [
+    {
+      "name": "qdrant",
+      "image": "qdrant/qdrant:latest",
+      "ports": ["6333:6333", "6334:6334"]
+    }
+  ],
+  "files": {
+    "commands": ["agi-research.md", "agi-improve.md", "agi-learn.md"],
+    "mcp": ["enhanced-memory/", "research-paper/", "video-transcript/", "voice-mode/"],
+    "docker": ["docker-compose.yml"],
+    "scripts": ["setup.sh", "start-services.sh", "stop-services.sh"]
+  }
+}

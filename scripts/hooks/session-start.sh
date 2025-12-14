@@ -29,5 +29,10 @@ echo "{\"start_time\": \"$TIMESTAMP\", \"session_id\": \"$SESSION_ID\"}" > "$SES
 # Create a symlink to track the "current" session for statusline fallback
 ln -sf "$SESSION_FILE" /tmp/claude_session_current.json 2>/dev/null || true
 
+# Load memory context for session (non-blocking)
+{
+    /mnt/agentic-system/scripts/hooks/memory-helper.py load_context "$SESSION_ID" > /tmp/claude_memory_context.json 2>/dev/null
+} &
+
 # Return success (hooks should not block)
 exit 0

@@ -26,12 +26,15 @@ import json
 import logging
 import os
 import subprocess
+import sys
 from dataclasses import dataclass, asdict
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from typing import Dict, List, Optional, Any, Tuple
 
+# Add monitoring module to path
+sys.path.insert(0, str(Path(__file__).parent.parent / "monitoring"))
 
 # Configure logging
 logging.basicConfig(
@@ -39,6 +42,21 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
+
+# Import observability (graceful degradation if not available)
+try:
+    from agi_otel_instrumentation import (
+        get_observability,
+        record_evaluation,
+        record_rollback,
+        record_rollback_blocked,
+        record_guardian_decision,
+        set_circuit_state
+    )
+    OBSERVABILITY_AVAILABLE = True
+except ImportError:
+    OBSERVABILITY_AVAILABLE = False
+    logger.warning("AGI observability not available - metrics disabled")
 
 
 class EvaluationDecision(Enum):
@@ -188,6 +206,14 @@ class SelfEvaluationSystem:
         logger.info(f"Evaluation complete: {comparison.decision.value} (confidence={comparison.confidence_score:.2%})")
         logger.info(f"Reasoning: {comparison.reasoning}")
 
+        # Record metrics for observability (Phase 3)
+        if OBSERVABILITY_AVAILABLE:
+            record_evaluation(
+                decision=comparison.decision.value,
+                confidence=comparison.confidence_score,
+                execution_delta=comparison.execution_time_delta_percent
+            )
+
         # Save comparison
         self._save_comparison(comparison)
 
@@ -195,34 +221,186 @@ class SelfEvaluationSystem:
 
     async def rollback_modification(
         self,
-        to_commit: Optional[str] = None
+        to_commit: Optional[str] = None,
+        confidence: float = 0.5,
+        reason: str = ""
     ) -> bool:
         """
-        Rollback to previous git commit.
+        Rollback to previous git commit with safety checks.
+
+        SAFETY ENHANCED (2025-12-03): Three-layer safety architecture:
+        - Layer 1: Local safety checks (stashing, rate limiting) - FALLBACK
+        - Layer 2: Circuit Breaker Guardian approval (PRIMARY)
+        - Layer 3: Immutable audit logging
 
         Args:
             to_commit: Specific commit to rollback to (default: previous commit)
+            confidence: Decision confidence (0.0-1.0)
+            reason: Human-readable reason for rollback
 
         Returns:
             True if rollback successful
         """
-        logger.info("Rolling back modification")
+        CRITICAL_PATTERNS = ["daemon.py", "mcp", "memory", "consolidation", "hook"]
+
+        logger.info(f"Rollback requested (confidence={confidence:.1%}, reason={reason})")
+
+        # ========================================
+        # LAYER 2: Request Guardian Approval
+        # ========================================
+        guardian_approved = False
+        guardian_request_id = None
 
         try:
+            from guardian_client import GuardianClient
+
+            # Prepare context for guardian
+            untracked = self.repo.untracked_files
+            critical_files = [
+                f for f in untracked
+                if any(pattern in f.lower() for pattern in CRITICAL_PATTERNS)
+            ]
+
+            context = {
+                "to_commit": to_commit or "HEAD~1",
+                "untracked_files_count": len(untracked),
+                "critical_files": critical_files,
+                "current_commit": str(self.repo.head.commit)[:8]
+            }
+
+            async with GuardianClient() as guardian:
+                approval = await guardian.request_approval(
+                    operation_type="rollback",
+                    confidence=confidence,
+                    reason=reason,
+                    requester="self_evaluation_system",
+                    context=context
+                )
+
+                guardian_approved = approval.approved
+                guardian_request_id = approval.request_id
+
+                if not guardian_approved:
+                    logger.warning(f"BLOCKED by Guardian: {approval.reason}")
+                    if approval.recommendations:
+                        logger.info(f"Recommendations: {', '.join(approval.recommendations)}")
+                    # Record guardian rejection for observability
+                    if OBSERVABILITY_AVAILABLE:
+                        record_guardian_decision(False, "rollback", approval.reason)
+                        record_rollback_blocked(approval.reason)
+                    return False
+
+                logger.info(f"Guardian APPROVED rollback (request_id={guardian_request_id})")
+                # Record guardian approval for observability
+                if OBSERVABILITY_AVAILABLE:
+                    record_guardian_decision(True, "rollback")
+
+        except ImportError:
+            logger.warning("Guardian client not available - falling back to local checks")
+            # Fall through to local safety checks
+        except Exception as e:
+            logger.warning(f"Guardian unavailable ({e}) - falling back to local checks")
+            # Fall through to local safety checks
+
+        # ========================================
+        # LAYER 1: Local Safety Checks (fallback)
+        # ========================================
+        if not guardian_approved:
+            MIN_CONFIDENCE = 0.7  # Phase 1 safety: require 70% confidence
+
+            # Local confidence check
+            if confidence < MIN_CONFIDENCE:
+                logger.warning(f"BLOCKED: Confidence {confidence:.1%} below threshold {MIN_CONFIDENCE:.0%}")
+                logger.warning("Rollback blocked to prevent collateral damage")
+                if OBSERVABILITY_AVAILABLE:
+                    record_rollback_blocked("local_low_confidence")
+                return False
+
+            # Local rate limiting
+            rate_limit_file = Path("/tmp/agi_last_rollback")
+            if rate_limit_file.exists():
+                last_rollback = float(rate_limit_file.read_text())
+                if (datetime.now().timestamp() - last_rollback) < 60:
+                    logger.warning("BLOCKED: Rate limit - only 1 rollback per 60 seconds")
+                    if OBSERVABILITY_AVAILABLE:
+                        record_rollback_blocked("local_rate_limit")
+                    return False
+
+        # ========================================
+        # Execute Rollback with Stash Protection
+        # ========================================
+        rollback_success = False
+        try:
+            # Inventory untracked files
+            untracked = self.repo.untracked_files
+            logger.info(f"Found {len(untracked)} untracked files")
+
+            # Identify critical files
+            critical_files = [
+                f for f in untracked
+                if any(pattern in f.lower() for pattern in CRITICAL_PATTERNS)
+            ]
+
+            if critical_files:
+                logger.warning(f"CRITICAL untracked files detected: {critical_files}")
+
+            # SAFETY ACTION: Stash all untracked files before rollback
+            if untracked:
+                logger.info("Stashing untracked files before rollback...")
+                self.repo.git.stash('push', '--include-untracked', '-m',
+                                   f'Pre-rollback safety stash {datetime.now().isoformat()}')
+                logger.info("Untracked files stashed successfully")
+
+            # Execute rollback
             if to_commit:
-                # Rollback to specific commit
                 self.repo.git.reset('--hard', to_commit)
                 logger.info(f"Rolled back to commit {to_commit}")
             else:
-                # Rollback to previous commit (HEAD~1)
                 self.repo.git.reset('--hard', 'HEAD~1')
                 logger.info("Rolled back to previous commit")
 
-            return True
+            rollback_success = True
+
+            # SAFETY ACTION: Restore stashed files
+            if untracked:
+                try:
+                    self.repo.git.stash('pop')
+                    logger.info("Restored untracked files from stash")
+                except Exception as stash_err:
+                    logger.error(f"Failed to restore stash: {stash_err}")
+                    logger.warning("Untracked files remain in stash - manual recovery needed")
+                    logger.warning("Run: git stash list && git stash pop")
+
+            # Update local rate limit timestamp
+            Path("/tmp/agi_last_rollback").write_text(str(datetime.now().timestamp()))
 
         except Exception as e:
             logger.error(f"Rollback failed: {e}", exc_info=True)
-            return False
+            rollback_success = False
+
+        # ========================================
+        # Report Outcome to Guardian
+        # ========================================
+        if guardian_request_id:
+            try:
+                from guardian_client import GuardianClient
+                async with GuardianClient() as guardian:
+                    await guardian.report_outcome(
+                        guardian_request_id,
+                        success=rollback_success,
+                        details=f"Rollback {'succeeded' if rollback_success else 'failed'}"
+                    )
+            except Exception as e:
+                logger.warning(f"Failed to report outcome to guardian: {e}")
+
+        # Record rollback outcome for observability
+        if OBSERVABILITY_AVAILABLE:
+            record_rollback(
+                success=rollback_success,
+                reason=reason if rollback_success else "execution_error"
+            )
+
+        return rollback_success
 
     async def commit_modification(
         self,
@@ -491,8 +669,15 @@ async def main():
         print(f"   Committed: {commit_hash[:8]}")
     elif comparison.decision == EvaluationDecision.ROLLBACK:
         print("4. ✗ Rolling back modification (regression detected)")
-        success = await evaluator.rollback_modification()
-        print(f"   Rollback: {'successful' if success else 'failed'}")
+        # Pass confidence score and reason for guardian approval
+        success = await evaluator.rollback_modification(
+            confidence=comparison.confidence_score,
+            reason=comparison.reasoning
+        )
+        if success:
+            print(f"   Rollback: successful")
+        else:
+            print(f"   Rollback: BLOCKED by safety system (confidence too low or rate limited)")
     else:
         print("4. ? Uncertain - need more data")
 

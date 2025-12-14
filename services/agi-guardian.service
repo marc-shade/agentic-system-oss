@@ -1,0 +1,45 @@
+[Unit]
+Description=AGI Circuit Breaker Guardian - Independent Safety Monitor
+Documentation=file:///mnt/agentic-system/docs/OBSERVABILITY-LAYER-DESIGN.md
+After=network.target
+Before=agi-orchestrator.service memory-consolidation.service
+
+[Service]
+Type=simple
+User=root
+Group=root
+WorkingDirectory=/mnt/agentic-system/services
+
+# Environment
+Environment="PYTHONUNBUFFERED=1"
+Environment="PATH=/mnt/agentic-system/.venv/bin:/usr/local/bin:/usr/bin"
+
+# Execute
+ExecStartPre=/usr/bin/mkdir -p /var/run/agi-guardian /var/lib/agi-guardian /var/log/agi-guardian
+ExecStart=/mnt/agentic-system/.venv/bin/python3 /mnt/agentic-system/services/circuit-breaker-guardian.py
+ExecReload=/bin/kill -HUP $MAINPID
+
+# Restart policy - IMPORTANT: Guardian must always be running
+Restart=always
+RestartSec=5
+StartLimitIntervalSec=60
+StartLimitBurst=3
+
+# Resource limits
+MemoryLimit=256M
+CPUQuota=10%
+
+# Security hardening
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/var/run/agi-guardian /var/lib/agi-guardian /var/log/agi-guardian
+PrivateTmp=yes
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=agi-guardian
+
+[Install]
+WantedBy=multi-user.target

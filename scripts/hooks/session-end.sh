@@ -75,4 +75,7 @@ PYTHON
     fi
 fi
 
+# Save session data and increment consolidation counter
+/mnt/agentic-system/scripts/hooks/memory-helper.py save_session "$SESSION_ID" 2>/dev/null || true
+
 # Continue with original session-end.sh functionality if it exists
