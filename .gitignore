@@ -36,3 +36,8 @@ ENV/
 
 # OS
 .DS_Store
+
+# Large files (GitHub 100MB limit)
+databases/temporal/temporal.db
+tmp-workspace/DockerDesktopUpdates/
+tmp-workspace/com.docker.install/
