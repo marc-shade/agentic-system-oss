@@ -1,0 +1,50 @@
+{
+  "$schema": "./features.schema.json",
+  "project": "{{PROJECT_NAME}}",
+  "description": "{{PROJECT_DESCRIPTION}}",
+  "created": "{{TIMESTAMP}}",
+  "version": "1.0.0",
+  "config": {
+    "test_runner": "{{TEST_RUNNER}}",
+    "browser_testing": {{BROWSER_TESTING}},
+    "auto_commit": true,
+    "require_tests": true
+  },
+  "features": [
+    {
+      "id": "core-setup",
+      "name": "Project Setup",
+      "description": "Initialize project structure and dependencies",
+      "priority": 1,
+      "dependencies": [],
+      "tests": [
+        {
+          "id": "setup-deps",
+          "description": "All dependencies install without errors",
+          "type": "integration",
+          "command": "npm install || pip install -r requirements.txt",
+          "passed": false
+        },
+        {
+          "id": "setup-run",
+          "description": "Project runs without errors",
+          "type": "integration",
+          "command": "npm run dev || python main.py",
+          "passed": false
+        }
+      ],
+      "implemented": false,
+      "verified": false,
+      "committed": false,
+      "commit_hash": null,
+      "notes": ""
+    }
+  ],
+  "metadata": {
+    "total_features": 1,
+    "completed_features": 0,
+    "completion_percentage": 0,
+    "last_updated": "{{TIMESTAMP}}",
+    "last_feature_completed": null
+  }
+}

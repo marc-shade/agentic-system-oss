@@ -1,0 +1,31 @@
+{
+  "channels": [
+    {
+      "name": "Anthropic",
+      "channel_id": "UCnnXe2Sb6Gn_zNUUXEFXxpA",
+      "category": "ai-research",
+      "priority": "high"
+    },
+    {
+      "name": "Yannic Kilcher",
+      "channel_id": "UCZHmQk67mSJgfCCTn7xBfew",
+      "category": "ml-papers",
+      "priority": "high"
+    },
+    {
+      "name": "Two Minute Papers",
+      "channel_id": "UCbfYPyITQ-7l4upoX8nvctg",
+      "category": "ai-news",
+      "priority": "medium"
+    },
+    {
+      "name": "Lex Fridman",
+      "channel_id": "UCSHZKyawb77ixDdsGog4iWA",
+      "category": "interviews",
+      "priority": "medium"
+    }
+  ],
+  "max_videos_per_channel": 3,
+  "check_interval_hours": 12,
+  "transcript_max_tokens": 15000
+}

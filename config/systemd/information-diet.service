@@ -1,0 +1,20 @@
+[Unit]
+Description=Information Diet Daemon - Automated Information Piping
+After=network.target enhanced-memory-mcp.service
+Wants=enhanced-memory-mcp.service
+
+[Service]
+Type=simple
+WorkingDirectory=/mnt/agentic-system/services/information-diet
+ExecStart=/usr/bin/python3 /mnt/agentic-system/services/information-diet/daemon.py
+Restart=always
+RestartSec=30
+Environment=AGENTIC_SYSTEM_PATH=/mnt/agentic-system
+Environment=PYTHONPATH=/mnt/agentic-system/services/information-diet
+
+# Logging
+StandardOutput=append:/mnt/agentic-system/logs/information-diet.log
+StandardError=append:/mnt/agentic-system/logs/information-diet.log
+
+[Install]
+WantedBy=default.target

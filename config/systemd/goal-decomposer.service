@@ -1,0 +1,28 @@
+[Unit]
+Description=AGI Goal Decomposer Daemon
+Documentation=https://github.com/your-repo/agentic-system
+After=network.target qdrant.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=marc
+Group=marc
+WorkingDirectory=/mnt/agentic-system
+ExecStart=/usr/bin/python3 /mnt/agentic-system/scripts/goal-decomposer-daemon.py
+Restart=always
+RestartSec=30
+StandardOutput=append:/mnt/agentic-system/logs/goal-decomposer.log
+StandardError=append:/mnt/agentic-system/logs/goal-decomposer-error.log
+
+# Resource limits
+MemoryMax=500M
+CPUQuota=50%
+
+# Environment
+Environment="HOME=/home/marc"
+Environment="PATH=/usr/local/bin:/usr/bin:/bin:/home/marc/.local/bin"
+Environment="PYTHONUNBUFFERED=1"
+
+[Install]
+WantedBy=default.target

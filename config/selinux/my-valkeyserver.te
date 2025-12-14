@@ -1,0 +1,14 @@
+
+module my-valkeyserver 1.0;
+
+require {
+	type tmpfs_t;
+	type redis_t;
+	class file { create getattr open rename unlink write };
+}
+
+#============= redis_t ==============
+
+#!!!! This avc is allowed in the current policy
+allow redis_t tmpfs_t:file { create open write };
+allow redis_t tmpfs_t:file { getattr rename unlink };

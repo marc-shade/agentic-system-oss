@@ -1,0 +1,47 @@
+[Unit]
+Description=AGI Research Daemon - Epistemic Foraging
+Documentation=file:///mnt/agentic-system/docs/AUTONOMOUS-AGI-ARCHITECTURE.md
+After=network.target memory-db.service memory-consolidation.service
+Wants=memory-db.service
+PartOf=agi-collective.target
+
+[Service]
+Type=simple
+User=marc
+Group=marc
+WorkingDirectory=/mnt/agentic-system
+Environment="HOME=/home/marc"
+Environment="PATH=/mnt/agentic-system/.venv/bin:/usr/local/bin:/usr/bin:/bin"
+Environment="PYTHONPATH=/mnt/agentic-system"
+
+# The curiosity loop - epistemic foraging
+ExecStart=/mnt/agentic-system/.venv/bin/python3 /mnt/agentic-system/scripts/research-daemon.py
+
+# Restart policy
+Restart=always
+RestartSec=60
+
+# Resource limits - research can be more intensive
+MemoryMax=1G
+CPUQuota=20%
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=research-daemon
+
+# Security hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/mnt/agentic-system
+ReadWritePaths=/home/marc/.claude
+ReadWritePaths=/var/log
+PrivateTmp=true
+
+# Network access for arXiv and Semantic Scholar
+PrivateNetwork=false
+
+[Install]
+WantedBy=agi-collective.target
+WantedBy=multi-user.target

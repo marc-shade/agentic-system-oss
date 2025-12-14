@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.agentic.convex-heartbeat</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/usr/bin/python3</string>
+        <string>/Volumes/SSDRAID0/agentic-system/services/convex-heartbeat/heartbeat_client.py</string>
+        <string>--node</string>
+        <string>NODE_ID_PLACEHOLDER</string>
+        <string>--send-heartbeat</string>
+        <string>--interval</string>
+        <string>5</string>
+    </array>
+    <key>WorkingDirectory</key>
+    <string>/Volumes/SSDRAID0/agentic-system/services/convex-heartbeat</string>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>CONVEX_URL</key>
+        <string>http://macpro51.local:3210</string>
+        <key>CONVEX_ADMIN_KEY</key>
+        <string>convex-self-hosted|0151d95174e8f04d4cb67383c9b48ac2d91c0e31d5c23ba3cd5fceeb9370911f26bcfe5355</string>
+    </dict>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+    <key>StandardOutPath</key>
+    <string>/tmp/convex-heartbeat.log</string>
+    <key>StandardErrorPath</key>
+    <string>/tmp/convex-heartbeat.err</string>
+</dict>
+</plist>

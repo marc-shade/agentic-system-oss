@@ -1,0 +1,18 @@
+[Unit]
+Description=Cluster Code Change Notifier - Watches and broadcasts code changes
+After=network-online.target smb.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/mnt/agentic-system/.venv/bin/python3 /mnt/agentic-system/scripts/cluster-code-change-notifier.py --interval 60
+WorkingDirectory=/mnt/agentic-system
+Restart=always
+RestartSec=30
+
+# Environment
+Environment="PATH=/mnt/agentic-system/.venv/bin:/usr/local/bin:/usr/bin:/bin"
+Environment="PYTHONPATH=/mnt/agentic-system"
+
+[Install]
+WantedBy=default.target

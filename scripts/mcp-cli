@@ -1,0 +1,77 @@
+#!/usr/bin/env bash
+# MCP CLI Runner - Run any MCP server as a command-line tool
+# Usage: mcp-cli <server-name> [args...]
+# Or: mcp-<server-name> [args...] (via symlinks)
+
+set -euo pipefail
+
+STORAGE_BASE="${STORAGE_BASE:-/mnt/agentic-system}"
+MCP_DIR="$STORAGE_BASE/mcp-servers"
+VENV_PYTHON="$STORAGE_BASE/.venv/bin/python3"
+
+# Get server name from command or script name
+SCRIPT_NAME=$(basename "$0")
+if [[ "$SCRIPT_NAME" == "mcp-cli" ]]; then
+    if [[ $# -lt 1 ]]; then
+        echo "Usage: mcp-cli <server-name> [command]"
+        echo ""
+        echo "Available servers:"
+        for dir in "$MCP_DIR"/*/; do
+            name=$(basename "$dir")
+            [[ "$name" =~ ^\.backup ]] && continue
+            [[ "$name" == "SHARED" ]] && continue
+            echo "  $name"
+        done
+        exit 1
+    fi
+    SERVER_NAME="$1"
+    shift
+else
+    # Called via symlink like mcp-enhanced-memory
+    SERVER_NAME="${SCRIPT_NAME#mcp-}"
+fi
+
+# Normalize server name (remove -mcp suffix if present for lookup)
+LOOKUP_NAME="$SERVER_NAME"
+if [[ ! -d "$MCP_DIR/$LOOKUP_NAME" ]]; then
+    LOOKUP_NAME="${SERVER_NAME}-mcp"
+fi
+
+SERVER_DIR="$MCP_DIR/$LOOKUP_NAME"
+
+if [[ ! -d "$SERVER_DIR" ]]; then
+    echo "Error: MCP server '$SERVER_NAME' not found"
+    echo "Tried: $MCP_DIR/$SERVER_NAME and $MCP_DIR/${SERVER_NAME}-mcp"
+    exit 1
+fi
+
+# Determine how to run the server based on contents
+PYTHON_BIN="$VENV_PYTHON"
+[[ -f "$SERVER_DIR/.venv/bin/python3" ]] && PYTHON_BIN="$SERVER_DIR/.venv/bin/python3"
+
+if [[ -f "$SERVER_DIR/server.py" ]]; then
+    export PYTHONPATH="${SERVER_DIR}:${PYTHONPATH:-}"
+    exec "$PYTHON_BIN" "$SERVER_DIR/server.py" "$@"
+elif [[ -f "$SERVER_DIR/src/server.py" ]]; then
+    export PYTHONPATH="${SERVER_DIR}/src:${SERVER_DIR}:${PYTHONPATH:-}"
+    exec "$PYTHON_BIN" "$SERVER_DIR/src/server.py" "$@"
+elif [[ -d "$SERVER_DIR/src" ]]; then
+    # Check for Python package with __main__.py or server submodule
+    PKG_NAME=$(ls -d "$SERVER_DIR/src"/*/ 2>/dev/null | head -1 | xargs basename 2>/dev/null || true)
+    if [[ -n "$PKG_NAME" && -f "$SERVER_DIR/src/$PKG_NAME/server.py" ]]; then
+        export PYTHONPATH="${SERVER_DIR}/src:${PYTHONPATH:-}"
+        exec "$PYTHON_BIN" "$SERVER_DIR/src/$PKG_NAME/server.py" "$@"
+    elif [[ -n "$PKG_NAME" ]]; then
+        # Try running as module
+        export PYTHONPATH="${SERVER_DIR}/src:${PYTHONPATH:-}"
+        exec "$PYTHON_BIN" -m "${PKG_NAME}.server" "$@"
+    fi
+elif [[ -f "$SERVER_DIR/dist/index.js" ]]; then
+    exec node "$SERVER_DIR/dist/index.js" "$@"
+elif [[ -f "$SERVER_DIR/start_server.sh" ]]; then
+    exec "$SERVER_DIR/start_server.sh" "$@"
+fi
+
+echo "Error: No recognized entry point in $SERVER_DIR"
+echo "Tried: server.py, src/server.py, src/*/server.py, dist/index.js, start_server.sh"
+exit 1

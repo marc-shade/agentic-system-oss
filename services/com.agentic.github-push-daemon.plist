@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.agentic.github-push-daemon</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/usr/bin/python3</string>
+        <string>/Volumes/SSDRAID0/agentic-system/intelligent-agents/safe_github_push_daemon.py</string>
+        <string>--interval</string>
+        <string>300</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>/Volumes/SSDRAID0/agentic-system</string>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+        <key>PYTHONUNBUFFERED</key>
+        <string>1</string>
+    </dict>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>KeepAlive</key>
+    <dict>
+        <key>SuccessfulExit</key>
+        <false/>
+    </dict>
+
+    <key>StandardOutPath</key>
+    <string>/Volumes/SSDRAID0/agentic-system/logs/github-push-daemon.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>/Volumes/SSDRAID0/agentic-system/logs/github-push-daemon-error.log</string>
+
+    <key>ThrottleInterval</key>
+    <integer>60</integer>
+
+    <key>Nice</key>
+    <integer>10</integer>
+</dict>
+</plist>

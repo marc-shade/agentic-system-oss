@@ -1,0 +1,31 @@
+{
+  "topics": [
+    {
+      "query": "artificial general intelligence self-improvement",
+      "category": "agi",
+      "priority": "high"
+    },
+    {
+      "query": "large language model reasoning",
+      "category": "llm",
+      "priority": "high"
+    },
+    {
+      "query": "neural memory systems retrieval augmented generation",
+      "category": "memory",
+      "priority": "high"
+    },
+    {
+      "query": "multi-agent systems coordination",
+      "category": "agents",
+      "priority": "medium"
+    },
+    {
+      "query": "meta-learning self-supervised",
+      "category": "meta-learning",
+      "priority": "medium"
+    }
+  ],
+  "max_papers_per_topic": 5,
+  "check_interval_hours": 6
+}

@@ -1,0 +1,113 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                   CLUSTER HEALTH MONITORING TEST RESULTS                     ║
+║                            2025-12-05 13:16 EST                              ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ CLUSTER TOPOLOGY (6 Nodes)                                                  │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│   ┌────────────────┐     ┌────────────────┐     ┌────────────────┐         │
+│   │  mac-studio    │     │   macbook-air  │     │   macpro51     │         │
+│   │ (Orchestrator) │────▶│  (Researcher)  │────▶│   (Builder)    │         │
+│   │  ✓ HEALTHY     │     │  ✓ HEALTHY     │     │  ✓ HEALTHY     │         │
+│   │  192.168.1.79  │     │  192.168.1.55  │     │  192.168.1.87  │         │
+│   └────────────────┘     └────────────────┘     └────────────────┘         │
+│          │                       │                       │                   │
+│          └───────────────────────┴───────────────────────┘                   │
+│                                  │                                           │
+│   ┌────────────────┐     ┌────────────────┐     ┌────────────────┐         │
+│   │ completeu-svr  │     │    macmini     │     │ bpi-sentinel   │         │
+│   │ (AI Inference) │     │(Small Infer.)  │     │   (Sentinel)   │         │
+│   │  ⚠ OFFLINE     │     │  ⚠ OFFLINE     │     │  ⚠ OFFLINE     │         │
+│   │  Discovered    │     │  Discovered    │     │  Discovered    │         │
+│   └────────────────┘     └────────────────┘     └────────────────┘         │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ TEST RESULTS SUMMARY                                                         │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  Unit Tests:        6 / 11 passed  (54.5%)  ░░░░░░░░░░░░░▓▓▓▓▓▓▓▓▓▓        │
+│  Integration:       Operational with 3/6 nodes active                       │
+│  Availability:      60.0% (Target: 99.0%)   ░░░░░░░▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ DETAILED TEST RESULTS                                                        │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  ✓ Node Discovery              289ms    6/6 nodes discovered via mDNS       │
+│  ✓ Node Reachability           207ms    6/6 nodes pingable                  │
+│  ✗ Hardware Broadcast         1169ms    Service active, API unavailable     │
+│  ✗ Cluster State Manager       101ms    EnumType initialization error       │
+│  ✓ Telemetry Collection        101ms    CPU/Memory/Load working             │
+│  ✓ Health Status Detection      <1ms    5/5 logic tests passed              │
+│  ✓ Service Monitoring           21ms    2/3 critical services active        │
+│  ✗ Node Chat MCP                <1ms    Database not initialized            │
+│  ✗ Memory Database Service       6ms    Service failing to start            │
+│  ✓ Qdrant Vector Database       25ms    Container running, API working      │
+│  ✗ Cluster Availability         <1ms    60% < 99% target                    │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ SYSTEM HEALTH (macpro51)                                                     │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  CPU Usage:        13.7%  ▓▓░░░░░░░░░░░░░░░░░░                              │
+│  Memory Usage:     16.2%  ▓▓▓░░░░░░░░░░░░░░░░░                              │
+│  Load Average:      4.07  ▓▓▓▓░░░░░░░░░░░░░░░░  (24 threads)               │
+│  RAID Array:       ✓ Healthy (all devices up)                               │
+│  Network:          ✓ All interfaces operational                             │
+│  Docker:           ✓ Running (Qdrant, Redis active)                         │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ CRITICAL ISSUES (Immediate Action Required)                                  │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  [P1] Hardware Broadcast API    Service active but BrokenPipe errors        │
+│  [P1] Node Chat Database        Database file not initialized               │
+│  [P1] Memory Database Service   Service failing with exit code 1            │
+│                                                                              │
+│  Fix Command:                                                                │
+│    sudo systemctl restart hardware-broadcast                                │
+│    python init_node_chat_db.py                                              │
+│    journalctl -u agentic-memory-db -n 50                                    │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ ROADMAP TO 99% AVAILABILITY                                                  │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  NOW (Priority 1):                                                           │
+│    ☐ Fix hardware broadcast service                                         │
+│    ☐ Initialize node chat database                                          │
+│    ☐ Resolve memory database failures                                       │
+│                                                                              │
+│  THIS WEEK (Priority 2):                                                     │
+│    ☐ Deploy Prometheus exporters                                            │
+│    ☐ Fix cluster state manager                                              │
+│    ☐ Implement task submission endpoint                                     │
+│                                                                              │
+│  THIS MONTH (Priority 3):                                                    │
+│    ☐ Bring 3 offline nodes online                                           │
+│    ☐ Automated health monitoring                                            │
+│    ☐ Performance benchmarking                                               │
+│                                                                              │
+│  ESTIMATED TIME TO 99%: 24-48 hours with P1 fixes                           │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║  FILES CREATED                                                               ║
+║  • test_cluster_health_monitoring.py    (20KB comprehensive test suite)     ║
+║  • TEST_REPORT_CLUSTER_HEALTH.md        (12KB detailed analysis)            ║
+║  • TESTING_SUMMARY.md                   (Executive summary)                 ║
+║  • test_results_health_monitoring.json  (Machine-readable results)          ║
+╚══════════════════════════════════════════════════════════════════════════════╝

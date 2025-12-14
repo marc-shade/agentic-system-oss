@@ -1,0 +1,114 @@
+{
+  "project": {
+    "name": "Information Diet System",
+    "description": "Automatic information piping from external sources into AGI memory system - inspired by Letta tutorial",
+    "created": "2025-12-06T08:06:34.542347",
+    "last_updated": "2025-12-06T08:26:46.818246"
+  },
+  "features": [
+    {
+      "id": "F001",
+      "name": "RSS Feed Ingestion",
+      "description": "Fetch RSS feeds, extract content, summarize with LLM, store in memory",
+      "priority": "high",
+      "dependencies": [],
+      "test_steps": [
+        "Verify feature works as expected"
+      ],
+      "implemented": true,
+      "tested": true,
+      "commit_hash": "0d4d8720",
+      "notes": ""
+    },
+    {
+      "id": "F002",
+      "name": "Research Paper Monitor",
+      "description": "Watch arXiv/Semantic Scholar for AGI-relevant papers, auto-extract insights",
+      "priority": "high",
+      "dependencies": [],
+      "test_steps": [
+        "Verify feature works as expected"
+      ],
+      "implemented": true,
+      "tested": true,
+      "commit_hash": "0d4d8720",
+      "notes": ""
+    },
+    {
+      "id": "F003",
+      "name": "YouTube Channel Monitor",
+      "description": "Watch specified channels, auto-fetch transcripts, extract key concepts",
+      "priority": "medium",
+      "dependencies": [],
+      "test_steps": [
+        "Verify feature works as expected"
+      ],
+      "implemented": true,
+      "tested": true,
+      "commit_hash": "0d4d8720",
+      "notes": ""
+    },
+    {
+      "id": "F004",
+      "name": "n8n Webhook Integration",
+      "description": "HTTP endpoint to receive data from n8n workflows and store in memory",
+      "priority": "high",
+      "dependencies": [],
+      "test_steps": [
+        "Verify feature works as expected"
+      ],
+      "implemented": true,
+      "tested": true,
+      "commit_hash": "0d4d8720",
+      "notes": ""
+    },
+    {
+      "id": "F005",
+      "name": "Scheduled Consolidation",
+      "description": "Cron-based memory consolidation - extract patterns, prune low-value content",
+      "priority": "medium",
+      "dependencies": [],
+      "test_steps": [
+        "Verify feature works as expected"
+      ],
+      "implemented": true,
+      "tested": true,
+      "commit_hash": "0d4d8720",
+      "notes": ""
+    },
+    {
+      "id": "F006",
+      "name": "Proactive Digest",
+      "description": "Generate daily/weekly digests of gathered information, notify via voice/Arduino",
+      "priority": "low",
+      "dependencies": [],
+      "test_steps": [
+        "Verify feature works as expected"
+      ],
+      "implemented": true,
+      "tested": true,
+      "commit_hash": "0d4d8720",
+      "notes": ""
+    }
+  ],
+  "guidelines": {
+    "workflow": [
+      "1. Pick next unimplemented feature (check dependencies first)",
+      "2. Implement the feature completely",
+      "3. Run ALL test_steps manually or via automation",
+      "4. Only set 'implemented: true' after code is complete",
+      "5. Only set 'tested: true' after ALL test_steps pass",
+      "6. Update progress.md with completion status",
+      "7. Git commit with descriptive message",
+      "8. Record commit_hash in features.json",
+      "9. Repeat for next feature"
+    ],
+    "rules": [
+      "NEVER mark implemented:true without complete code",
+      "NEVER mark tested:true without running test_steps",
+      "NEVER modify feature definitions after starting",
+      "ALWAYS commit in mergeable state",
+      "ALWAYS update progress.md after each feature"
+    ]
+  }
+}

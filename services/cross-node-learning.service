@@ -1,0 +1,24 @@
+[Unit]
+Description=Cross-Node Learning Agent - Hive Mind Observer
+Documentation=https://github.com/your-org/agentic-system
+After=network-online.target agentic-memory-db.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /mnt/agentic-system/services/cross-node-learning-agent.py --continuous
+Restart=always
+RestartSec=60
+StandardOutput=append:/mnt/agentic-system/logs/cross-node-learning.log
+StandardError=append:/mnt/agentic-system/logs/cross-node-learning-error.log
+
+# Resource limits
+MemoryMax=512M
+CPUQuota=20%
+
+# Security
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

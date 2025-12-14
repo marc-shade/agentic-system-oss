@@ -1,0 +1,26 @@
+[Unit]
+Description=AGI Collective Intelligence Target
+Documentation=file:///mnt/agentic-system/docs/AUTONOMOUS-AGI-ARCHITECTURE.md
+
+# The collective emerges from these agential processes
+# Each maintains its own Markov blanket
+# Together they produce emergent intelligence
+
+# Core infrastructure
+Wants=memory-db.service
+Wants=memory-consolidation.service
+
+# The Seven Platonic Processes
+Wants=bootstrap-daemon.service        # Awakening Loop
+Wants=research-daemon.service         # Curiosity Loop
+Wants=attention-daemon.service        # Focus Loop
+Wants=security-agent.service          # Vigilance Loop
+
+# Future additions:
+# Wants=improvement-daemon.service    # Self-Modification Loop
+
+After=network.target
+After=memory-db.service
+
+[Install]
+WantedBy=multi-user.target

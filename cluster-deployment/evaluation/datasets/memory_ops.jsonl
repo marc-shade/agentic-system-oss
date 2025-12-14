@@ -1,0 +1,10 @@
+{"input": "Append 'Task: Implement Letta evals integration' to task block", "ground_truth": "Task: Implement Letta evals integration"}
+{"input": "Append 'Task: Create evaluation suites' to task block", "ground_truth": "Task: Create evaluation suites"}
+{"input": "Update identity block: Replace 'Linux Builder' with 'Autonomous Linux Builder'", "ground_truth": "Autonomous Linux Builder"}
+{"input": "Append to learnings: 'Letta evals enable continuous quality measurement'", "ground_truth": "Letta evals enable continuous quality measurement"}
+{"input": "Update task block: Replace 'in progress' with 'completed'", "ground_truth": "completed"}
+{"input": "Append to human block: 'User prefers concise responses'", "ground_truth": "User prefers concise responses"}
+{"input": "Create memory block update: Add 'Phase 1 complete' to learnings", "ground_truth": "Phase 1 complete"}
+{"input": "Modify identity: Replace 'node' with 'autonomous agent node'", "ground_truth": "autonomous agent node"}
+{"input": "Append 'Consolidation running daily at midnight' to learnings block", "ground_truth": "Consolidation running daily at midnight"}
+{"input": "Update task: Replace 'pending' with 'in_progress'", "ground_truth": "in_progress"}

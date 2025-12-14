@@ -1,0 +1,1 @@
+=== Configuring TigerVNC User Mapping === sudo mkdir -p /etc/tigervnc echo :1=marc

@@ -1,0 +1,25 @@
+[Unit]
+Description=MCTS-Inspired AGI Self-Improvement Scheduler
+Documentation=file:///mnt/agentic-system/scripts/mcts_improvement_scheduler.py
+After=network.target enhanced-memory-mcp.service
+Wants=enhanced-memory-mcp.service
+
+[Service]
+Type=oneshot
+Environment=PYTHONPATH=/mnt/agentic-system
+Environment=STORAGE_BASE=/mnt/agentic-system
+WorkingDirectory=/mnt/agentic-system/scripts
+ExecStart=/usr/bin/python3 /mnt/agentic-system/scripts/mcts_improvement_scheduler.py --run-cycle
+TimeoutStartSec=600
+StandardOutput=append:/mnt/agentic-system/logs/mcts-improvement.log
+StandardError=append:/mnt/agentic-system/logs/mcts-improvement-error.log
+
+# Security hardening
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/mnt/agentic-system/databases /mnt/agentic-system/logs
+PrivateTmp=yes
+
+[Install]
+WantedBy=multi-user.target

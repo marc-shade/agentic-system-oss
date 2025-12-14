@@ -1,0 +1,44 @@
+[Unit]
+Description=AGI Attention Daemon - Focus Allocation
+Documentation=file:///mnt/agentic-system/docs/AUTONOMOUS-AGI-ARCHITECTURE.md
+After=network.target memory-db.service
+Wants=memory-db.service
+PartOf=agi-collective.target
+
+[Service]
+Type=simple
+User=marc
+Group=marc
+WorkingDirectory=/mnt/agentic-system
+Environment="HOME=/home/marc"
+Environment="PATH=/mnt/agentic-system/.venv/bin:/usr/local/bin:/usr/bin:/bin"
+Environment="PYTHONPATH=/mnt/agentic-system"
+
+# The attention loop - precision-weighted focus
+ExecStart=/mnt/agentic-system/.venv/bin/python3 /mnt/agentic-system/scripts/attention-daemon.py
+
+# Restart policy
+Restart=always
+RestartSec=30
+
+# Resource limits - attention daemon is lightweight
+MemoryMax=256M
+CPUQuota=5%
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=attention-daemon
+
+# Security hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/mnt/agentic-system
+ReadWritePaths=/home/marc/.claude
+ReadWritePaths=/var/log
+PrivateTmp=true
+
+[Install]
+WantedBy=agi-collective.target
+WantedBy=multi-user.target

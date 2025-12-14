@@ -1,0 +1,18 @@
+{
+	"ulid": "01KB2PCPME4RHS9VTTV3C823H0",
+	"minTime": 1764237610554,
+	"maxTime": 1764244800000,
+	"stats": {
+		"numSamples": 8034,
+		"numFloatSamples": 8034,
+		"numSeries": 36,
+		"numChunks": 64
+	},
+	"compaction": {
+		"level": 1,
+		"sources": [
+			"01KB2PCPME4RHS9VTTV3C823H0"
+		]
+	},
+	"version": 1
+}

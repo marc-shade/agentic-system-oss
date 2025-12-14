@@ -1,0 +1,12 @@
+{
+  "name": "hids",
+  "category": "security",
+  "description": "Host-based intrusion detection system",
+  "functions": [
+    "analyze_auth_logs",
+    "detect_brute_force",
+    "check_suspicious_processes",
+    "check_file_integrity"
+  ],
+  "usage": "from mcp_tools import hids; report = hids.generate_security_report()"
+}

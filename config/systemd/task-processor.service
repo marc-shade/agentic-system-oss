@@ -1,0 +1,29 @@
+[Unit]
+Description=AGI Task Processor Daemon
+Documentation=https://github.com/your-repo/agentic-system
+After=network.target goal-decomposer.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=marc
+Group=marc
+WorkingDirectory=/mnt/agentic-system
+ExecStart=/usr/bin/python3 /mnt/agentic-system/scripts/task-processor-daemon.py
+Restart=always
+RestartSec=60
+StandardOutput=append:/mnt/agentic-system/logs/task-processor.log
+StandardError=append:/mnt/agentic-system/logs/task-processor-error.log
+
+# Resource limits
+MemoryMax=1G
+CPUQuota=100%
+
+# Environment
+Environment="HOME=/home/marc"
+Environment="PATH=/usr/local/bin:/usr/bin:/bin:/home/marc/.local/bin"
+Environment="PYTHONUNBUFFERED=1"
+Environment="ANTHROPIC_API_KEY="
+
+[Install]
+WantedBy=default.target

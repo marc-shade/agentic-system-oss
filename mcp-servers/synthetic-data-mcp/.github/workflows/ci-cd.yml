@@ -1,0 +1,332 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [main, develop]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  # Code Quality Checks
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Cache Python dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/pyproject.toml') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install poetry
+        poetry install --with dev
+    
+    - name: Run Black formatter
+      run: poetry run black --check src/ tests/
+    
+    - name: Run isort
+      run: poetry run isort --check-only src/ tests/
+    
+    - name: Run Flake8
+      run: poetry run flake8 src/ tests/
+    
+    - name: Run MyPy type checking
+      run: poetry run mypy src/
+    
+    - name: Run Bandit security checks
+      run: poetry run bandit -r src/
+
+  # Unit Tests
+  test:
+    runs-on: ubuntu-latest
+    needs: quality
+    strategy:
+      matrix:
+        python-version: ['3.9', '3.10', '3.11']
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: testpass
+          POSTGRES_DB: test_synthetic
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install poetry
+        poetry install --with dev
+    
+    - name: Run unit tests with coverage
+      env:
+        DATABASE_URL: postgresql://postgres:testpass@localhost:5432/test_synthetic
+        REDIS_URL: redis://localhost:6379
+      run: |
+        poetry run pytest tests/ \
+          --cov=synthetic_data_mcp \
+          --cov-report=xml \
+          --cov-report=html \
+          --cov-report=term \
+          -v
+    
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: true
+
+  # Integration Tests
+  integration:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install poetry
+        poetry install --with dev
+    
+    - name: Run integration tests
+      run: |
+        poetry run pytest tests/integration/ -v --tb=short
+    
+    - name: Run compliance validation tests
+      run: |
+        poetry run pytest tests/test_compliance.py -v -m compliance
+    
+    - name: Run performance benchmarks
+      run: |
+        poetry run pytest tests/integration/test_performance.py -v --benchmark-only
+
+  # Security Scanning
+  security:
+    runs-on: ubuntu-latest
+    needs: quality
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+    
+    - name: Upload Trivy results to GitHub Security
+      uses: github/codeql-action/upload-sarif@v2
+      with:
+        sarif_file: 'trivy-results.sarif'
+    
+    - name: Run Snyk security scan
+      uses: snyk/actions/python@master
+      env:
+        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      with:
+        args: --severity-threshold=high
+
+  # Build Docker Image
+  build:
+    runs-on: ubuntu-latest
+    needs: [test, integration, security]
+    permissions:
+      contents: read
+      packages: write
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    - name: Log in to Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=semver,pattern={{version}}
+          type=semver,pattern={{major}}.{{minor}}
+          type=sha,prefix={{branch}}-
+          type=raw,value=latest,enable={{is_default_branch}}
+    
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        platforms: linux/amd64,linux/arm64
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        build-args: |
+          BUILD_DATE=${{ github.event.head_commit.timestamp }}
+          VCS_REF=${{ github.sha }}
+          VERSION=${{ steps.meta.outputs.version }}
+
+  # Deploy to Staging
+  deploy-staging:
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/develop'
+    environment:
+      name: staging
+      url: https://staging.synthetic-data.io
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install kubectl
+      uses: azure/setup-kubectl@v3
+      with:
+        version: 'v1.28.0'
+    
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1
+    
+    - name: Update kubeconfig
+      run: |
+        aws eks update-kubeconfig --name synthetic-data-staging --region us-east-1
+    
+    - name: Deploy to Kubernetes
+      run: |
+        kubectl apply -f k8s/namespace.yaml
+        kubectl apply -f k8s/secrets.yaml
+        kubectl apply -f k8s/configmap.yaml
+        kubectl apply -f k8s/pvc.yaml
+        kubectl apply -f k8s/deployment.yaml
+        kubectl apply -f k8s/service.yaml
+        kubectl apply -f k8s/ingress.yaml
+        kubectl rollout status deployment/synthetic-data-mcp -n synthetic-data --timeout=10m
+    
+    - name: Run smoke tests
+      run: |
+        STAGING_URL="https://staging.synthetic-data.io"
+        curl -f ${STAGING_URL}/health || exit 1
+        curl -f ${STAGING_URL}/ready || exit 1
+
+  # Deploy to Production
+  deploy-production:
+    runs-on: ubuntu-latest
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    environment:
+      name: production
+      url: https://api.synthetic-data.io
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install kubectl
+      uses: azure/setup-kubectl@v3
+      with:
+        version: 'v1.28.0'
+    
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_PROD }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_PROD }}
+        aws-region: us-east-1
+    
+    - name: Update kubeconfig
+      run: |
+        aws eks update-kubeconfig --name synthetic-data-production --region us-east-1
+    
+    - name: Deploy to Kubernetes
+      run: |
+        kubectl apply -f k8s/namespace.yaml
+        kubectl apply -f k8s/secrets-prod.yaml
+        kubectl apply -f k8s/configmap-prod.yaml
+        kubectl apply -f k8s/pvc.yaml
+        kubectl apply -f k8s/deployment.yaml
+        kubectl set image deployment/synthetic-data-mcp \
+          synthetic-data-mcp=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }} \
+          -n synthetic-data
+        kubectl rollout status deployment/synthetic-data-mcp -n synthetic-data --timeout=10m
+    
+    - name: Run production smoke tests
+      run: |
+        PROD_URL="https://api.synthetic-data.io"
+        curl -f ${PROD_URL}/health || exit 1
+        curl -f ${PROD_URL}/ready || exit 1
+        curl -f ${PROD_URL}/metrics || exit 1
+    
+    - name: Notify deployment success
+      uses: 8398a7/action-slack@v3
+      with:
+        status: success
+        text: 'Production deployment successful for version ${{ github.ref_name }}'
+        webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+      if: success()
+    
+    - name: Notify deployment failure
+      uses: 8398a7/action-slack@v3
+      with:
+        status: failure
+        text: 'Production deployment failed for version ${{ github.ref_name }}'
+        webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+      if: failure()

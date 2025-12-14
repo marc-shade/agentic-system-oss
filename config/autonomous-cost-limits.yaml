@@ -1,0 +1,67 @@
+# Autonomous Task Execution Cost and Rate Limits
+# Configuration for claude-task-processor-daemon.py
+
+limits:
+  # Maximum tasks to process per hour
+  max_tasks_per_hour: 10
+
+  # Maximum tasks to process per day
+  max_tasks_per_day: 100
+
+  # Maximum daily cost in USD (estimated)
+  max_cost_per_day_usd: 50.00
+
+  # Maximum tokens per single task
+  max_tokens_per_task: 100000
+
+  # Maximum conversation turns per task
+  max_turns_per_task: 50
+
+  # Maximum execution time per task (seconds)
+  max_execution_time_seconds: 1800  # 30 minutes
+
+  # Minimum task priority to process (1-10)
+  min_priority: 5
+
+  # Maximum tasks per processing run
+  max_tasks_per_run: 3
+
+models:
+  # Default model for task execution (cost-effective)
+  default: claude-sonnet-4-5-20250929
+
+  # Fallback model if default is overloaded
+  fallback: claude-3-5-haiku-20241022
+
+  # Token threshold to switch to cheaper model
+  expensive_threshold: 50000
+
+safety:
+  # Circuit breaker - pause after N consecutive failures
+  circuit_breaker_threshold: 3
+
+  # Cooldown time after circuit breaker trips (minutes)
+  cooldown_minutes: 15
+
+  # Maximum retry attempts per task
+  max_retries: 3
+
+  # Exponential backoff base (seconds)
+  retry_backoff_base: 60
+
+alerts:
+  # Alert when budget usage exceeds this percentage
+  budget_warning_threshold_percent: 80
+
+  # Alert email (for future integration)
+  # email: marc@example.com
+
+scheduling:
+  # Timer interval (for reference - actual is in systemd timer)
+  interval_minutes: 15
+
+  # Process on boot after this delay
+  boot_delay_minutes: 5
+
+  # Add random delay to prevent thundering herd
+  randomized_delay_seconds: 60

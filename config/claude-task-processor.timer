@@ -1,0 +1,22 @@
+[Unit]
+Description=Run Claude Code Task Processor Every 15 Minutes
+Documentation=file:///mnt/agentic-system/docs/HEADLESS-CLAUDE-ARCHITECTURE.md
+
+[Timer]
+# Start 5 minutes after boot
+OnBootSec=5min
+
+# Run every 15 minutes after last activation
+OnUnitActiveSec=15min
+
+# Persist timer state across reboots
+Persistent=true
+
+# Add some randomization to prevent thundering herd
+RandomizedDelaySec=60
+
+# Run immediately if we missed scheduled runs
+AccuracySec=1min
+
+[Install]
+WantedBy=timers.target

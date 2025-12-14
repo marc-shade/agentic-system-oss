@@ -1,0 +1,12 @@
+{
+  "name": "enhanced_memory",
+  "category": "memory",
+  "description": "Persistent memory with versioning and RAG",
+  "functions": [
+    "create_entities",
+    "search_nodes",
+    "get_memory_status",
+    "search_with_reranking"
+  ],
+  "usage": "from mcp_tools import memory; results = memory.search_nodes(\"query\")"
+}

@@ -1,0 +1,149 @@
+#!/usr/bin/env python3
+"""
+Real-time Situational Awareness Dashboard
+Provides complete environmental and cluster awareness for agents.
+"""
+
+import sys
+import os
+import json
+import subprocess
+import sqlite3
+from datetime import datetime, timedelta
+
+sys.path.insert(0, '/mnt/agentic-system/cluster-deployment')
+
+def get_cluster_status():
+    """Get cluster node status via discovery."""
+    try:
+        from node_discovery import discover_all, get_service_url
+        nodes = discover_all()
+        return nodes, get_service_url('completeu-server', 'ollama')
+    except Exception as e:
+        return {}, None
+
+def get_temporal_status():
+    """Get Temporal workflow status."""
+    try:
+        result = subprocess.run(
+            ['curl', '-s', 'http://localhost:8233/api/v1/namespaces/default/schedules'],
+            capture_output=True, text=True, timeout=5
+        )
+        if result.returncode == 0:
+            data = json.loads(result.stdout)
+            return len(data.get('schedules', []))
+    except:
+        pass
+    return 0
+
+def get_unread_messages():
+    """Get count of unread node messages."""
+    try:
+        conn = sqlite3.connect('/mnt/agentic-system/databases/cluster/node_chat.db')
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT COUNT(*) FROM messages 
+            WHERE to_node = 'macpro51' AND read = 0
+            AND timestamp > datetime('now', '-1 hour')
+        """)
+        count = cursor.fetchone()[0]
+        conn.close()
+        return count
+    except:
+        return 0
+
+def get_system_metrics():
+    """Get local system metrics."""
+    import psutil
+    return {
+        'cpu_percent': psutil.cpu_percent(interval=0.1),
+        'memory_percent': psutil.virtual_memory().percent,
+        'disk_percent': psutil.disk_usage('/').percent
+    }
+
+def get_agi_goals():
+    """Get AGI goal status."""
+    try:
+        conn = sqlite3.connect('/mnt/agentic-system/databases/cluster/cluster_brain.db')
+        cursor = conn.cursor()
+        cursor.execute("SELECT goal, status, progress FROM cluster_goals")
+        goals = cursor.fetchall()
+        conn.close()
+        return goals
+    except:
+        return []
+
+def get_ollama_models():
+    """Get available Ollama models from inference node."""
+    try:
+        result = subprocess.run(
+            ['curl', '-s', '--connect-timeout', '2', 'http://192.168.1.186:11434/api/tags'],
+            capture_output=True, text=True, timeout=5
+        )
+        if result.returncode == 0:
+            data = json.loads(result.stdout)
+            return [m['name'] for m in data.get('models', [])][:5]
+    except:
+        pass
+    return []
+
+def main():
+    print("=" * 60)
+    print("🌐 REAL-TIME SITUATIONAL AWARENESS")
+    print("=" * 60)
+    print(f"⏰ {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print()
+    
+    # Cluster Status
+    nodes, ollama_url = get_cluster_status()
+    online = sum(1 for n in nodes.values() if n.get('reachable'))
+    print(f"📡 CLUSTER: {online}/{len(nodes)} nodes online")
+    for node_id, info in nodes.items():
+        status = "✅" if info.get('reachable') else "❌"
+        print(f"   {status} {node_id} ({info.get('role', '?')}): {info.get('ip', 'N/A')}")
+    print()
+    
+    # AGI Goals
+    goals = get_agi_goals()
+    if goals:
+        completed = sum(1 for g in goals if g[1] == 'completed')
+        print(f"🎯 GOALS: {completed}/{len(goals)} completed")
+        for goal, status, progress in goals:
+            icon = "✅" if status == 'completed' else "🔄"
+            print(f"   {icon} {goal}: {int(progress*100)}%")
+        print()
+    
+    # Temporal Workflows
+    schedules = get_temporal_status()
+    print(f"⚙️  TEMPORAL: {schedules} autonomous schedules active")
+    print()
+    
+    # Messages
+    unread = get_unread_messages()
+    if unread > 0:
+        print(f"📬 MESSAGES: {unread} unread from other nodes")
+    else:
+        print("📬 MESSAGES: No unread messages")
+    print()
+    
+    # System Metrics
+    try:
+        metrics = get_system_metrics()
+        print(f"💻 SYSTEM: CPU {metrics['cpu_percent']:.0f}% | RAM {metrics['memory_percent']:.0f}% | Disk {metrics['disk_percent']:.0f}%")
+    except:
+        print("💻 SYSTEM: Metrics unavailable")
+    print()
+    
+    # LLM Availability
+    models = get_ollama_models()
+    if models:
+        print(f"🤖 LLM: {len(models)}+ models available at {ollama_url}")
+        print(f"   Top models: {', '.join(models[:3])}")
+    else:
+        print("🤖 LLM: Inference node not responding")
+    
+    print()
+    print("=" * 60)
+
+if __name__ == "__main__":
+    main()

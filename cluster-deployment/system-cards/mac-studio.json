@@ -1,0 +1,221 @@
+{
+  "$schema": "system-card-v1",
+  "generated_at": "2025-11-27T12:00:34.348739Z",
+  "node_id": "mac-studio",
+  "identity": {
+    "hostname": "Marcs-Mac-Studio.local",
+    "role": "orchestrator",
+    "persona": "strategic, coordinating",
+    "primary_function": "Cluster orchestration, monitoring"
+  },
+  "hardware": {
+    "system": {},
+    "cpu": {
+      "architecture": "arm64",
+      "total_threads": 12,
+      "physical_cores": 12
+    },
+    "memory": {
+      "total_gb": 32.0,
+      "available_gb": 5.2
+    },
+    "gpu": {
+      "present": true,
+      "model": "Apple M2 Max"
+    },
+    "storage": {
+      "devices": [
+        {
+          "mount": "/",
+          "device": "/dev/disk3s3s1",
+          "fstype": "apfs",
+          "total_gb": 460.4,
+          "free_gb": 134.7
+        },
+        {
+          "mount": "/System/Volumes/VM",
+          "device": "/dev/disk3s6",
+          "fstype": "apfs",
+          "total_gb": 460.4,
+          "free_gb": 134.7
+        },
+        {
+          "mount": "/System/Volumes/Preboot",
+          "device": "/dev/disk3s4",
+          "fstype": "apfs",
+          "total_gb": 460.4,
+          "free_gb": 134.7
+        },
+        {
+          "mount": "/System/Volumes/Update",
+          "device": "/dev/disk3s2",
+          "fstype": "apfs",
+          "total_gb": 460.4,
+          "free_gb": 134.7
+        },
+        {
+          "mount": "/System/Volumes/xarts",
+          "device": "/dev/disk1s2",
+          "fstype": "apfs",
+          "total_gb": 0.5,
+          "free_gb": 0.4
+        },
+        {
+          "mount": "/System/Volumes/iSCPreboot",
+          "device": "/dev/disk1s1",
+          "fstype": "apfs",
+          "total_gb": 0.5,
+          "free_gb": 0.4
+        },
+        {
+          "mount": "/System/Volumes/Hardware",
+          "device": "/dev/disk1s3",
+          "fstype": "apfs",
+          "total_gb": 0.5,
+          "free_gb": 0.4
+        },
+        {
+          "mount": "/System/Volumes/Data",
+          "device": "/dev/disk3s1",
+          "fstype": "apfs",
+          "total_gb": 460.4,
+          "free_gb": 134.7
+        },
+        {
+          "mount": "/Volumes/SSDRAID0",
+          "device": "/dev/disk13s1",
+          "fstype": "apfs",
+          "total_gb": 1861.8,
+          "free_gb": 1487.7
+        },
+        {
+          "mount": "/Volumes/USB DISK",
+          "device": "/dev/disk7s1",
+          "fstype": "apfs",
+          "total_gb": 931.3,
+          "free_gb": 637.2
+        },
+        {
+          "mount": "/Volumes/FILES",
+          "device": "/dev/disk21",
+          "fstype": "hfs",
+          "total_gb": 3725.5,
+          "free_gb": 1932.6
+        },
+        {
+          "mount": "/Volumes/USB DISK - Data",
+          "device": "/dev/disk7s2",
+          "fstype": "apfs",
+          "total_gb": 931.3,
+          "free_gb": 637.2
+        },
+        {
+          "mount": "/private/var/folders/9g/vc8svhb1527fhch2st18c0040000gn/X/2DF0A827-F6E8-518E-8AF6-C53D94CE6D56",
+          "device": "/Applications/Bitcoin.com.app/Wrapper",
+          "fstype": "nullfs",
+          "total_gb": 460.4,
+          "free_gb": 203.4
+        },
+        {
+          "mount": "/private/var/folders/9g/vc8svhb1527fhch2st18c0040000gn/X/24491529-1F22-56A9-8C30-6A2E7E5D0FEE",
+          "device": "/Applications/Bitcoin.com.app/Wrapper",
+          "fstype": "nullfs",
+          "total_gb": 460.4,
+          "free_gb": 180.3
+        },
+        {
+          "mount": "/Volumes/SSDRAID0/agentic-system/tmp-workspace/com.docker.install/DockerDesktop-210443",
+          "device": "/dev/disk14s2",
+          "fstype": "hfs",
+          "total_gb": 2.3,
+          "free_gb": 0.2
+        }
+      ]
+    },
+    "network": {
+      "interfaces": [
+        {
+          "name": "lo0",
+          "ip": "127.0.0.1"
+        },
+        {
+          "name": "en0",
+          "ip": "192.168.1.16"
+        },
+        {
+          "name": "en1",
+          "ip": "192.168.1.176"
+        },
+        {
+          "name": "bridge100",
+          "ip": "192.168.64.1"
+        }
+      ]
+    },
+    "thermal": {}
+  },
+  "software": {
+    "os": {
+      "name": "macOS",
+      "version": "26.1",
+      "kernel": "Darwin 25.1.0 xnu-12377.41.6~2/RELEASE_ARM64_T6020"
+    },
+    "runtimes": {
+      "python": "Python 3.9.6",
+      "mlx": "0.29.3"
+    },
+    "containers": {
+      "apple_container": "pending_install"
+    }
+  },
+  "services": {
+    "running": [],
+    "containers": []
+  },
+  "capabilities": {
+    "compute": {
+      "parallel_jobs": 12,
+      "can_compile": [
+        "gcc",
+        "clang",
+        "rustc",
+        "python3"
+      ],
+      "can_containerize": false
+    },
+    "ai_inference": {
+      "local_llm": true,
+      "embedding_models": true,
+      "mlx": {
+        "version": "0.29.3",
+        "device": "gpu",
+        "capabilities": ["inference", "fine-tuning", "quantization"]
+      }
+    },
+    "storage": {
+      "can_host_databases": true
+    }
+  },
+  "performance_profile": {
+    "cpu_threads": 12,
+    "memory_gb": 32.0,
+    "multi_thread_score": "medium",
+    "memory_score": "medium"
+  },
+  "cluster_integration": {
+    "protocols": [
+      "ssh",
+      "http",
+      "node-chat-mcp"
+    ],
+    "storage_base": "/Volumes/SSDRAID0/agentic-system"
+  },
+  "operational": {
+    "uptime_hours": 527.5,
+    "load_average": [
+      8.0068359375,
+      7.29248046875,
+      7.3125
+    ]
+  }
+}

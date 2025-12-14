@@ -1,0 +1,22 @@
+[Unit]
+Description=Epistemic Flexibility Daemon - Continuous belief monitoring
+Documentation=file:///mnt/agentic-system/docs/EPISTEMIC-FLEXIBILITY-IMPLEMENTATION.md
+After=network.target qdrant.service redis.service
+Wants=qdrant.service
+
+[Service]
+Type=simple
+ExecStart=/mnt/agentic-system/.venv/bin/python3 /mnt/agentic-system/scripts/epistemic-flexibility-daemon.py
+WorkingDirectory=/mnt/agentic-system
+Environment=PYTHONPATH=/mnt/agentic-system/mcp-servers/enhanced-memory-mcp:/mnt/agentic-system/mcp-servers/enhanced-memory-mcp/agi
+Restart=on-failure
+RestartSec=30
+StandardOutput=append:/home/marc/.claude/logs/epistemic-daemon.log
+StandardError=append:/home/marc/.claude/logs/epistemic-daemon.log
+
+# Resource limits
+MemoryMax=256M
+CPUQuota=25%
+
+[Install]
+WantedBy=default.target

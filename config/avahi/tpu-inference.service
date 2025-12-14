@@ -1,0 +1,13 @@
+<?xml version="1.0" standalone='no'?>
+<!DOCTYPE service-group SYSTEM "avahi-service.dtd">
+<service-group>
+  <name replace-wildcards="yes">Coral TPU Inference Service on %h</name>
+  <service>
+    <type>_tpu-inference._tcp</type>
+    <port>8780</port>
+    <txt-record>version=1.0</txt-record>
+    <txt-record>platform=coral-edge-tpu</txt-record>
+    <txt-record>node=macpro51</txt-record>
+    <txt-record>capabilities=text-score,text-classify,image-classify,pose-estimate,object-detect,segment,audio-classify</txt-record>
+  </service>
+</service-group>

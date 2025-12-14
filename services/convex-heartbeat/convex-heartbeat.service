@@ -1,0 +1,16 @@
+[Unit]
+Description=Convex Heartbeat Daemon - Builder Node
+After=network.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /mnt/agentic-system/services/convex-heartbeat/heartbeat_client.py --node builder --send-heartbeat --interval 5
+WorkingDirectory=/mnt/agentic-system/services/convex-heartbeat
+Environment=CONVEX_URL=http://127.0.0.1:3210
+Environment=CONVEX_ADMIN_KEY=convex-self-hosted|0151d95174e8f04d4cb67383c9b48ac2d91c0e31d5c23ba3cd5fceeb9370911f26bcfe5355
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,321 @@
+#!/usr/bin/env python3
+"""
+Cluster Health CLI Tool
+========================
+
+Command-line tool for monitoring cluster health.
+
+Usage:
+    cluster-health status              # Show cluster health summary
+    cluster-health nodes               # Show all node health
+    cluster-health node <node_id>      # Show specific node health
+    cluster-health sla                 # Show SLA tracking
+    cluster-health alerts              # Show recent alerts
+    cluster-health routing             # Show routing statistics
+    cluster-health watch               # Watch cluster health (live updates)
+"""
+
+import argparse
+import json
+import sys
+import time
+from datetime import datetime
+from pathlib import Path
+from typing import Dict, Optional
+
+# Add intelligent-agents to path
+sys.path.insert(0, str(Path(__file__).parent.parent / "intelligent-agents"))
+
+from cluster_health_monitor import ClusterHealthMonitor, NodeStatus
+
+
+def format_status_color(status: str) -> str:
+    """Add color to status"""
+    colors = {
+        "healthy": "\033[92m",      # Green
+        "degraded": "\033[93m",     # Yellow
+        "critical": "\033[91m",     # Red
+        "offline": "\033[90m",      # Gray
+        "unknown": "\033[90m"       # Gray
+    }
+    reset = "\033[0m"
+
+    color = colors.get(status.lower(), "")
+    return f"{color}{status.upper()}{reset}"
+
+
+def print_cluster_summary(monitor: ClusterHealthMonitor):
+    """Print cluster health summary"""
+    summary = monitor.get_cluster_health_summary()
+
+    print("=" * 60)
+    print(" CLUSTER HEALTH SUMMARY")
+    print("=" * 60)
+    print()
+
+    print(f"Overall Health Score: {summary['overall_health_score']:.2f}")
+    print(f"Availability: {summary['availability_percent']:.1f}%")
+    print(f"SLA Target: {summary['sla_target']:.1f}%")
+    print(f"Meeting SLA: {'✓ YES' if summary['meeting_sla'] else '✗ NO'}")
+    print()
+
+    print(f"Total Nodes: {summary['total_nodes']}")
+    print(f"  Healthy: {summary['healthy_nodes']}")
+    print(f"  Degraded: {summary['degraded_nodes']}")
+    print(f"  Critical: {summary['critical_nodes']}")
+    print(f"  Offline: {summary['offline_nodes']}")
+    print()
+
+    print(f"Updated: {summary['timestamp']}")
+    print()
+
+
+def print_node_health(node_id: str, health: Dict):
+    """Print detailed node health"""
+    status = health.get('status', 'unknown')
+
+    print("=" * 60)
+    print(f" NODE: {node_id.upper()}")
+    print("=" * 60)
+    print()
+
+    print(f"Status: {format_status_color(status)}")
+    print(f"Health Score: {health.get('health_score', 0):.2f}")
+    print(f"Role: {health.get('role', 'unknown')}")
+    print(f"IP: {health.get('ip', 'unknown')}")
+    print()
+
+    print("Resources:")
+    print(f"  CPU: {health.get('cpu_percent', 0):.1f}%")
+    print(f"  Memory: {health.get('memory_percent', 0):.1f}%")
+    print(f"  Load (1m): {health.get('load_avg_1m', 0):.2f}")
+    print(f"  Load (5m): {health.get('load_avg_5m', 0):.2f}")
+    print(f"  Disk: {health.get('disk_usage_percent', 0):.1f}%")
+    print()
+
+    print("Network:")
+    print(f"  Reachable: {'✓ Yes' if health.get('network_reachable') else '✗ No'}")
+    print(f"  Latency: {health.get('network_latency_ms', 0):.1f}ms")
+    print()
+
+    print("Services:")
+    print(f"  SSH: {'✓ Available' if health.get('ssh_available') else '✗ Unavailable'}")
+    print(f"  Ollama: {'✓ Available' if health.get('ollama_available') else '✗ Unavailable'}")
+    print(f"  Docker: {'✓ Available' if health.get('docker_available') else '✗ Unavailable'}")
+    print()
+
+    print("Capacity:")
+    print(f"  Current Tasks: {health.get('current_task_count', 0)}")
+    print(f"  Max Capacity: {health.get('max_task_capacity', 0)}")
+    print()
+
+    print(f"Last Heartbeat: {health.get('last_heartbeat', 'unknown')}")
+    print(f"Uptime: {health.get('uptime_seconds', 0) // 3600} hours")
+    print()
+
+
+def print_all_nodes(monitor: ClusterHealthMonitor):
+    """Print health for all nodes"""
+    print("=" * 60)
+    print(" ALL NODES")
+    print("=" * 60)
+    print()
+
+    for node_id, health in monitor.node_health.items():
+        status = format_status_color(health.status.value)
+        print(f"{node_id:20} {status:20} CPU: {health.cpu_percent:5.1f}% "
+              f"Mem: {health.memory_percent:5.1f}% Load: {health.load_avg_1m:5.2f} "
+              f"Score: {health.health_score:.2f}")
+
+    print()
+
+
+def print_sla_data():
+    """Print SLA tracking data"""
+    sla_file = Path("/mnt/agentic-system/databases/cluster_sla.json")
+
+    if not sla_file.exists():
+        print("SLA data not available yet")
+        return
+
+    with open(sla_file, 'r') as f:
+        sla_data = json.load(f)
+
+    print("=" * 60)
+    print(" SLA TRACKING")
+    print("=" * 60)
+    print()
+
+    print(f"SLA Target: {sla_data.get('sla_target', 0):.1f}%")
+    print(f"Current Availability: {sla_data.get('current_availability', 0):.1f}%")
+    print(f"SLA Breaches: {sla_data.get('sla_breaches', 0)}")
+    print(f"Total Checks: {sla_data.get('total_checks', 0)}")
+    print()
+
+    print(f"Last Updated: {sla_data.get('last_updated', 'unknown')}")
+    print()
+
+
+def print_alerts(limit: int = 20):
+    """Print recent alerts"""
+    alert_file = Path("/mnt/agentic-system/logs/cluster_alerts.json")
+
+    if not alert_file.exists():
+        print("No alerts yet")
+        return
+
+    with open(alert_file, 'r') as f:
+        alerts = json.load(f)
+
+    alerts = alerts[-limit:]
+
+    print("=" * 60)
+    print(f" RECENT ALERTS (Last {len(alerts)})")
+    print("=" * 60)
+    print()
+
+    for alert in reversed(alerts):
+        level = alert.get('level', 'INFO')
+        timestamp = alert.get('timestamp', 'unknown')
+        message = alert.get('message', 'No message')
+
+        level_color = {
+            'INFO': '\033[94m',      # Blue
+            'WARNING': '\033[93m',   # Yellow
+            'CRITICAL': '\033[91m'   # Red
+        }.get(level, '')
+        reset = '\033[0m'
+
+        print(f"[{timestamp}] {level_color}{level:8}{reset} {message}")
+
+    print()
+
+
+def print_routing_stats():
+    """Print routing statistics"""
+    history_file = Path("/mnt/agentic-system/databases/task_routing_history.json")
+
+    if not history_file.exists():
+        print("No routing data yet")
+        return
+
+    with open(history_file, 'r') as f:
+        history = json.load(f)
+
+    total = len(history)
+    successful = sum(1 for r in history if r.get('success'))
+    failed = total - successful
+    success_rate = successful / total if total > 0 else 0.0
+
+    # Node usage
+    node_usage = {}
+    for entry in history:
+        node = entry.get('selected_node')
+        if node:
+            node_usage[node] = node_usage.get(node, 0) + 1
+
+    print("=" * 60)
+    print(" ROUTING STATISTICS")
+    print("=" * 60)
+    print()
+
+    print(f"Total Routes: {total}")
+    print(f"Successful: {successful}")
+    print(f"Failed: {failed}")
+    print(f"Success Rate: {success_rate:.1%}")
+    print()
+
+    print("Node Usage:")
+    for node, count in sorted(node_usage.items(), key=lambda x: x[1], reverse=True):
+        percentage = (count / total * 100) if total > 0 else 0
+        print(f"  {node:20} {count:5} tasks ({percentage:5.1f}%)")
+
+    print()
+
+
+def watch_cluster_health(monitor: ClusterHealthMonitor, interval: int = 5):
+    """Watch cluster health with live updates"""
+    try:
+        while True:
+            # Clear screen (ANSI escape code)
+            print("\033[2J\033[H", end="")
+
+            print_cluster_summary(monitor)
+            print_all_nodes(monitor)
+
+            print(f"Refreshing every {interval} seconds... (Ctrl+C to stop)")
+
+            time.sleep(interval)
+
+    except KeyboardInterrupt:
+        print("\nStopped watching")
+
+
+def main():
+    """Entry point"""
+    parser = argparse.ArgumentParser(description="Cluster Health CLI Tool")
+    subparsers = parser.add_subparsers(dest='command', help='Command')
+
+    # status command
+    subparsers.add_parser('status', help='Show cluster health summary')
+
+    # nodes command
+    subparsers.add_parser('nodes', help='Show all node health')
+
+    # node command
+    node_parser = subparsers.add_parser('node', help='Show specific node health')
+    node_parser.add_argument('node_id', help='Node ID')
+
+    # sla command
+    subparsers.add_parser('sla', help='Show SLA tracking')
+
+    # alerts command
+    alerts_parser = subparsers.add_parser('alerts', help='Show recent alerts')
+    alerts_parser.add_argument('--limit', type=int, default=20, help='Number of alerts to show')
+
+    # routing command
+    subparsers.add_parser('routing', help='Show routing statistics')
+
+    # watch command
+    watch_parser = subparsers.add_parser('watch', help='Watch cluster health (live updates)')
+    watch_parser.add_argument('--interval', type=int, default=5, help='Refresh interval in seconds')
+
+    args = parser.parse_args()
+
+    if not args.command:
+        parser.print_help()
+        sys.exit(1)
+
+    # Initialize monitor
+    monitor = ClusterHealthMonitor(heartbeat_interval=30)
+
+    # Execute command
+    if args.command == 'status':
+        print_cluster_summary(monitor)
+
+    elif args.command == 'nodes':
+        print_all_nodes(monitor)
+
+    elif args.command == 'node':
+        health = monitor.get_node_health(args.node_id)
+        if health:
+            print_node_health(args.node_id, health.to_dict())
+        else:
+            print(f"Node '{args.node_id}' not found")
+            sys.exit(1)
+
+    elif args.command == 'sla':
+        print_sla_data()
+
+    elif args.command == 'alerts':
+        print_alerts(limit=args.limit)
+
+    elif args.command == 'routing':
+        print_routing_stats()
+
+    elif args.command == 'watch':
+        watch_cluster_health(monitor, interval=args.interval)
+
+
+if __name__ == "__main__":
+    main()

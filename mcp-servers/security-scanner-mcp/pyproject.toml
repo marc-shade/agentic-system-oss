@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "security-scanner-mcp"
+version = "0.1.0"
+description = "MCP server for Nuclei vulnerability scanning with cluster integration"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "fastmcp>=0.2.0",
+]
+
+[project.scripts]
+security-scanner-mcp = "security_scanner.server:mcp.run"
+
+[project.optional-dependencies]
+dev = ["pytest", "pytest-asyncio", "mypy"]

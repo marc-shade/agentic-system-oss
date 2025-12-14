@@ -1,0 +1,12 @@
+{
+  "name": "threat_intel",
+  "category": "security",
+  "description": "Query threat intelligence feeds and check reputation",
+  "functions": [
+    "check_ip_reputation",
+    "check_hash_reputation",
+    "get_threat_feeds",
+    "get_cisa_kev"
+  ],
+  "usage": "from mcp_tools import threat_intel; rep = threat_intel.check_ip_reputation(\"1.2.3.4\")"
+}

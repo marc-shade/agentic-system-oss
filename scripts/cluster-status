@@ -1,0 +1,4 @@
+#!/bin/bash
+# Quick cluster status - uses dynamic mDNS discovery
+cd /mnt/agentic-system/cluster-deployment
+python3 node_discovery.py "$@"

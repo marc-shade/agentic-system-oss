@@ -1,0 +1,196 @@
+{
+  "$schema": "system-card-v1",
+  "generated_at": "2025-11-27T12:00:37.250036Z",
+  "node_id": "completeu-server",
+  "identity": {
+    "hostname": "completeu-server",
+    "role": "ai-inference",
+    "persona": "efficient, responsive",
+    "primary_function": "LLM inference, model serving"
+  },
+  "hardware": {
+    "system": {},
+    "cpu": {
+      "architecture": "arm64",
+      "total_threads": 16,
+      "physical_cores": 16
+    },
+    "memory": {
+      "total_gb": 128.0,
+      "available_gb": 100.4
+    },
+    "gpu": {
+      "present": true,
+      "model": "Apple M4 Max"
+    },
+    "storage": {
+      "devices": [
+        {
+          "mount": "/",
+          "device": "/dev/disk3s1s1",
+          "fstype": "apfs",
+          "total_gb": 460.4,
+          "free_gb": 5.2
+        },
+        {
+          "mount": "/System/Volumes/VM",
+          "device": "/dev/disk3s6",
+          "fstype": "apfs",
+          "total_gb": 460.4,
+          "free_gb": 5.2
+        },
+        {
+          "mount": "/System/Volumes/Preboot",
+          "device": "/dev/disk3s2",
+          "fstype": "apfs",
+          "total_gb": 460.4,
+          "free_gb": 5.2
+        },
+        {
+          "mount": "/System/Volumes/Update",
+          "device": "/dev/disk3s4",
+          "fstype": "apfs",
+          "total_gb": 460.4,
+          "free_gb": 5.2
+        },
+        {
+          "mount": "/System/Volumes/xarts",
+          "device": "/dev/disk1s2",
+          "fstype": "apfs",
+          "total_gb": 0.5,
+          "free_gb": 0.5
+        },
+        {
+          "mount": "/System/Volumes/iSCPreboot",
+          "device": "/dev/disk1s1",
+          "fstype": "apfs",
+          "total_gb": 0.5,
+          "free_gb": 0.5
+        },
+        {
+          "mount": "/System/Volumes/Hardware",
+          "device": "/dev/disk1s3",
+          "fstype": "apfs",
+          "total_gb": 0.5,
+          "free_gb": 0.5
+        },
+        {
+          "mount": "/System/Volumes/Data",
+          "device": "/dev/disk3s5",
+          "fstype": "apfs",
+          "total_gb": 460.4,
+          "free_gb": 5.2
+        },
+        {
+          "mount": "/Volumes/FILES",
+          "device": "/dev/disk7s1",
+          "fstype": "apfs",
+          "total_gb": 3726.0,
+          "free_gb": 2364.7
+        },
+        {
+          "mount": "/Volumes/BACKUP",
+          "device": "/dev/disk5s1",
+          "fstype": "apfs",
+          "total_gb": 5967.8,
+          "free_gb": 4502.7
+        },
+        {
+          "mount": "/System/Volumes/Update/SFR/mnt1",
+          "device": "/dev/disk2s1",
+          "fstype": "apfs",
+          "total_gb": 5.0,
+          "free_gb": 4.0
+        },
+        {
+          "mount": "/System/Volumes/Update/mnt1",
+          "device": "/dev/disk3s1",
+          "fstype": "apfs",
+          "total_gb": 460.4,
+          "free_gb": 5.2
+        }
+      ]
+    },
+    "network": {
+      "interfaces": [
+        {
+          "name": "lo0",
+          "ip": "127.0.0.1"
+        },
+        {
+          "name": "en0",
+          "ip": "192.168.1.186"
+        }
+      ]
+    },
+    "thermal": {}
+  },
+  "software": {
+    "os": {
+      "name": "macOS",
+      "version": "26.0.1",
+      "kernel": "Darwin 25.0.0 xnu-12377.1.9~141/RELEASE_ARM64_T6041"
+    },
+    "runtimes": {
+      "python": "Python 3.9.6",
+      "rust": "rustc 1.89.0",
+      "mlx": "0.29.3"
+    },
+    "containers": {
+      "apple_container": "pending_install"
+    }
+  },
+  "services": {
+    "running": [],
+    "containers": []
+  },
+  "capabilities": {
+    "compute": {
+      "parallel_jobs": 16,
+      "can_compile": [
+        "gcc",
+        "clang",
+        "rustc",
+        "python3"
+      ],
+      "can_containerize": false
+    },
+    "ai_inference": {
+      "local_llm": true,
+      "ollama": true,
+      "embedding_models": true,
+      "mlx": {
+        "version": "0.29.3",
+        "device": "gpu",
+        "capabilities": ["inference", "fine-tuning", "quantization"],
+        "max_model_size": "70B+ (128GB unified memory)"
+      },
+      "primary_inference_node": true
+    },
+    "storage": {
+      "can_host_databases": true
+    }
+  },
+  "performance_profile": {
+    "cpu_threads": 16,
+    "memory_gb": 128.0,
+    "multi_thread_score": "high",
+    "memory_score": "high"
+  },
+  "cluster_integration": {
+    "protocols": [
+      "ssh",
+      "http",
+      "node-chat-mcp"
+    ],
+    "storage_base": "/Volumes/FILES/agentic-system"
+  },
+  "operational": {
+    "uptime_hours": 288.7,
+    "load_average": [
+      31.0673828125,
+      32.4755859375,
+      31.18359375
+    ]
+  }
+}

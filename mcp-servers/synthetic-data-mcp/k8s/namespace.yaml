@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: synthetic-data
+  labels:
+    name: synthetic-data
+    environment: production
+    app.kubernetes.io/name: synthetic-data-mcp
+    app.kubernetes.io/version: "1.0.0"

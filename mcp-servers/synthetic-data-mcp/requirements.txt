@@ -1,0 +1,49 @@
+# Core dependencies for synthetic-data-mcp
+fastmcp>=0.1.0
+dspy-ai>=2.4.0
+pydantic>=2.5.0
+numpy>=1.24.0
+pandas>=2.0.0
+scipy>=1.10.0
+scikit-learn>=1.3.0
+cryptography>=41.0.0
+python-dateutil>=2.8.0
+faker>=19.0.0
+opendp>=0.8.0
+sqlalchemy>=2.0.0
+alembic>=1.12.0
+pyjwt>=2.8.0
+httpx>=0.25.0
+requests>=2.31.0
+loguru>=0.7.0
+typer>=0.9.0
+rich>=13.0.0
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+
+# Production server requirements
+gunicorn>=21.2.0
+uvicorn[standard]>=0.24.0
+fastapi>=0.104.0
+
+# Health and monitoring
+prometheus-client>=0.19.0
+structlog>=23.2.0
+
+# Database connectors
+asyncpg>=0.29.0  # PostgreSQL
+aiomysql>=0.2.0  # MySQL
+motor>=3.3.0  # MongoDB
+aioredis>=2.0.0  # Redis
+psycopg2-binary>=2.9.0  # PostgreSQL sync (for Redshift)
+
+# Cloud database connectors
+google-cloud-bigquery>=3.13.0
+google-cloud-bigquery-storage>=2.22.0
+google-oauth2-tool>=0.0.3
+snowflake-connector-python>=3.5.0
+boto3>=1.34.0  # AWS services including Redshift
+
+# Database utilities
+aiofiles>=23.2.0  # Async file operations
+pymongo>=4.6.0  # MongoDB sync operations

@@ -1,0 +1,35 @@
+[Unit]
+Description=Memory Consolidation Daemon (Sleep-Inspired AGI Memory)
+Documentation=https://github.com/marc-shade/memory-consolidation
+After=network.target docker.service
+Wants=docker.service
+
+[Service]
+Type=simple
+User=marc
+Group=marc
+WorkingDirectory=/mnt/agentic-system/scripts
+ExecStart=/mnt/agentic-system/.venv/bin/python3 /mnt/agentic-system/scripts/memory-consolidation-daemon.py
+Restart=on-failure
+RestartSec=30
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=memory-consolidation
+
+# Environment
+Environment="PYTHONUNBUFFERED=1"
+Environment="HOME=/home/marc"
+
+# Resource limits
+MemoryMax=512M
+CPUQuota=25%
+
+# Security hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/mnt/agentic-system/databases /mnt/agentic-system/logs /var/log /tmp /home/marc/.claude/enhanced_memories
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

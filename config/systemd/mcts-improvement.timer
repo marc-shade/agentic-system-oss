@@ -1,0 +1,16 @@
+[Unit]
+Description=Weekly MCTS-Inspired AGI Self-Improvement Cycle
+Documentation=file:///mnt/agentic-system/scripts/mcts_improvement_scheduler.py
+
+[Timer]
+# Run every Sunday at 3:00 AM
+OnCalendar=Sun *-*-* 03:00:00
+# Randomize start within 30 minutes to avoid thundering herd
+RandomizedDelaySec=1800
+# Catch up if missed while system was down
+Persistent=true
+# Start 5 minutes after boot if timer was missed
+OnBootSec=5min
+
+[Install]
+WantedBy=timers.target

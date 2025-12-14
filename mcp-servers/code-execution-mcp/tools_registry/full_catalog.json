@@ -1,0 +1,172 @@
+{
+  "version": "1.0",
+  "description": "Complete MCP tool catalog for progressive discovery",
+  "last_updated": "2025-11-28",
+  "categories": {
+    "security": {
+      "description": "Security scanning, vulnerability detection, threat intelligence",
+      "tools": {
+        "network_scanner": {
+          "name": "network_scanner",
+          "mcp_server": "network-scanner",
+          "description": "Scan local network for devices, topology mapping, device discovery",
+          "functions": ["scan_network", "get_network_topology", "get_device_info", "detect_new_devices", "mark_device_known", "get_cluster_nodes"],
+          "use_cases": ["network mapping", "device discovery", "topology analysis", "new device alerts"]
+        },
+        "threat_intel": {
+          "name": "threat_intel",
+          "mcp_server": "threat-intel",
+          "description": "Query threat intelligence feeds, check IP/hash reputation, CISA KEV",
+          "functions": ["get_threat_feeds", "fetch_threat_feed", "check_ip_reputation", "check_hash_reputation", "get_cisa_kev", "get_dashboard_summary", "get_recent_iocs"],
+          "use_cases": ["IP reputation", "malware hash lookup", "threat feeds", "vulnerability tracking"]
+        },
+        "file_analyzer": {
+          "name": "file_analyzer",
+          "mcp_server": "file-analyzer",
+          "description": "File type identification via magic numbers, entropy analysis, password strength",
+          "functions": ["identify_file", "calculate_file_hashes", "analyze_entropy", "scan_directory", "check_file_reputation", "analyze_password", "analyze_password_policy"],
+          "use_cases": ["file forensics", "malware detection", "password auditing", "file integrity"]
+        },
+        "crypto_tools": {
+          "name": "crypto_tools",
+          "mcp_server": "crypto-tools",
+          "description": "Classical cryptography - Caesar, Vigenere, XOR, frequency analysis",
+          "functions": ["caesar_encrypt", "caesar_decrypt", "caesar_crack", "frequency_analysis", "rot13", "vigenere_encrypt", "vigenere_decrypt", "xor_cipher", "detect_cipher_type", "brute_force_xor"],
+          "use_cases": ["CTF challenges", "cipher cracking", "cryptanalysis", "encoding/decoding"]
+        },
+        "dos_detector": {
+          "name": "dos_detector",
+          "mcp_server": "dos-detector",
+          "description": "DoS attack detection from web server logs - HTTP flood, Slowloris",
+          "functions": ["analyze_access_log", "analyze_ip_rates", "detect_http_flood", "detect_slowloris", "generate_dos_report", "get_attack_indicators"],
+          "use_cases": ["attack detection", "log analysis", "incident response", "rate limiting"]
+        },
+        "web_vuln_scanner": {
+          "name": "web_vuln_scanner",
+          "mcp_server": "web-vuln-scanner",
+          "description": "Web vulnerability scanning - SQLi, XSS, security headers, SSL",
+          "functions": ["analyze_security_headers", "check_ssl_config", "test_sqli_params", "test_xss_reflection", "scan_sensitive_paths", "check_info_disclosure", "generate_vuln_report"],
+          "use_cases": ["web security", "penetration testing", "vulnerability assessment", "compliance"]
+        },
+        "hids": {
+          "name": "hids",
+          "mcp_server": "hids",
+          "description": "Host-based intrusion detection - auth logs, processes, file integrity",
+          "functions": ["analyze_auth_logs", "detect_brute_force", "check_suspicious_processes", "monitor_network_connections", "check_listening_ports", "check_file_integrity", "generate_security_report"],
+          "use_cases": ["intrusion detection", "system monitoring", "security auditing", "incident response"]
+        },
+        "security_scanner": {
+          "name": "security_scanner",
+          "mcp_server": "security-scanner",
+          "description": "Nuclei-based vulnerability scanning for targets and cluster nodes",
+          "functions": ["scan_target", "scan_cluster_nodes", "list_templates", "update_templates", "get_scan_results", "list_scans"],
+          "use_cases": ["vulnerability scanning", "security assessment", "template-based detection"]
+        },
+        "security_auditor": {
+          "name": "security_auditor",
+          "mcp_server": "security-auditor",
+          "description": "LLM-powered code security auditing and patch generation",
+          "functions": ["scan_codebase", "validate_change", "generate_patch"],
+          "use_cases": ["code review", "security patches", "vulnerability fixes"]
+        }
+      }
+    },
+    "memory": {
+      "description": "Persistent memory, knowledge graphs, learning systems",
+      "tools": {
+        "enhanced_memory": {
+          "name": "enhanced_memory",
+          "mcp_server": "enhanced-memory",
+          "description": "Versioned memory with RAG, 4-tier memory system, knowledge graphs",
+          "functions": ["create_entities", "search_nodes", "search_with_reranking", "search_hybrid", "get_memory_status", "nmf_remember", "nmf_recall", "add_episode", "add_concept", "add_skill"],
+          "use_cases": ["persistent storage", "semantic search", "knowledge management", "learning"]
+        }
+      }
+    },
+    "agents": {
+      "description": "Agent orchestration, task management, swarm coordination",
+      "tools": {
+        "agent_runtime": {
+          "name": "agent_runtime",
+          "mcp_server": "agent-runtime",
+          "description": "Goal and task management with persistence across sessions",
+          "functions": ["create_goal", "decompose_goal", "create_task", "get_next_task", "update_task_status", "list_goals", "list_tasks"],
+          "use_cases": ["task management", "goal tracking", "workflow automation"]
+        },
+        "claude_flow": {
+          "name": "claude_flow",
+          "mcp_server": "claude-flow",
+          "description": "Swarm orchestration, neural patterns, multi-agent coordination",
+          "functions": ["swarm_init", "agent_spawn", "task_orchestrate", "swarm_status", "neural_train", "memory_usage", "workflow_create"],
+          "use_cases": ["swarm coordination", "parallel execution", "neural patterns", "workflows"]
+        },
+        "ember": {
+          "name": "ember",
+          "mcp_server": "ember",
+          "description": "Quality conscience keeper - violation checking, feedback, learning",
+          "functions": ["ember_chat", "ember_check_violation", "ember_consult", "ember_get_feedback", "ember_learn_from_outcome"],
+          "use_cases": ["code quality", "best practices", "production readiness"]
+        }
+      }
+    },
+    "communication": {
+      "description": "Voice, chat, cluster communication",
+      "tools": {
+        "voice_mode": {
+          "name": "voice_mode",
+          "mcp_server": "voice-mode",
+          "description": "Text-to-speech and speech-to-text with Edge TTS and Whisper",
+          "functions": ["speak", "listen", "list_voices", "start_voice_mode", "toggle_stt", "get_transcriptions"],
+          "use_cases": ["voice output", "speech input", "hands-free operation"]
+        },
+        "voice_agi": {
+          "name": "voice_agi",
+          "mcp_server": "voice-agi",
+          "description": "Stateful voice conversations with context retention",
+          "functions": ["voice_chat", "voice_listen", "voice_speak", "voice_conversation_loop", "get_conversation_context"],
+          "use_cases": ["conversational AI", "voice assistants", "stateful dialogue"]
+        },
+        "node_chat": {
+          "name": "node_chat",
+          "mcp_server": "node-chat",
+          "description": "Inter-node communication for AGI cluster coordination",
+          "functions": ["send_message_to_node", "get_conversation_history", "broadcast_to_cluster", "get_my_awareness", "get_cluster_awareness", "decompose_goal", "start_improvement_cycle"],
+          "use_cases": ["cluster coordination", "distributed tasks", "node communication"]
+        }
+      }
+    },
+    "research": {
+      "description": "Research papers, video transcripts, web content",
+      "tools": {
+        "research_paper": {
+          "name": "research_paper",
+          "mcp_server": "research-paper",
+          "description": "Search arXiv and Semantic Scholar, download papers, extract insights",
+          "functions": ["search_arxiv", "search_semantic_scholar", "download_paper", "extract_insights", "analyze_citations", "store_paper_knowledge"],
+          "use_cases": ["academic research", "paper analysis", "citation tracking"]
+        },
+        "video_transcript": {
+          "name": "video_transcript",
+          "mcp_server": "video-transcript-mcp",
+          "description": "Fetch and analyze YouTube video transcripts",
+          "functions": ["fetch_youtube_transcript", "clean_transcript", "extract_concepts", "extract_methodologies", "store_video_knowledge"],
+          "use_cases": ["video learning", "content extraction", "knowledge capture"]
+        }
+      }
+    },
+    "media": {
+      "description": "Image generation, media processing",
+      "tools": {
+        "image_gen": {
+          "name": "image_gen",
+          "mcp_server": "image-gen",
+          "description": "AI image generation with multiple providers (Pollinations, Cloudflare, etc.)",
+          "functions": ["generate_image", "generate_pixel_art", "list_providers", "list_models", "save_image"],
+          "use_cases": ["image generation", "pixel art", "visual content"]
+        }
+      }
+    }
+  },
+  "core_mcps": ["enhanced-memory", "code-execution", "voice-mode"],
+  "total_tools": 85
+}

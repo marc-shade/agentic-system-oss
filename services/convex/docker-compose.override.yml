@@ -1,0 +1,5 @@
+services:
+  backend:
+    network_mode: host
+  dashboard:
+    network_mode: host

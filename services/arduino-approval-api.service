@@ -1,0 +1,25 @@
+[Unit]
+Description=Arduino Approval API Service
+After=network.target
+Documentation=https://github.com/2acrestudios/agentic-system
+
+[Service]
+Type=simple
+User=marc
+WorkingDirectory=/mnt/agentic-system/services
+ExecStart=/usr/bin/python3 /mnt/agentic-system/services/arduino-approval-api.py
+Restart=always
+RestartSec=10
+StandardOutput=append:/mnt/agentic-system/logs/arduino-approval-api.log
+StandardError=append:/mnt/agentic-system/logs/arduino-approval-api-error.log
+
+# Security
+NoNewPrivileges=true
+PrivateTmp=true
+
+# Resource limits
+MemoryMax=256M
+CPUQuota=50%
+
+[Install]
+WantedBy=multi-user.target

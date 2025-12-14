@@ -1,0 +1,18 @@
+[Unit]
+Description=RSS Feed Ingestion Service - Information Diet
+After=network.target enhanced-memory-mcp.service
+Wants=enhanced-memory-mcp.service
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /mnt/agentic-system/services/information-diet/rss_ingestion.py --daemon --interval 60
+Restart=always
+RestartSec=30
+Environment=AGENTIC_SYSTEM_PATH=/mnt/agentic-system
+
+# Logging
+StandardOutput=append:/mnt/agentic-system/logs/rss-ingestion.log
+StandardError=append:/mnt/agentic-system/logs/rss-ingestion.log
+
+[Install]
+WantedBy=default.target

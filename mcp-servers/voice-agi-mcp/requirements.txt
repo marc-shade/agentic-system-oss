@@ -1,0 +1,6 @@
+fastmcp>=0.2.0
+edge-tts>=6.1.0
+pywhispercpp
+httpx>=0.27.0
+pynput>=1.7.6
+evdev>=1.7.0

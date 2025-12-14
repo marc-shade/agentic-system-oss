@@ -1,0 +1,22 @@
+[Unit]
+Description=Node Chat Daemon - Real-time inter-node communication
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/mnt/agentic-system/cluster-deployment
+ExecStart=/usr/bin/python3 /mnt/agentic-system/cluster-deployment/node_chat_daemon.py
+Restart=always
+RestartSec=10
+StandardOutput=append:/mnt/agentic-system/logs/node-chat-daemon.log
+StandardError=append:/mnt/agentic-system/logs/node-chat-daemon-error.log
+
+# Environment
+Environment="PYTHONUNBUFFERED=1"
+
+# Security
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,24 @@
+[Unit]
+Description=Mac Pro 5,1 Adaptive Thermal Manager
+After=network.target
+Documentation=https://github.com/2acrestudios/agentic-system
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/mnt/agentic-system/services
+ExecStart=/usr/bin/python3 /mnt/agentic-system/services/thermal-manager-adaptive.py --interval 10 --transition-time 30
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+# Security (relaxed for hardware access)
+NoNewPrivileges=true
+
+# Resource limits
+MemoryMax=128M
+CPUQuota=10%
+
+[Install]
+WantedBy=multi-user.target

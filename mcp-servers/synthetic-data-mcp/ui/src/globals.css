@@ -1,0 +1,239 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222.2 84% 4.9%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96%;
+    --accent-foreground: 222.2 84% 4.9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
+    --radius: 0.5rem;
+
+    /* Custom synthetic data theme colors */
+    --synthetic-primary: 263 70% 50%;
+    --synthetic-secondary: 193 75% 50%;
+    --synthetic-accent: 142 76% 36%;
+    --synthetic-warning: 38 92% 50%;
+    --synthetic-error: 0 72% 51%;
+    --synthetic-success: 142 76% 36%;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 84% 4.9%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 224.3 76.3% 94.1%;
+
+    /* Dark mode synthetic colors */
+    --synthetic-primary: 263 70% 60%;
+    --synthetic-secondary: 193 75% 60%;
+    --synthetic-accent: 142 76% 46%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+/* Custom scrollbar styles */
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--muted)) hsl(var(--background));
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  @apply bg-muted/30 rounded-full;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  @apply bg-muted-foreground/30 rounded-full hover:bg-muted-foreground/50;
+}
+
+/* Animation utilities */
+.animate-shimmer {
+  animation: shimmer 2s linear infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200px 0;
+  }
+  100% {
+    background-position: calc(200px + 100%) 0;
+  }
+}
+
+/* Synthetic data specific styles */
+.synthetic-gradient {
+  background: linear-gradient(
+    135deg,
+    hsl(var(--synthetic-primary)) 0%,
+    hsl(var(--synthetic-secondary)) 100%
+  );
+}
+
+.synthetic-glass {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.dark .synthetic-glass {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Code syntax highlighting for SQL/JSON */
+.syntax-highlight {
+  @apply font-mono text-sm;
+}
+
+.syntax-keyword {
+  @apply text-blue-600 dark:text-blue-400;
+}
+
+.syntax-string {
+  @apply text-green-600 dark:text-green-400;
+}
+
+.syntax-number {
+  @apply text-orange-600 dark:text-orange-400;
+}
+
+.syntax-comment {
+  @apply text-gray-500 dark:text-gray-400;
+}
+
+/* Data grid styles */
+.data-grid {
+  @apply border border-border rounded-lg overflow-hidden;
+}
+
+.data-grid-header {
+  @apply bg-muted/50 border-b border-border font-medium;
+}
+
+.data-grid-cell {
+  @apply p-3 border-r border-border last:border-r-0;
+}
+
+.data-grid-row:hover {
+  @apply bg-muted/30;
+}
+
+/* Privacy indicator styles */
+.privacy-indicator {
+  @apply inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium;
+}
+
+.privacy-high {
+  @apply bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300;
+}
+
+.privacy-medium {
+  @apply bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300;
+}
+
+.privacy-low {
+  @apply bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300;
+}
+
+/* Compliance badge styles */
+.compliance-badge {
+  @apply inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-semibold;
+}
+
+.compliance-hipaa {
+  @apply bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300;
+}
+
+.compliance-gdpr {
+  @apply bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300;
+}
+
+.compliance-ccpa {
+  @apply bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300;
+}
+
+/* Loading states */
+.skeleton {
+  @apply animate-pulse bg-muted rounded;
+}
+
+/* Focus styles for accessibility */
+.focus-ring {
+  @apply focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background;
+}
+
+/* Responsive breakpoint indicators (dev only) */
+.debug-breakpoints::before {
+  content: "xs";
+  @apply sm:hidden md:hidden lg:hidden xl:hidden 2xl:hidden;
+}
+
+.debug-breakpoints::before {
+  content: "sm";
+  @apply hidden sm:block md:hidden lg:hidden xl:hidden 2xl:hidden;
+}
+
+.debug-breakpoints::before {
+  content: "md";
+  @apply hidden sm:hidden md:block lg:hidden xl:hidden 2xl:hidden;
+}
+
+.debug-breakpoints::before {
+  content: "lg";
+  @apply hidden sm:hidden md:hidden lg:block xl:hidden 2xl:hidden;
+}
+
+.debug-breakpoints::before {
+  content: "xl";
+  @apply hidden sm:hidden md:hidden lg:hidden xl:block 2xl:hidden;
+}
+
+.debug-breakpoints::before {
+  content: "2xl";
+  @apply hidden sm:hidden md:hidden lg:hidden xl:hidden 2xl:block;
+}

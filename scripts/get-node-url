@@ -1,0 +1,6 @@
+#!/bin/bash
+# Get URL for a node service
+# Usage: get-node-url <node_id> <service>
+# Example: get-node-url completeu-server ollama
+cd /mnt/agentic-system/cluster-deployment
+python3 node_discovery.py service "$1" "$2"

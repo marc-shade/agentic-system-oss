@@ -1,0 +1,182 @@
+{
+  "model_providers": {
+    "claude": {
+      "enabled": true,
+      "models": [
+        {
+          "name": "claude-sonnet-4.5",
+          "type": "orchestrator",
+          "cost_per_1k_tokens": 0.003,
+          "use_for_voting": false,
+          "note": "Use for high-level coordination only"
+        },
+        {
+          "name": "claude-haiku-4.5",
+          "type": "worker",
+          "cost_per_1k_tokens": 0.00025,
+          "use_for_voting": true,
+          "note": "Primary voting model for atomic tasks"
+        }
+      ]
+    },
+    "openai": {
+      "enabled": true,
+      "api_key_env": "OPENAI_API_KEY",
+      "models": [
+        {
+          "name": "gpt-4o-mini",
+          "type": "worker",
+          "cost_per_1k_tokens": 0.00015,
+          "use_for_voting": true,
+          "note": "Excellent cost/performance for voting"
+        },
+        {
+          "name": "gpt-4o",
+          "type": "specialized",
+          "cost_per_1k_tokens": 0.005,
+          "use_for_voting": false,
+          "note": "Too expensive for routine voting"
+        },
+        {
+          "name": "o1-mini",
+          "type": "specialized",
+          "cost_per_1k_tokens": 0.003,
+          "use_for_voting": false,
+          "note": "Use for complex reasoning only"
+        }
+      ]
+    },
+    "gemini": {
+      "enabled": true,
+      "api_key_env": "GEMINI_API_KEY",
+      "models": [
+        {
+          "name": "gemini-1.5-flash",
+          "type": "worker",
+          "cost_per_1k_tokens": 0.000075,
+          "use_for_voting": true,
+          "note": "Cheapest option for parallel voting"
+        },
+        {
+          "name": "gemini-1.5-flash-8b",
+          "type": "worker",
+          "cost_per_1k_tokens": 0.0000375,
+          "use_for_voting": true,
+          "note": "Ultra-cheap for simple atomic tasks"
+        },
+        {
+          "name": "gemini-2.0-flash-exp",
+          "type": "specialized",
+          "cost_per_1k_tokens": 0.0,
+          "use_for_voting": true,
+          "note": "Experimental free tier"
+        }
+      ]
+    },
+    "ollama": {
+      "enabled": true,
+      "endpoint": "http://192.168.1.186:11434",
+      "strategy": "cloud_first",
+      "note": "Prefer cloud models (API-routed), fallback to remote nodes, local embeddings only",
+      "models": [
+        {
+          "name": "gpt-oss:20b-cloud",
+          "type": "worker",
+          "cost_per_1k_tokens": 0.0,
+          "use_for_voting": true,
+          "note": "Cloud model - zero local compute, API-routed"
+        },
+        {
+          "name": "gpt-oss:120b-cloud",
+          "type": "specialized",
+          "cost_per_1k_tokens": 0.0,
+          "use_for_voting": false,
+          "note": "Large cloud model for complex reasoning"
+        },
+        {
+          "name": "llama3-groq-tool-use:8b-fp16",
+          "type": "worker",
+          "cost_per_1k_tokens": 0.0,
+          "use_for_voting": true,
+          "note": "Remote inference - tool use specialist (completeu-server)"
+        },
+        {
+          "name": "qwen3-coder:30b",
+          "type": "worker",
+          "cost_per_1k_tokens": 0.0,
+          "use_for_voting": true,
+          "note": "Remote inference - code generation (completeu-server)"
+        },
+        {
+          "name": "nomic-embed-text:latest",
+          "type": "embedding",
+          "cost_per_1k_tokens": 0.0,
+          "use_for_voting": false,
+          "note": "Local embedding model - node-specific vectorized datasets"
+        }
+      ]
+    }
+  },
+  "voting_strategies": {
+    "default": {
+      "num_samples": 5,
+      "k_threshold": 3,
+      "max_retries": 3,
+      "providers": ["claude", "gemini", "ollama"],
+      "note": "Balanced cost/reliability"
+    },
+    "cost_optimized": {
+      "num_samples": 7,
+      "k_threshold": 4,
+      "max_retries": 2,
+      "providers": ["gemini", "ollama"],
+      "note": "Use cheapest models with more samples"
+    },
+    "speed_optimized": {
+      "num_samples": 3,
+      "k_threshold": 2,
+      "max_retries": 2,
+      "providers": ["claude", "openai"],
+      "note": "Faster paid models, fewer samples"
+    },
+    "maximum_reliability": {
+      "num_samples": 10,
+      "k_threshold": 6,
+      "max_retries": 5,
+      "providers": ["claude", "openai", "gemini", "ollama"],
+      "note": "All providers, high threshold"
+    }
+  },
+  "task_type_mappings": {
+    "code_generation": {
+      "models": ["qwen2.5-coder:7b", "gpt-4o-mini", "claude-haiku-4.5"],
+      "voting_strategy": "default"
+    },
+    "code_review": {
+      "models": ["gpt-4o-mini", "claude-haiku-4.5", "gemini-1.5-flash"],
+      "voting_strategy": "default"
+    },
+    "test_generation": {
+      "models": ["gemini-1.5-flash-8b", "llama3.2:3b", "gpt-4o-mini"],
+      "voting_strategy": "cost_optimized"
+    },
+    "data_validation": {
+      "models": ["gemini-1.5-flash-8b", "llama3.2:3b"],
+      "voting_strategy": "cost_optimized"
+    },
+    "api_design": {
+      "models": ["claude-haiku-4.5", "gpt-4o-mini", "deepseek-r1:8b"],
+      "voting_strategy": "default"
+    },
+    "critical_decision": {
+      "models": ["claude-haiku-4.5", "gpt-4o-mini", "gemini-1.5-flash", "deepseek-r1:8b"],
+      "voting_strategy": "maximum_reliability"
+    }
+  },
+  "cost_tracking": {
+    "enabled": true,
+    "alert_threshold_usd": 10.0,
+    "daily_budget_usd": 50.0,
+    "log_file": "logs/maker_costs.json"
+  }
+}

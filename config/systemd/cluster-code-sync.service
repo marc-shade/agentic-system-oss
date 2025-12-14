@@ -1,0 +1,18 @@
+[Unit]
+Description=Cluster Code Sync Daemon - Syncs agentic system code from Builder
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/mnt/agentic-system/.venv/bin/python3 /mnt/agentic-system/scripts/cluster-code-sync-daemon.py --interval 300
+WorkingDirectory=/mnt/agentic-system
+Restart=always
+RestartSec=30
+
+# Environment
+Environment="PATH=/mnt/agentic-system/.venv/bin:/usr/local/bin:/usr/bin:/bin"
+Environment="PYTHONPATH=/mnt/agentic-system"
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "universal-ai-chat": {
+      "command": "python3",
+      "args": ["-m", "universal_ai_chat.server"],
+      "env": {
+        "PYTHONPATH": "/mnt/agentic-system/mcp-servers/universal-ai-chat/src",  # TODO: Use ${AGENTIC_SYSTEM_PATH} or env var
+        "STORAGE_BASE": "/mnt/agentic-system",  # TODO: Use ${AGENTIC_SYSTEM_PATH} or env var
+        "AI_PLATFORM": "gemini-cli",
+        "AI_DISPLAY_NAME": "Gemini-MacPro",
+        "NODE_ID": "macpro51",
+        "QDRANT_HOST": "localhost",
+        "QDRANT_PORT": "6333"
+      },
+      "timeout": 30000
+    }
+  }
+}

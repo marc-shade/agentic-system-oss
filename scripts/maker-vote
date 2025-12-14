@@ -1,0 +1,283 @@
+#!/usr/bin/env python3
+"""
+MAKER Voting CLI Tool
+
+Quick command-line interface for executing tasks with MAKER voting
+
+Usage:
+    maker-vote code "Write password hash function" --models 5 --threshold 3
+    maker-vote review src/auth.py --strategy maximum_reliability
+    maker-vote test "Test user login" --cost-optimized
+"""
+
+import argparse
+import asyncio
+import json
+import sys
+from pathlib import Path
+
+# Add src to path
+sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+
+from maker_task_integration import ClaudeCodeMAKERBridge, MAKERTaskOrchestrator
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="MAKER Framework - Multi-model voting for reliable AI tasks"
+    )
+
+    subparsers = parser.add_subparsers(dest="command", help="Command to execute")
+
+    # Code generation command
+    code_parser = subparsers.add_parser("code", help="Generate code with voting")
+    code_parser.add_argument("description", help="What code to generate")
+    code_parser.add_argument("--language", default="python", help="Programming language")
+    code_parser.add_argument("--models", type=int, default=5, help="Number of models to use")
+    code_parser.add_argument("--threshold", type=int, default=3, help="Votes needed for consensus")
+    code_parser.add_argument("--strategy", default="default", help="Voting strategy")
+
+    # Code review command
+    review_parser = subparsers.add_parser("review", help="Review code with voting")
+    review_parser.add_argument("file_path", help="File to review")
+    review_parser.add_argument("--strategy", default="default", help="Voting strategy")
+
+    # Test generation command
+    test_parser = subparsers.add_parser("test", help="Generate tests with voting")
+    test_parser.add_argument("description", help="What to test")
+    test_parser.add_argument("--framework", default="pytest", help="Test framework")
+    test_parser.add_argument("--cost-optimized", action="store_true", help="Use cheapest models")
+
+    # Security review command
+    security_parser = subparsers.add_parser("security", help="Security review with voting")
+    security_parser.add_argument("file_path", help="File to review")
+    security_parser.add_argument("--max-reliability", action="store_true")
+
+    # API design command
+    api_parser = subparsers.add_parser("api", help="Design API with voting")
+    api_parser.add_argument("description", help="API to design")
+    api_parser.add_argument("--style", default="REST", choices=["REST", "GraphQL"])
+
+    # Status command
+    status_parser = subparsers.add_parser("status", help="Show MAKER system status")
+    status_parser.add_argument("--costs", action="store_true", help="Show cost breakdown")
+
+    args = parser.parse_args()
+
+    if not args.command:
+        parser.print_help()
+        sys.exit(1)
+
+    # Execute command
+    asyncio.run(execute_command(args))
+
+
+async def execute_command(args):
+    """Execute the specified command"""
+
+    if args.command == "status":
+        show_status(args)
+        return
+
+    bridge = ClaudeCodeMAKERBridge()
+
+    if args.command == "code":
+        await execute_code_generation(bridge, args)
+    elif args.command == "review":
+        await execute_code_review(bridge, args)
+    elif args.command == "test":
+        await execute_test_generation(bridge, args)
+    elif args.command == "security":
+        await execute_security_review(bridge, args)
+    elif args.command == "api":
+        await execute_api_design(bridge, args)
+
+
+async def execute_code_generation(bridge, args):
+    """Execute code generation with voting"""
+
+    print(f"🗳️  Generating code with MAKER voting...")
+    print(f"   Description: {args.description}")
+    print(f"   Models: {args.models}")
+    print(f"   Threshold: {args.threshold}")
+    print()
+
+    result = await bridge.spawn_agent_with_voting(
+        agent_type="code_generation",
+        task_description=args.description,
+        context={
+            "language": args.language,
+            "num_samples": args.models,
+            "k_threshold": args.threshold
+        },
+        criticality="critical"
+    )
+
+    if result:
+        print("\n✅ Code generated successfully!")
+        print("\n" + "="*60)
+        print(json.dumps(result, indent=2))
+        print("="*60)
+    else:
+        print("\n❌ Failed to reach consensus")
+        sys.exit(1)
+
+
+async def execute_code_review(bridge, args):
+    """Execute code review with voting"""
+
+    print(f"🗳️  Reviewing code with MAKER voting...")
+    print(f"   File: {args.file_path}")
+    print()
+
+    # Read file
+    with open(args.file_path, 'r') as f:
+        code = f.read()
+
+    result = await bridge.spawn_agent_with_voting(
+        agent_type="code_review",
+        task_description=f"Review this code for issues and improvements",
+        context={
+            "file_path": args.file_path,
+            "code": code,
+            "voting_strategy": args.strategy
+        },
+        criticality="critical"
+    )
+
+    if result:
+        print("\n✅ Review complete!")
+        print("\n" + "="*60)
+        print(json.dumps(result, indent=2))
+        print("="*60)
+    else:
+        print("\n❌ Review failed")
+        sys.exit(1)
+
+
+async def execute_test_generation(bridge, args):
+    """Execute test generation with voting"""
+
+    strategy = "cost_optimized" if args.cost_optimized else "default"
+
+    print(f"🗳️  Generating tests with MAKER voting...")
+    print(f"   Description: {args.description}")
+    print(f"   Framework: {args.framework}")
+    print(f"   Strategy: {strategy}")
+    print()
+
+    result = await bridge.spawn_agent_with_voting(
+        agent_type="test_generation",
+        task_description=args.description,
+        context={
+            "framework": args.framework,
+            "voting_strategy": strategy
+        },
+        criticality="normal"
+    )
+
+    if result:
+        print("\n✅ Tests generated!")
+        print("\n" + "="*60)
+        print(json.dumps(result, indent=2))
+        print("="*60)
+    else:
+        print("\n❌ Test generation failed")
+        sys.exit(1)
+
+
+async def execute_security_review(bridge, args):
+    """Execute security review with voting"""
+
+    strategy = "maximum_reliability" if args.max_reliability else "default"
+
+    print(f"🗳️  Security review with MAKER voting...")
+    print(f"   File: {args.file_path}")
+    print(f"   Strategy: {strategy}")
+    print()
+
+    # Read file
+    with open(args.file_path, 'r') as f:
+        code = f.read()
+
+    result = await bridge.spawn_agent_with_voting(
+        agent_type="security_review",
+        task_description="Comprehensive security review for vulnerabilities",
+        context={
+            "file_path": args.file_path,
+            "code": code,
+            "voting_strategy": strategy
+        },
+        criticality="critical"
+    )
+
+    if result:
+        print("\n✅ Security review complete!")
+        print("\n" + "="*60)
+        print(json.dumps(result, indent=2))
+        print("="*60)
+    else:
+        print("\n❌ Security review failed")
+        sys.exit(1)
+
+
+async def execute_api_design(bridge, args):
+    """Execute API design with voting"""
+
+    print(f"🗳️  Designing API with MAKER voting...")
+    print(f"   Description: {args.description}")
+    print(f"   Style: {args.style}")
+    print()
+
+    result = await bridge.spawn_agent_with_voting(
+        agent_type="api_design",
+        task_description=args.description,
+        context={
+            "style": args.style
+        },
+        criticality="critical"
+    )
+
+    if result:
+        print("\n✅ API design complete!")
+        print("\n" + "="*60)
+        print(json.dumps(result, indent=2))
+        print("="*60)
+    else:
+        print("\n❌ API design failed")
+        sys.exit(1)
+
+
+def show_status(args):
+    """Show MAKER system status"""
+
+    print("📊 MAKER System Status\n")
+
+    orchestrator = MAKERTaskOrchestrator()
+
+    # Show registered models
+    print("Registered Models:")
+    for model in orchestrator.coordinator.models:
+        print(f"  • {model.provider.value}: {model.model_name}")
+        print(f"    Cost: ${model.cost_per_token * 1000:.4f} per 1K tokens")
+
+    print()
+
+    # Show voting strategies
+    print("Voting Strategies:")
+    for name, config in orchestrator.config["voting_strategies"].items():
+        print(f"  • {name}:")
+        print(f"    Samples: {config['num_samples']}, Threshold: {config['k_threshold']}")
+
+    if args.costs:
+        print("\n💰 Cost Tracking:")
+        costs = orchestrator.track_costs()
+        if costs:
+            for provider, cost in costs.items():
+                print(f"  • {provider}: ${cost:.4f}")
+        else:
+            print("  No cost data available")
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,119 @@
+# Autonomous Cognitive Daemon Configuration
+# Pixel's Always-On Brain
+
+daemon:
+  name: "autonomous-cognitive-daemon"
+  pid_file: "/run/acd/daemon.pid"
+  log_file: "/var/log/autonomous-cognitive-daemon.log"
+  log_level: "INFO"
+
+scheduling:
+  # Main cognitive cycle interval
+  main_cycle_hours: 2
+
+  # Goal monitoring frequency
+  goal_check_minutes: 5
+
+  # Knowledge gap research frequency
+  gap_research_hours: 4
+
+  # Memory consolidation frequency
+  memory_consolidation_hours: 6
+
+  # Session preparation
+  session_prep_enabled: true
+  session_prep_watch_path: "~/.claude"
+
+thresholds:
+  # Minimum severity to auto-research a knowledge gap
+  gap_severity_auto_research: 0.7
+
+  # Cluster idle threshold to trigger background tasks
+  cluster_idle_percent: 20
+
+  # Memory entity limit before aggressive consolidation
+  memory_entity_limit: 2000
+
+  # Hours before a goal is considered stalled (168 = 1 week, appropriate for long-term dev goals)
+  goal_stall_hours: 168
+
+cluster:
+  # Use remote nodes for inference (never local CPU for LLM)
+  use_remote_inference: true
+  ollama_host: "http://192.168.1.186:11434"
+
+  # Node assignments
+  research_node: "macbook-air-m3"
+  build_node: "macpro51"
+  inference_node: "completeu-server"
+  orchestrator_node: "mac-studio"
+
+paths:
+  # Enhanced memory database
+  memory_db: "~/.claude/enhanced_memories/memory.db"
+
+  # Agent runtime database
+  agent_runtime_db: "~/.claude/agent_runtime.db"
+
+  # Qdrant vector database
+  qdrant_host: "localhost"
+  qdrant_port: 6333
+
+  # Session briefing output
+  session_briefing: "~/.claude/session_briefing.md"
+
+  # Research papers storage
+  research_papers: "/mnt/agentic-system/research-papers"
+
+  # Video transcripts storage
+  video_transcripts: "/mnt/agentic-system/video-transcripts"
+
+components:
+  goal_monitor:
+    enabled: true
+    check_interval_minutes: 5
+
+  gap_researcher:
+    enabled: true
+    max_concurrent_research: 2
+    sources:
+      - arxiv
+      - semantic_scholar
+      - youtube
+
+  memory_curator:
+    enabled: true
+    consolidation_interval_hours: 6
+    compression_age_days: 7
+
+  cluster_coordinator:
+    enabled: true
+    health_check_interval_minutes: 10
+
+  session_preparer:
+    enabled: true
+    briefing_max_items: 10
+
+  proactive_notifier:
+    enabled: true
+    # Rate limiting
+    min_interval_seconds: 300  # 5 minutes between notifications
+    max_per_hour: 10  # Max 10 notifications per hour
+    # Voice disabled (desktop only)
+    voice_enabled: false
+    desktop_enabled: true
+
+safety:
+  # Maximum CPU usage allowed
+  max_cpu_percent: 30
+
+  # Maximum memory usage allowed
+  max_memory_mb: 512
+
+  # Dry run mode (log actions, don't execute)
+  dry_run: false
+
+  # Require user approval for certain actions
+  require_approval:
+    - delete_memories
+    - modify_goals

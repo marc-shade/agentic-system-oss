@@ -1,0 +1,30 @@
+{
+  "feeds": [
+    {
+      "name": "Hacker News",
+      "url": "https://hnrss.org/frontpage",
+      "category": "tech",
+      "summarize": true,
+      "max_items": 10
+    },
+    {
+      "name": "arXiv AI",
+      "url": "http://export.arxiv.org/rss/cs.AI",
+      "category": "research",
+      "summarize": true,
+      "max_items": 5
+    },
+    {
+      "name": "Anthropic Blog",
+      "url": "https://www.anthropic.com/rss.xml",
+      "category": "ai",
+      "summarize": true,
+      "max_items": 5
+    }
+  ],
+  "settings": {
+    "check_interval_minutes": 60,
+    "max_age_hours": 24,
+    "ollama_model": "llama3.2:3b"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "name": "network_scanner",
+  "category": "security",
+  "description": "Scan network for devices and topology",
+  "functions": [
+    "scan_network",
+    "get_network_topology",
+    "get_device_info",
+    "detect_new_devices"
+  ],
+  "usage": "from mcp_tools import network_scanner; devices = network_scanner.scan_network()"
+}

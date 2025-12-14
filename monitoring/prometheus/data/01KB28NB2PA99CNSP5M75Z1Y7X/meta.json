@@ -1,0 +1,18 @@
+{
+	"ulid": "01KB28NB2PA99CNSP5M75Z1Y7X",
+	"minTime": 1764223210705,
+	"maxTime": 1764230400000,
+	"stats": {
+		"numSamples": 8040,
+		"numFloatSamples": 8040,
+		"numSeries": 36,
+		"numChunks": 70
+	},
+	"compaction": {
+		"level": 1,
+		"sources": [
+			"01KB28NB2PA99CNSP5M75Z1Y7X"
+		]
+	},
+	"version": 1
+}

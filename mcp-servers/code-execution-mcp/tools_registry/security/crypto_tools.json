@@ -1,0 +1,12 @@
+{
+  "name": "crypto_tools",
+  "category": "security",
+  "description": "Classical cryptography tools for analysis and CTFs",
+  "functions": [
+    "caesar_crack",
+    "frequency_analysis",
+    "vigenere_decrypt",
+    "xor_cipher"
+  ],
+  "usage": "from mcp_tools import crypto_tools; plain = crypto_tools.caesar_crack(\"ciphertext\")"
+}

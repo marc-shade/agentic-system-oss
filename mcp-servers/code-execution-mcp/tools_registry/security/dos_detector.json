@@ -1,0 +1,12 @@
+{
+  "name": "dos_detector",
+  "category": "security",
+  "description": "Detect DoS attacks from web server logs",
+  "functions": [
+    "analyze_access_log",
+    "detect_http_flood",
+    "detect_slowloris",
+    "get_attack_indicators"
+  ],
+  "usage": "from mcp_tools import dos_detector; report = dos_detector.analyze_access_log(\"/var/log/nginx/access.log\")"
+}

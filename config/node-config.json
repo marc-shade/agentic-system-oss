@@ -1,0 +1,15 @@
+{
+    "node_id": "orchestrator",
+    "hostname": "Marcs-Mac-Studio.local",
+    "storage_base": "/Volumes/SSDRAID0/agentic-system",
+    "role": "orchestrator",
+    "os": "darwin",
+    "arch": "arm64",
+    "configured_at": "2025-12-06T14:53:22-05:00",
+    "cluster_nodes": {
+        "builder": "macpro51.local",
+        "orchestrator": "Marcs-Mac-Studio.local",
+        "researcher": "Marcs-MacBook-Air.local",
+        "inference": "completeu-server.local"
+    }
+}

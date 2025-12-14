@@ -1,0 +1,17 @@
+name: memory-quality-simple
+dataset: ../datasets/memory_ops.jsonl
+target:
+  kind: letta_agent
+  agent_file: ../agents/test_agent.af
+  base_url: http://localhost:8283
+graders:
+  content_match:
+    kind: tool
+    function: contains
+    extractor: last_assistant
+gate:
+  kind: simple
+  metric_key: content_match
+  aggregation: avg_score
+  op: gte
+  value: 0.70

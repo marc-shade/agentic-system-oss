@@ -1,0 +1,92 @@
+{
+  "$schema": "system-card-v1",
+  "generated_at": "2025-11-27T12:05:46.189456Z",
+  "node_id": "macbook-air-m3",
+  "identity": {
+    "hostname": "Marcs-Air.fios-router.home",
+    "role": "researcher",
+    "persona": "analytical, thorough",
+    "primary_function": "Research, documentation, analysis"
+  },
+  "hardware": {
+    "cpu": {
+      "architecture": "arm64",
+      "total_threads": 8,
+      "physical_cores": 8,
+      "model": "Apple M3"
+    },
+    "memory": {
+      "total_gb": 24.0,
+      "available_gb": 12.1
+    },
+    "gpu": {
+      "model": "Apple M3",
+      "present": true,
+      "type": "integrated",
+      "capabilities": ["MLX", "Metal"]
+    },
+    "network": {
+      "primary_ip": "192.168.1.76",
+      "type": "WiFi"
+    }
+  },
+  "software": {
+    "os": {
+      "name": "macOS",
+      "version": "26.1",
+      "kernel": "Darwin 25.1.0 xnu-12377.41.6~2/RELEASE_ARM64_T8122"
+    },
+    "runtimes": {
+      "python": "Python 3.9.6",
+      "mlx": "0.29.3"
+    },
+    "containers": {
+      "apple_container": "pending_install"
+    }
+  },
+  "capabilities": {
+    "compute": {
+      "parallel_jobs": 8,
+      "can_compile": ["clang", "python3"]
+    },
+    "ai_inference": {
+      "local_llm": false,
+      "embedding_models": true,
+      "mlx": {
+        "version": "0.29.3",
+        "device": "gpu",
+        "capabilities": ["inference", "fine-tuning", "quantization"],
+        "max_model_size": "15B (24GB unified memory)"
+      },
+      "notes": "No Ollama running - lightweight research node"
+    },
+    "mobility": {
+      "portable": true,
+      "battery_powered": true
+    }
+  },
+  "performance_profile": {
+    "cpu_threads": 8,
+    "memory_gb": 24.0,
+    "multi_thread_score": "medium",
+    "memory_score": "medium",
+    "best_for": [
+      "research and analysis",
+      "documentation",
+      "code review",
+      "mobile operations",
+      "lightweight inference"
+    ],
+    "avoid_for": [
+      "heavy compilation",
+      "large model inference",
+      "container operations"
+    ]
+  },
+  "operational": {
+    "uptime_hours": 229.2,
+    "load_average": [4.97, 4.45, 4.38],
+    "availability": "variable (mobile device)",
+    "network_quality": "WiFi (higher latency)"
+  }
+}

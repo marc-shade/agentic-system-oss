@@ -1,0 +1,515 @@
+#!/usr/bin/env python3
+"""
+CommandLineFu CLI - Quick access to shell one-liners for sysadmins.
+
+Usage:
+    cfu search <query>      Search for commands
+    cfu top [n]             Show top N voted commands (default: 10)
+    cfu tagged <tag>        Browse commands by tag
+    cfu random              Show random commands
+    cfu copy <id>           Copy command to clipboard
+    cfu exec <id>           Execute command (with confirmation)
+
+Examples:
+    cfu search "find large files"
+    cfu top 20
+    cfu tagged awk
+    cfu search ssh tunnel
+"""
+
+import argparse
+import base64
+import hashlib
+import json
+import os
+import subprocess
+import sys
+import time
+from pathlib import Path
+from typing import Optional
+from urllib.request import urlopen, Request
+from urllib.error import URLError, HTTPError
+
+# Cache and data directories
+CACHE_DIR = Path.home() / '.cache' / 'cfu'
+DATA_DIR = Path.home() / '.local' / 'share' / 'cfu'
+CACHE_TTL = 3600  # 1 hour cache
+
+# ANSI colors
+class C:
+    HEADER = '\033[95m'
+    BLUE = '\033[94m'
+    CYAN = '\033[96m'
+    GREEN = '\033[92m'
+    YELLOW = '\033[93m'
+    RED = '\033[91m'
+    BOLD = '\033[1m'
+    DIM = '\033[2m'
+    END = '\033[0m'
+
+BASE_URL = "https://www.commandlinefu.com/commands"
+
+# Common tag IDs (discovered through API)
+TAGS = {
+    "awk": 163,
+    "grep": 163,
+    "find": 35,
+    "bash": 9,
+    "sed": 196,
+    "ssh": 209,
+    "git": 116,
+    "curl": 54,
+    "tar": 224,
+    "network": 163,
+    "disk": 163,
+    "process": 163,
+    "text": 163,
+    "file": 35,
+    "system": 163,
+}
+
+def ensure_dirs():
+    """Create cache and data directories if needed."""
+    CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+
+def get_cache_path(url: str) -> Path:
+    """Get cache file path for a URL."""
+    url_hash = hashlib.md5(url.encode()).hexdigest()
+    return CACHE_DIR / f"{url_hash}.json"
+
+def get_cached(url: str) -> Optional[list]:
+    """Get cached response if valid."""
+    cache_path = get_cache_path(url)
+    if cache_path.exists():
+        mtime = cache_path.stat().st_mtime
+        if time.time() - mtime < CACHE_TTL:
+            try:
+                return json.loads(cache_path.read_text())
+            except:
+                pass
+    return None
+
+def set_cache(url: str, data: list):
+    """Cache API response."""
+    ensure_dirs()
+    cache_path = get_cache_path(url)
+    cache_path.write_text(json.dumps(data))
+
+def get_favorites() -> list:
+    """Load saved favorites."""
+    ensure_dirs()
+    fav_file = DATA_DIR / 'favorites.json'
+    if fav_file.exists():
+        try:
+            return json.loads(fav_file.read_text())
+        except:
+            pass
+    return []
+
+def save_favorite(cmd: dict) -> bool:
+    """Save a command to favorites."""
+    ensure_dirs()
+    fav_file = DATA_DIR / 'favorites.json'
+    favorites = get_favorites()
+
+    # Check if already saved
+    if any(f.get('id') == cmd.get('id') for f in favorites):
+        return False
+
+    favorites.append({
+        'id': cmd.get('id'),
+        'command': cmd.get('command'),
+        'summary': cmd.get('summary'),
+        'votes': cmd.get('votes'),
+        'saved_at': time.strftime('%Y-%m-%d %H:%M')
+    })
+    fav_file.write_text(json.dumps(favorites, indent=2))
+    return True
+
+def remove_favorite(cmd_id: str) -> bool:
+    """Remove a command from favorites."""
+    fav_file = DATA_DIR / 'favorites.json'
+    favorites = get_favorites()
+    new_favs = [f for f in favorites if str(f.get('id')) != str(cmd_id)]
+    if len(new_favs) < len(favorites):
+        fav_file.write_text(json.dumps(new_favs, indent=2))
+        return True
+    return False
+
+def clear_cache():
+    """Clear all cached data."""
+    if CACHE_DIR.exists():
+        for f in CACHE_DIR.glob('*.json'):
+            f.unlink()
+        print(f"{C.GREEN}Cache cleared.{C.END}")
+    else:
+        print(f"{C.DIM}No cache to clear.{C.END}")
+
+def fetch_json(url: str, use_cache: bool = True) -> list:
+    """Fetch JSON from CommandLineFu API with caching."""
+    # Try cache first
+    if use_cache:
+        cached = get_cached(url)
+        if cached is not None:
+            return cached
+
+    try:
+        req = Request(url, headers={'User-Agent': 'cfu-cli/1.0'})
+        with urlopen(req, timeout=10) as response:
+            data = response.read().decode('utf-8')
+            result = json.loads(data) if data.strip() else []
+            # Cache the result
+            if use_cache and result:
+                set_cache(url, result)
+            return result
+    except (URLError, HTTPError) as e:
+        print(f"{C.RED}Error fetching data: {e}{C.END}")
+        sys.exit(1)
+    except json.JSONDecodeError:
+        print(f"{C.RED}Error parsing response{C.END}")
+        sys.exit(1)
+
+def display_commands(commands: list, show_index: bool = True):
+    """Display commands in formatted output."""
+    if not commands:
+        print(f"{C.YELLOW}No commands found.{C.END}")
+        return
+
+    for i, cmd in enumerate(commands, 1):
+        votes = cmd.get('votes', '?')
+        summary = cmd.get('summary', 'No description')
+        command = cmd.get('command', '')
+        cmd_id = cmd.get('id', '')
+
+        # Vote color based on count
+        try:
+            vote_count = int(votes)
+            if vote_count >= 100:
+                vote_color = C.GREEN
+            elif vote_count >= 50:
+                vote_color = C.CYAN
+            else:
+                vote_color = C.DIM
+        except:
+            vote_color = C.DIM
+
+        # Header with index and votes
+        if show_index:
+            print(f"\n{C.BOLD}{C.BLUE}[{i}]{C.END} {vote_color}▲{votes}{C.END} {C.DIM}#{cmd_id}{C.END}")
+        else:
+            print(f"\n{vote_color}▲{votes}{C.END} {C.DIM}#{cmd_id}{C.END}")
+
+        # Summary
+        print(f"  {C.YELLOW}{summary}{C.END}")
+
+        # Command (wrapped if too long)
+        print(f"  {C.GREEN}${C.END} {command}")
+
+    print()
+
+def search_commands(query: str, limit: int = 25):
+    """Search for commands matching query."""
+    # Base64 encode the query as required by API
+    query_b64 = base64.b64encode(query.encode()).decode()
+    query_safe = query.replace(' ', '-')
+
+    url = f"{BASE_URL}/matching/{query_safe}/{query_b64}/json"
+    print(f"{C.DIM}Searching for: {query}{C.END}")
+
+    commands = fetch_json(url)
+    display_commands(commands[:limit])
+
+    if len(commands) > limit:
+        print(f"{C.DIM}Showing {limit} of {len(commands)} results{C.END}")
+
+def top_commands(limit: int = 10):
+    """Show top voted commands."""
+    url = f"{BASE_URL}/browse/sort-by-votes/json"
+    print(f"{C.DIM}Top {limit} commands by votes{C.END}")
+
+    commands = fetch_json(url)
+    display_commands(commands[:limit])
+
+def tagged_commands(tag: str, limit: int = 25):
+    """Browse commands by tag."""
+    # Try to find tag ID, otherwise use tag name directly
+    tag_id = TAGS.get(tag.lower(), 163)
+
+    url = f"{BASE_URL}/tagged/{tag_id}/{tag}/json"
+    print(f"{C.DIM}Commands tagged: {tag}{C.END}")
+
+    commands = fetch_json(url)
+    display_commands(commands[:limit])
+
+    if len(commands) > limit:
+        print(f"{C.DIM}Showing {limit} of {len(commands)} results{C.END}")
+
+def random_commands(limit: int = 5):
+    """Show random commands (using browse endpoint)."""
+    url = f"{BASE_URL}/browse/json"
+    print(f"{C.DIM}Recent/random commands{C.END}")
+
+    commands = fetch_json(url)
+    display_commands(commands[:limit])
+
+def show_favorites():
+    """Display saved favorite commands."""
+    favorites = get_favorites()
+    if not favorites:
+        print(f"{C.YELLOW}No favorites saved yet.{C.END}")
+        print(f"{C.DIM}Use 'cfu -i' then 'save <n>' to save commands.{C.END}")
+        return []
+
+    print(f"{C.BOLD}Saved Favorites ({len(favorites)}){C.END}")
+    display_commands(favorites)
+    return favorites
+
+def copy_to_clipboard(text: str) -> bool:
+    """Copy text to clipboard using available tools."""
+    # Try wl-copy for Wayland
+    try:
+        subprocess.run(['wl-copy', text], check=True, capture_output=True)
+        return True
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        pass
+
+    # Try xclip for X11
+    try:
+        subprocess.run(['xclip', '-selection', 'clipboard'],
+                      input=text.encode(), check=True, capture_output=True)
+        return True
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        pass
+
+    # Try xsel
+    try:
+        subprocess.run(['xsel', '--clipboard', '--input'],
+                      input=text.encode(), check=True, capture_output=True)
+        return True
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        pass
+
+    return False
+
+def get_command_by_index(commands: list, index: int) -> Optional[dict]:
+    """Get command from cached results by index."""
+    if 1 <= index <= len(commands):
+        return commands[index - 1]
+    return None
+
+def interactive_mode():
+    """Run in interactive mode for browsing/copying."""
+    print(f"{C.BOLD}CommandLineFu Interactive Mode{C.END}")
+    print(f"{C.DIM}Commands: search, top, tagged, copy, save, fav, exec, quit | Type 'help'{C.END}\n")
+
+    commands = []
+
+    while True:
+        try:
+            user_input = input(f"{C.CYAN}cfu>{C.END} ").strip()
+        except (EOFError, KeyboardInterrupt):
+            print("\nBye!")
+            break
+
+        if not user_input:
+            continue
+
+        parts = user_input.split(maxsplit=1)
+        cmd = parts[0].lower()
+        args = parts[1] if len(parts) > 1 else ""
+
+        if cmd in ('q', 'quit', 'exit'):
+            print("Bye!")
+            break
+
+        elif cmd == 'search' and args:
+            query_b64 = base64.b64encode(args.encode()).decode()
+            query_safe = args.replace(' ', '-')
+            url = f"{BASE_URL}/matching/{query_safe}/{query_b64}/json"
+            commands = fetch_json(url)
+            display_commands(commands[:15])
+
+        elif cmd == 'top':
+            limit = int(args) if args.isdigit() else 10
+            url = f"{BASE_URL}/browse/sort-by-votes/json"
+            commands = fetch_json(url)
+            display_commands(commands[:limit])
+
+        elif cmd == 'tagged' and args:
+            tag_id = TAGS.get(args.lower(), 163)
+            url = f"{BASE_URL}/tagged/{tag_id}/{args}/json"
+            commands = fetch_json(url)
+            display_commands(commands[:15])
+
+        elif cmd == 'copy' and args.isdigit():
+            idx = int(args)
+            if c := get_command_by_index(commands, idx):
+                if copy_to_clipboard(c['command']):
+                    print(f"{C.GREEN}Copied to clipboard!{C.END}")
+                else:
+                    print(f"{C.YELLOW}Clipboard not available. Command:{C.END}")
+                    print(c['command'])
+            else:
+                print(f"{C.RED}Invalid index{C.END}")
+
+        elif cmd in ('save', 'fav+') and args.isdigit():
+            idx = int(args)
+            if c := get_command_by_index(commands, idx):
+                if save_favorite(c):
+                    print(f"{C.GREEN}★ Saved to favorites!{C.END}")
+                else:
+                    print(f"{C.YELLOW}Already in favorites.{C.END}")
+            else:
+                print(f"{C.RED}Invalid index{C.END}")
+
+        elif cmd in ('fav', 'favorites', 'saved'):
+            favorites = show_favorites()
+            if favorites:
+                commands = favorites  # Allow copy/exec from favorites
+
+        elif cmd in ('unfav', 'fav-') and args:
+            if remove_favorite(args):
+                print(f"{C.GREEN}Removed from favorites.{C.END}")
+            else:
+                print(f"{C.RED}Not found in favorites.{C.END}")
+
+        elif cmd == 'cache' and args == 'clear':
+            clear_cache()
+
+        elif cmd == 'exec' and args.isdigit():
+            idx = int(args)
+            if c := get_command_by_index(commands, idx):
+                print(f"{C.YELLOW}Command:{C.END} {c['command']}")
+                confirm = input(f"{C.RED}Execute? (y/N):{C.END} ").strip().lower()
+                if confirm == 'y':
+                    os.system(c['command'])
+            else:
+                print(f"{C.RED}Invalid index{C.END}")
+
+        elif cmd == 'help':
+            print(f"""
+{C.BOLD}Search & Browse{C.END}
+  search <query>  - Search for commands
+  top [n]         - Show top N voted commands
+  tagged <tag>    - Browse by tag (awk, sed, ssh, git, etc.)
+
+{C.BOLD}Actions{C.END}
+  copy <n>        - Copy command #n to clipboard
+  exec <n>        - Execute command #n (with confirmation)
+
+{C.BOLD}Favorites{C.END}
+  save <n>        - Save command #n to favorites
+  fav             - Show saved favorites
+  unfav <id>      - Remove from favorites by command ID
+
+{C.BOLD}System{C.END}
+  cache clear     - Clear cached API responses
+  quit            - Exit interactive mode
+""")
+        else:
+            print(f"{C.DIM}Unknown command. Type 'help' for options.{C.END}")
+
+def main():
+    parser = argparse.ArgumentParser(
+        description='CommandLineFu CLI - Shell one-liners for sysadmins',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  cfu search "find large files"
+  cfu top 20
+  cfu tagged awk
+  cfu -i                          # Interactive mode
+        """
+    )
+
+    parser.add_argument('-i', '--interactive', action='store_true',
+                       help='Run in interactive mode')
+    parser.add_argument('-n', '--limit', type=int, default=10,
+                       help='Number of results to show (default: 10)')
+    parser.add_argument('--no-color', action='store_true',
+                       help='Disable colored output')
+
+    subparsers = parser.add_subparsers(dest='command', help='Available commands')
+
+    # Search subcommand
+    search_parser = subparsers.add_parser('search', aliases=['s', 'find'],
+                                          help='Search for commands')
+    search_parser.add_argument('query', nargs='+', help='Search query')
+
+    # Top subcommand
+    top_parser = subparsers.add_parser('top', aliases=['best', 'popular'],
+                                       help='Show top voted commands')
+    top_parser.add_argument('count', nargs='?', type=int, default=10,
+                           help='Number of commands to show')
+
+    # Tagged subcommand
+    tag_parser = subparsers.add_parser('tagged', aliases=['tag', 't'],
+                                       help='Browse commands by tag')
+    tag_parser.add_argument('tag', help='Tag name (awk, sed, ssh, git, etc.)')
+
+    # Random subcommand
+    subparsers.add_parser('random', aliases=['r'],
+                         help='Show random/recent commands')
+
+    # Favorites subcommand
+    subparsers.add_parser('fav', aliases=['favorites', 'saved'],
+                         help='Show saved favorite commands')
+
+    # Cache subcommand
+    cache_parser = subparsers.add_parser('cache', help='Cache management')
+    cache_parser.add_argument('action', choices=['clear', 'status'],
+                             help='Cache action')
+
+    args = parser.parse_args()
+
+    # Disable colors if requested or not a TTY
+    if args.no_color or not sys.stdout.isatty():
+        C.HEADER = C.BLUE = C.CYAN = C.GREEN = ''
+        C.YELLOW = C.RED = C.BOLD = C.DIM = C.END = ''
+
+    # Interactive mode
+    if args.interactive:
+        interactive_mode()
+        return
+
+    # Handle subcommands
+    if args.command in ('search', 's', 'find'):
+        query = ' '.join(args.query)
+        search_commands(query, args.limit)
+
+    elif args.command in ('top', 'best', 'popular'):
+        top_commands(args.count)
+
+    elif args.command in ('tagged', 'tag', 't'):
+        tagged_commands(args.tag, args.limit)
+
+    elif args.command in ('random', 'r'):
+        random_commands()
+
+    elif args.command in ('fav', 'favorites', 'saved'):
+        show_favorites()
+
+    elif args.command == 'cache':
+        if args.action == 'clear':
+            clear_cache()
+        elif args.action == 'status':
+            if CACHE_DIR.exists():
+                files = list(CACHE_DIR.glob('*.json'))
+                size = sum(f.stat().st_size for f in files)
+                print(f"Cache: {len(files)} entries, {size // 1024}KB")
+                print(f"Location: {CACHE_DIR}")
+            else:
+                print("No cache directory.")
+
+    else:
+        # No subcommand - show help or run interactive
+        if len(sys.argv) == 1:
+            parser.print_help()
+        else:
+            # Treat remaining args as search query
+            query = ' '.join(sys.argv[1:])
+            search_commands(query, args.limit)
+
+if __name__ == '__main__':
+    main()

@@ -1,0 +1,52 @@
+apiVersion: v2
+name: synthetic-data-mcp
+description: A production-ready Helm chart for the Synthetic Data MCP Platform
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+home: https://github.com/marc-shade/synthetic-data-mcp
+sources:
+  - https://github.com/marc-shade/synthetic-data-mcp
+maintainers:
+  - name: Marc Shade
+    email: marc@2acrestudios.com
+    url: https://2acrestudios.com
+
+keywords:
+  - synthetic-data
+  - mcp
+  - healthcare
+  - finance
+  - compliance
+  - privacy
+  - ai
+  - machine-learning
+
+annotations:
+  category: AI/ML
+  licenses: MIT
+
+# Dependencies
+dependencies:
+  - name: postgresql
+    version: "^12.0.0"
+    repository: "https://charts.bitnami.com/bitnami"
+    condition: postgresql.enabled
+    
+  - name: redis
+    version: "^18.0.0"
+    repository: "https://charts.bitnami.com/bitnami"
+    condition: redis.enabled
+    
+  - name: nginx-ingress
+    version: "^4.0.0"
+    repository: "https://kubernetes.github.io/ingress-nginx"
+    condition: ingress.enabled
+    
+  - name: prometheus
+    version: "^25.0.0"
+    repository: "https://prometheus-community.github.io/helm-charts"
+    condition: monitoring.enabled
+
+# Minimum Kubernetes version
+kubeVersion: ">=1.20.0"

@@ -1,0 +1,144 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: synthetic-data-mcp
+  namespace: synthetic-data
+  labels:
+    app: synthetic-data-mcp
+    version: v1
+    tier: backend
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: synthetic-data-mcp
+  template:
+    metadata:
+      labels:
+        app: synthetic-data-mcp
+        version: v1
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: synthetic-data-sa
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      containers:
+      - name: synthetic-data-mcp
+        image: synthetic-data-mcp:latest
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 3000
+          protocol: TCP
+        - name: metrics
+          containerPort: 9090
+          protocol: TCP
+        env:
+        - name: SYNTHETIC_DATA_LOG_LEVEL
+          value: "INFO"
+        - name: SYNTHETIC_DATA_DB_PATH
+          value: "/app/data/audit.db"
+        - name: SYNTHETIC_DATA_CACHE_DIR
+          value: "/app/cache"
+        - name: OPENAI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: synthetic-data-secrets
+              key: openai-api-key
+        - name: API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: synthetic-data-secrets
+              key: api-key
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: synthetic-data-secrets
+              key: jwt-secret
+        - name: ENCRYPTION_KEY
+          valueFrom:
+            secretKeyRef:
+              name: synthetic-data-secrets
+              key: encryption-key
+        - name: REDIS_HOST
+          value: "synthetic-redis"
+        - name: REDIS_PORT
+          value: "6379"
+        - name: POSTGRES_HOST
+          value: "synthetic-postgres"
+        - name: POSTGRES_PORT
+          value: "5432"
+        - name: POSTGRES_DB
+          value: "synthetic_data"
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: synthetic-data-secrets
+              key: db-user
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: synthetic-data-secrets
+              key: db-password
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu: "1000m"
+          limits:
+            memory: "4Gi"
+            cpu: "2000m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: http
+          initialDelaySeconds: 15
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        volumeMounts:
+        - name: data-volume
+          mountPath: /app/data
+        - name: cache-volume
+          mountPath: /app/cache
+        - name: logs-volume
+          mountPath: /app/logs
+      volumes:
+      - name: data-volume
+        persistentVolumeClaim:
+          claimName: synthetic-data-pvc
+      - name: cache-volume
+        emptyDir:
+          sizeLimit: 5Gi
+      - name: logs-volume
+        emptyDir:
+          sizeLimit: 2Gi
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - synthetic-data-mcp
+              topologyKey: kubernetes.io/hostname

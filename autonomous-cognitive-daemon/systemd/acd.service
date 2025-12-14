@@ -1,0 +1,48 @@
+[Unit]
+Description=Autonomous Cognitive Daemon - Pixel's Always-On Brain
+Documentation=https://github.com/marc/autonomous-cognitive-daemon
+After=network.target postgresql.service docker.service
+Wants=network-online.target
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+[Service]
+Type=simple
+User=marc
+Group=marc
+
+# Working directory
+WorkingDirectory=/mnt/agentic-system/autonomous-cognitive-daemon
+
+# Environment
+Environment=PYTHONUNBUFFERED=1
+Environment=ACD_CONFIG=/mnt/agentic-system/autonomous-cognitive-daemon/config/daemon.yaml
+Environment=PYTHONPATH=/mnt/agentic-system/autonomous-cognitive-daemon/src:/home/marc/.local/lib/python3.14/site-packages
+
+# Use the agentic system Python environment
+ExecStart=/mnt/agentic-system/.venv/bin/python -m acd.daemon
+
+# Restart behavior
+Restart=on-failure
+RestartSec=30
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=acd
+
+# Security hardening
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=read-only
+PrivateTmp=yes
+ReadWritePaths=/mnt/agentic-system
+ReadWritePaths=/var/log
+ReadWritePaths=/home/marc/.claude
+
+# Resource limits
+MemoryMax=2G
+CPUQuota=50%
+
+[Install]
+WantedBy=multi-user.target

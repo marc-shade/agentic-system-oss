@@ -1,0 +1,41 @@
+[Unit]
+Description=Enhanced Memory Database Service v2
+Documentation=https://github.com/anthropics/claude-code
+After=network.target redis.service docker.service
+Wants=redis.service
+
+[Service]
+Type=simple
+User=marc
+Group=marc
+WorkingDirectory=/mnt/agentic-system/mcp-servers/enhanced-memory-mcp
+Environment=PATH=/mnt/agentic-system/.venv/bin:/usr/local/bin:/usr/bin:/bin
+Environment=PYTHONPATH=/mnt/agentic-system/mcp-servers/enhanced-memory-mcp
+ExecStart=/mnt/agentic-system/.venv/bin/python3 memory_db_service_v2.py
+
+# Restart configuration
+Restart=always
+RestartSec=5
+StartLimitBurst=5
+StartLimitIntervalSec=60
+
+# Watchdog (requires sd-notify in the service)
+# WatchdogSec=60
+
+# Resource limits
+MemoryMax=1G
+CPUWeight=50
+
+# Logging
+StandardOutput=append:/var/log/memory-db.log
+StandardError=append:/var/log/memory-db.log
+
+# Security
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/home/marc/.claude /tmp /mnt/agentic-system
+PrivateTmp=false
+
+[Install]
+WantedBy=multi-user.target

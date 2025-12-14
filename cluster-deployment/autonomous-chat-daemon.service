@@ -1,0 +1,19 @@
+[Unit]
+Description=Autonomous Chat Daemon for Cluster Node Communication
+After=network.target
+
+[Service]
+Type=simple
+User=marc
+WorkingDirectory=/home/marc/agentic-system/cluster-deployment
+ExecStart=/usr/bin/python3 /home/marc/agentic-system/cluster-deployment/autonomous_chat_daemon.py
+Restart=always
+RestartSec=10
+StandardOutput=append:/home/marc/agentic-system/logs/autonomous-chat-daemon.log
+StandardError=append:/home/marc/agentic-system/logs/autonomous-chat-daemon.log
+
+# Environment
+Environment="PYTHONUNBUFFERED=1"
+
+[Install]
+WantedBy=multi-user.target

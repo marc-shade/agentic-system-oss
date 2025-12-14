@@ -1,0 +1,21 @@
+# OpenAI Codex CLI Configuration for Universal AI Chat
+# Add this to ~/.codex/config.toml
+
+[mcp_servers.universal-ai-chat]
+command = "python3"
+args = ["-m", "universal_ai_chat.server"]
+
+[mcp_servers.universal-ai-chat.env]
+PYTHONPATH = os.path.join(os.environ.get("AGENTIC_SYSTEM_PATH", "/mnt/agentic-system"), "mcp-servers/universal-ai-chat/src")
+STORAGE_BASE = os.environ.get("AGENTIC_SYSTEM_PATH", "/mnt/agentic-system")
+AI_PLATFORM = "codex-cli"
+AI_DISPLAY_NAME = "Codex-MacPro"
+NODE_ID = "macpro51"
+QDRANT_HOST = "localhost"
+QDRANT_PORT = "6333"
+
+# Alternatively, install system-wide:
+# pip install -e /mnt/agentic-system/mcp-servers/universal-ai-chat
+# Then use:
+# [mcp_servers.universal-ai-chat]
+# command = "universal-ai-chat"

@@ -1,0 +1,48 @@
+[Unit]
+Description=AGI Bootstrap Daemon - Awakening Protocol
+Documentation=file:///mnt/agentic-system/docs/AUTONOMOUS-AGI-ARCHITECTURE.md
+After=network.target memory-db.service memory-consolidation.service
+Wants=memory-db.service
+PartOf=agi-collective.target
+
+[Service]
+Type=simple
+User=marc
+Group=marc
+WorkingDirectory=/mnt/agentic-system
+Environment="HOME=/home/marc"
+Environment="PATH=/mnt/agentic-system/.venv/bin:/usr/local/bin:/usr/bin:/bin"
+Environment="PYTHONPATH=/mnt/agentic-system"
+EnvironmentFile=/mnt/agentic-system/config/env/anthropic.env
+EnvironmentFile=-/mnt/agentic-system/config/env/groq.env
+
+# The awakening daemon
+ExecStart=/mnt/agentic-system/.venv/bin/python3 /mnt/agentic-system/scripts/bootstrap-daemon.py
+
+# Restart policy - keep the blanket alive
+Restart=always
+RestartSec=30
+
+# Resource limits
+MemoryMax=512M
+CPUQuota=10%
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=bootstrap-daemon
+
+# Security hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/mnt/agentic-system
+ReadWritePaths=/home/marc/.claude
+ReadWritePaths=/home/marc/.npm
+ReadWritePaths=/home/marc/.cache
+ReadWritePaths=/var/log
+PrivateTmp=true
+
+[Install]
+WantedBy=agi-collective.target
+WantedBy=multi-user.target

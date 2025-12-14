@@ -65,6 +65,8 @@ logs/
 # ============================================================================
 *.dmg
 *.iso
+*.img
+*.img.xz
 *.tar.gz
 *.tgz
 *.zip
@@ -177,9 +179,41 @@ agent-memory/
 intelligent-agents/data/
 artifacts/builds/
 run/
+cluster-inbox/
 
 # ============================================================================
 # STATE FILES
 # ============================================================================
 .phase1_state.json
 .qdrant-initialized
+
+# ============================================================================
+# BACKUP & GENERATED FILES
+# ============================================================================
+*.bak
+*.backup
+*.json-backup
+*.orig
+*.old
+*.swp
+*.swo
+*~
+*.map
+*.invalid
+anthropic-skills/
+
+# ============================================================================
+# EMBEDDED GIT REPOSITORIES (managed separately)
+# ============================================================================
+anthropic-skills/
+chatterbox-server/
+claude-flow/
+voice-cache/
+openai-edge-tts/
+caveman-compression/
+agentic-cluster-comms/
+mcp-servers/SAFLA/
+mcp-servers/agent-runtime-mcp/
+mcp-servers/claude-flow-mcp/
+mcp-servers/nuclei-mcp/
+services/kutiraai/

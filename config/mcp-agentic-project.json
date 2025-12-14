@@ -1,0 +1,61 @@
+{
+  "mcpServers": {
+    "cluster-execution": {
+      "command": "/usr/bin/python3",
+      "args": [
+        "/mnt/agentic-system/mcp-servers/cluster-execution-mcp/server.py"
+      ],
+      "type": "stdio",
+      "env": {
+        "PYTHONPATH": "/mnt/agentic-system/mcp-servers/cluster-execution-mcp"
+      }
+    },
+    "ember": {
+      "command": "/usr/bin/node",
+      "args": [
+        "/mnt/agentic-system/mcp-servers/ember-mcp/dist/index.js"
+      ],
+      "type": "stdio",
+      "env": {
+        "NODE_ENV": "production"
+      }
+    },
+    "node-chat": {
+      "command": "/usr/bin/python3",
+      "args": [
+        "/mnt/agentic-system/mcp-servers/node-chat-mcp/server.py"
+      ],
+      "type": "stdio",
+      "env": {
+        "PYTHONPATH": "/mnt/agentic-system:/mnt/agentic-system/mcp-servers/node-chat-mcp",
+        "NODE_ID": "macpro51",
+        "STORAGE_BASE": "/mnt/agentic-system",
+        "ENHANCED_MEMORY_INTEGRATION": "true"
+      }
+    },
+    "coral-tpu-mcp": {
+      "command": "/usr/bin/python3",
+      "args": [
+        "-m",
+        "coral_tpu_mcp.server"
+      ],
+      "type": "stdio",
+      "env": {
+        "PYTHONPATH": "/mnt/agentic-system/mcp-servers/coral-tpu-mcp/src",
+        "AGENTIC_SYSTEM_PATH": "/mnt/agentic-system"
+      }
+    },
+    "coral-tpu": {
+      "command": "/usr/bin/python3",
+      "args": [
+        "-m",
+        "coral_tpu_mcp.server"
+      ],
+      "type": "stdio",
+      "env": {
+        "PYTHONPATH": "/mnt/agentic-system/mcp-servers/coral-tpu-mcp/src",
+        "AGENTIC_SYSTEM_PATH": "/mnt/agentic-system"
+      }
+    }
+  }
+}

@@ -1,0 +1,168 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: synthetic-nginx
+  namespace: synthetic-data
+  labels:
+    app: synthetic-data-nginx
+    version: v1
+    tier: frontend
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: synthetic-data-nginx
+  template:
+    metadata:
+      labels:
+        app: synthetic-data-nginx
+        version: v1
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9113"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: synthetic-nginx-sa
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 101  # nginx user
+        fsGroup: 101
+      containers:
+      - name: nginx
+        image: nginx:1.25-alpine
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: http
+          containerPort: 80
+          protocol: TCP
+        env:
+        - name: NGINX_ENTRYPOINT_QUIET_LOGS
+          value: "1"
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        volumeMounts:
+        - name: nginx-config
+          mountPath: /etc/nginx/nginx.conf
+          subPath: nginx.conf
+          readOnly: true
+        - name: nginx-cache
+          mountPath: /var/cache/nginx
+        - name: nginx-logs
+          mountPath: /var/log/nginx
+        - name: tmp-volume
+          mountPath: /tmp
+        - name: var-run
+          mountPath: /var/run
+      
+      # Nginx Prometheus Exporter sidecar
+      - name: nginx-exporter
+        image: nginx/nginx-prometheus-exporter:0.11
+        imagePullPolicy: IfNotPresent
+        args:
+        - -nginx.scrape-uri=http://localhost/nginx_status
+        ports:
+        - name: metrics
+          containerPort: 9113
+          protocol: TCP
+        resources:
+          requests:
+            memory: "32Mi"
+            cpu: "10m"
+          limits:
+            memory: "64Mi"
+            cpu: "50m"
+        livenessProbe:
+          httpGet:
+            path: /metrics
+            port: metrics
+          initialDelaySeconds: 15
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /metrics
+            port: metrics
+          initialDelaySeconds: 5
+          periodSeconds: 10
+      
+      volumes:
+      - name: nginx-config
+        configMap:
+          name: nginx-config
+          defaultMode: 0644
+      - name: nginx-cache
+        emptyDir:
+          sizeLimit: 1Gi
+      - name: nginx-logs
+        emptyDir:
+          sizeLimit: 1Gi
+      - name: tmp-volume
+        emptyDir:
+          sizeLimit: 500Mi
+      - name: var-run
+        emptyDir:
+          sizeLimit: 100Mi
+      
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - synthetic-data-nginx
+              topologyKey: kubernetes.io/hostname
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: synthetic-nginx-service
+  namespace: synthetic-data
+  labels:
+    app: synthetic-data-nginx
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9113"
+    prometheus.io/path: "/metrics"
+spec:
+  type: ClusterIP
+  selector:
+    app: synthetic-data-nginx
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+    protocol: TCP
+  - name: metrics
+    port: 9113
+    targetPort: 9113
+    protocol: TCP

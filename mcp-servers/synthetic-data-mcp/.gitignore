@@ -1,0 +1,235 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# Translations
+*.mo
+*.pot
+
+# Django stuff:
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Flask stuff:
+instance/
+.webassets-cache
+
+# Scrapy stuff:
+.scrapy
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+target/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# pyenv
+.python-version
+
+# pipenv
+Pipfile.lock
+
+# PEP 582
+__pypackages__/
+
+# Celery stuff
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath parsed files
+*.sage.py
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Project specific
+audit_trail.db
+audit_trail.db-*
+*.log
+logs/
+temp/
+tmp/
+.env.*
+!.env.example
+
+# Synthetic data outputs
+generated_data/
+output/
+exports/
+
+# Model files and caches
+models/
+.cache/
+__temp__/
+
+# Security
+*.key
+*.pem
+*.p12
+*.pfx
+secrets/
+private/
+
+# Development
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+dist/
+build/
+*.egg-info/
+
+# Demo and test files
+demo_*.py
+test_with_*.py
+show_*.py
+simple_*.py
+healthcare_data_sample.json
+ollama_healthcare_sample.json
+*_sample.json
+*_demo.json
+
+# Internal documentation and reports
+GAP_ANALYSIS_*.md
+TEST_COVERAGE_*.md
+TESTING_VALIDATION_*.md
+CONTAINERIZATION_*.md
+DATABASE_ARCHITECTURE_*.md
+coverage_*.json
+final_*.json
+test_functional_*.py
+run_provider_tests.py
+
+# Local databases
+synthetic_auth.db
+*.db
+*.db-journal
+*.db-wal
+
+# Temporary test files
+tests/test_*_coverage.py
+tests/test_*_complete.py
+tests/test_*_focused.py
+tests/test_*_simple.py
+tests/test_basic_*.py
+tests/test_final_*.py
+tests/test_maximum_*.py
+tests/test_provider_*.py
+tests/test_utils_*.py
+tests/test_validation_*.py
+
+# Keep essential test files
+!tests/test_compliance.py
+!tests/test_generator.py
+!tests/test_integration.py
+!tests/test_schemas.py
+!tests/test_server.py
+!tests/test_security.py
+!tests/test_performance.py
+
+# Development artifacts
+.dockerignore
+Dockerfile.dev
+docker-compose.dev.yml
+scripts/dev-entrypoint.sh
+
+# Local configuration examples
+database_config_example.json
+
+# Kubernetes secrets
+k8s/secrets.yaml

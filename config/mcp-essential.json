@@ -1,0 +1,47 @@
+{
+  "mcpServers": {
+    "enhanced-memory": {
+      "command": "/mnt/agentic-system/mcp-servers/enhanced-memory-mcp/start_server.sh",
+      "args": []
+    },
+    "voice-mode": {
+      "command": "/usr/bin/python3",
+      "args": [
+        "/mnt/agentic-system/mcp-servers/voice-mode/server.py"
+      ]
+    },
+    "agent-runtime": {
+      "command": "/mnt/agentic-system/mcp-servers/agent-runtime-mcp/.venv/bin/python3",
+      "args": [
+        "/mnt/agentic-system/mcp-servers/agent-runtime-mcp/server.py"
+      ],
+      "env": {
+        "PYTHONPATH": "/mnt/agentic-system/mcp-servers/agent-runtime-mcp"
+      }
+    },
+    "coral-tpu-mcp": {
+      "command": "/usr/bin/python3",
+      "args": [
+        "-m",
+        "coral_tpu_mcp.server"
+      ],
+      "type": "stdio",
+      "env": {
+        "PYTHONPATH": "/mnt/agentic-system/mcp-servers/coral-tpu-mcp/src",
+        "AGENTIC_SYSTEM_PATH": "/mnt/agentic-system"
+      }
+    },
+    "coral-tpu": {
+      "command": "/usr/bin/python3",
+      "args": [
+        "-m",
+        "coral_tpu_mcp.server"
+      ],
+      "type": "stdio",
+      "env": {
+        "PYTHONPATH": "/mnt/agentic-system/mcp-servers/coral-tpu-mcp/src",
+        "AGENTIC_SYSTEM_PATH": "/mnt/agentic-system"
+      }
+    }
+  }
+}

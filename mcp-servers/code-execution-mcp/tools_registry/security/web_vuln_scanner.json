@@ -1,0 +1,12 @@
+{
+  "name": "web_vuln_scanner",
+  "category": "security",
+  "description": "Web application vulnerability scanner",
+  "functions": [
+    "analyze_security_headers",
+    "check_ssl_config",
+    "test_sqli_params",
+    "test_xss_reflection"
+  ],
+  "usage": "from mcp_tools import web_vuln_scanner; headers = web_vuln_scanner.analyze_security_headers(\"https://example.com\")"
+}

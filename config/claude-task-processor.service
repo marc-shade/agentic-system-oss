@@ -1,0 +1,32 @@
+[Unit]
+Description=Claude Code Autonomous Task Processor
+Documentation=file:///mnt/agentic-system/docs/HEADLESS-CLAUDE-ARCHITECTURE.md
+After=network.target docker.service
+Wants=docker.service
+
+[Service]
+Type=oneshot
+User=marc
+Group=marc
+WorkingDirectory=/home/marc
+
+# Execution
+ExecStart=/mnt/agentic-system/.venv/bin/python3 /mnt/agentic-system/scripts/task-processor-daemon.py
+
+# Environment
+Environment="PYTHONUNBUFFERED=1"
+Environment="HOME=/home/marc"
+Environment="PATH=/home/marc/.local/bin:/mnt/agentic-system/.venv/bin:/usr/local/bin:/usr/bin:/bin"
+Environment="XDG_CONFIG_HOME=/home/marc/.config"
+
+# Resource limits - generous for Claude Code execution
+MemoryMax=4G
+CPUQuota=75%
+TimeoutStartSec=2400
+
+# Security hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/mnt/agentic-system /home/marc/.claude /var/log /tmp
+PrivateTmp=true

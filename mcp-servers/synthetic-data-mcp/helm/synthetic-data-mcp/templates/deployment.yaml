@@ -1,0 +1,135 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "synthetic-data-mcp.fullname" . }}
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    {{- include "synthetic-data-mcp.labels" . | nindent 4 }}
+  {{- with .Values.commonAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  replicas: {{ .Values.deployment.replicas }}
+  strategy:
+    {{- toYaml .Values.deployment.strategy | nindent 4 }}
+  selector:
+    matchLabels:
+      {{- include "synthetic-data-mcp.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "synthetic-data-mcp.selectorLabels" . | nindent 8 }}
+        {{- with .Values.deployment.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+        {{- with .Values.deployment.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.image.pullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "synthetic-data-mcp.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.deployment.securityContext | nindent 8 }}
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+        - name: http
+          containerPort: {{ .Values.deployment.containerPort }}
+          protocol: TCP
+        - name: metrics
+          containerPort: {{ .Values.deployment.metricsPort }}
+          protocol: TCP
+        env:
+        {{- range $key, $value := .Values.deployment.env }}
+        - name: {{ $key }}
+          value: {{ $value | quote }}
+        {{- end }}
+        {{- if .Values.postgresql.enabled }}
+        - name: POSTGRES_HOST
+          value: {{ include "postgresql.primary.fullname" .Subcharts.postgresql }}
+        - name: POSTGRES_PORT
+          value: "5432"
+        - name: POSTGRES_DB
+          value: {{ .Values.postgresql.auth.database | quote }}
+        - name: POSTGRES_USER
+          value: {{ .Values.postgresql.auth.username | quote }}
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "postgresql.secretName" .Subcharts.postgresql }}
+              key: password
+        {{- end }}
+        {{- if .Values.redis.enabled }}
+        - name: REDIS_HOST
+          value: {{ include "redis.fullname" .Subcharts.redis }}-master
+        - name: REDIS_PORT
+          value: "6379"
+        {{- if .Values.redis.auth.enabled }}
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "redis.secretName" .Subcharts.redis }}
+              key: redis-password
+        {{- end }}
+        {{- end }}
+        envFrom:
+        - configMapRef:
+            name: {{ include "synthetic-data-mcp.fullname" . }}-config
+        - secretRef:
+            name: {{ include "synthetic-data-mcp.fullname" . }}-secret
+        resources:
+          {{- toYaml .Values.deployment.resources | nindent 10 }}
+        livenessProbe:
+          {{- toYaml .Values.deployment.livenessProbe | nindent 10 }}
+        readinessProbe:
+          {{- toYaml .Values.deployment.readinessProbe | nindent 10 }}
+        volumeMounts:
+        - name: data-volume
+          mountPath: /app/data
+        - name: cache-volume
+          mountPath: /app/cache
+        - name: logs-volume
+          mountPath: /app/logs
+        {{- if .Values.persistence.enabled }}
+        - name: persistent-storage
+          mountPath: /app/persistent
+        {{- end }}
+      volumes:
+      - name: data-volume
+        emptyDir:
+          sizeLimit: 10Gi
+      - name: cache-volume
+        emptyDir:
+          sizeLimit: 5Gi
+      - name: logs-volume
+        emptyDir:
+          sizeLimit: 2Gi
+      {{- if .Values.persistence.enabled }}
+      - name: persistent-storage
+        persistentVolumeClaim:
+          claimName: {{ include "synthetic-data-mcp.fullname" . }}-pvc
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.priorityClassName }}
+      priorityClassName: {{ .Values.priorityClassName }}
+      {{- end }}

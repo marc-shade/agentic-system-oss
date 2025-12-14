@@ -1,0 +1,133 @@
+#!/usr/bin/env bash
+# MCP Status - Show loaded vs available MCPs
+# Usage: mcp-status [--loaded|--available|--cli]
+
+set -euo pipefail
+
+STORAGE_BASE="${STORAGE_BASE:-/mnt/agentic-system}"
+MCP_DIR="$STORAGE_BASE/mcp-servers"
+CLAUDE_JSON="${HOME}/.claude.json"
+MCP_JSON="$STORAGE_BASE/.mcp.json"
+
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+show_loaded() {
+    echo -e "${GREEN}=== Currently Loaded MCPs ===${NC}"
+
+    if [[ -f "$CLAUDE_JSON" ]]; then
+        echo -e "\n${BLUE}From ~/.claude.json (global):${NC}"
+        jq -r '.mcpServers // {} | keys[]' "$CLAUDE_JSON" 2>/dev/null | while read -r name; do
+            echo "  - $name"
+        done
+    fi
+
+    if [[ -f "$MCP_JSON" ]]; then
+        echo -e "\n${BLUE}From .mcp.json (project):${NC}"
+        jq -r '.mcpServers // {} | keys[]' "$MCP_JSON" 2>/dev/null | while read -r name; do
+            echo "  - $name"
+        done
+    fi
+}
+
+show_available() {
+    echo -e "${YELLOW}=== Available MCP Servers ===${NC}"
+    echo ""
+
+    for dir in "$MCP_DIR"/*/; do
+        name=$(basename "$dir")
+        [[ "$name" =~ ^\.backup ]] && continue
+        [[ "$name" == "SHARED" ]] && continue
+
+        # Check if it's loaded
+        loaded=""
+        if [[ -f "$CLAUDE_JSON" ]] && jq -e ".mcpServers.\"$name\" // .mcpServers.\"${name%-mcp}\"" "$CLAUDE_JSON" >/dev/null 2>&1; then
+            loaded="${GREEN}[LOADED]${NC}"
+        elif [[ -f "$MCP_JSON" ]] && jq -e ".mcpServers.\"$name\" // .mcpServers.\"${name%-mcp}\"" "$MCP_JSON" >/dev/null 2>&1; then
+            loaded="${BLUE}[PROJECT]${NC}"
+        fi
+
+        # Determine entry point
+        entry=""
+        if [[ -f "$dir/server.py" ]]; then
+            entry="python"
+        elif [[ -f "$dir/src/server.py" ]]; then
+            entry="python (src/)"
+        elif [[ -f "$dir/dist/index.js" ]]; then
+            entry="node"
+        elif [[ -f "$dir/start_server.sh" ]]; then
+            entry="shell"
+        else
+            entry="${RED}no entry${NC}"
+        fi
+
+        printf "  %-25s %-12s %s\n" "$name" "[$entry]" "$loaded"
+    done
+}
+
+show_cli() {
+    echo -e "${BLUE}=== MCP CLI Usage ===${NC}"
+    echo ""
+    echo "Run any MCP as a CLI tool without loading into Claude context:"
+    echo ""
+    echo "  mcp-cli <server-name>     # Run MCP server"
+    echo "  mcp-cli                   # List available servers"
+    echo ""
+    echo -e "${YELLOW}Examples:${NC}"
+    echo "  mcp-cli security-scanner  # Run security scanner"
+    echo "  mcp-cli research-paper    # Run paper research"
+    echo "  mcp-cli typst             # Run document generator"
+}
+
+show_recommendations() {
+    echo -e "${GREEN}=== Recommended Configuration ===${NC}"
+    echo ""
+    echo -e "${BLUE}Essential (always load):${NC}"
+    echo "  - enhanced-memory     # Core persistence"
+    echo "  - voice-mode          # Voice with Marc"
+    echo "  - agent-runtime       # Task persistence"
+    echo ""
+    echo -e "${BLUE}Project-level (agentic-system):${NC}"
+    echo "  - cluster-execution   # Node offloading"
+    echo "  - ember               # Quality guardian"
+    echo "  - node-chat           # Inter-node comms"
+    echo ""
+    echo -e "${YELLOW}On-demand (use CLI or subagents):${NC}"
+    echo "  - claude-flow, ruv-swarm, flow-nexus (npx)"
+    echo "  - safla, code-execution, coral-tpu"
+    echo "  - agi, research-paper, video-transcript"
+    echo "  - agent-eval, typst, chrome-devtools"
+    echo ""
+    echo -e "${RED}CLI-only (security tools):${NC}"
+    echo "  - security-scanner, security-auditor"
+    echo "  - network-scanner, threat-intel"
+    echo "  - crypto-tools, dos-detector, hids"
+    echo "  - file-analyzer, fraud-detection"
+    echo "  - image-gen, synthetic-data, web-vuln-scanner"
+}
+
+case "${1:-}" in
+    --loaded|-l)
+        show_loaded
+        ;;
+    --available|-a)
+        show_available
+        ;;
+    --cli|-c)
+        show_cli
+        ;;
+    --recommend|-r)
+        show_recommendations
+        ;;
+    *)
+        show_loaded
+        echo ""
+        show_recommendations
+        echo ""
+        echo -e "Use: ${YELLOW}mcp-status --available${NC} to see all MCPs"
+        echo -e "Use: ${YELLOW}mcp-status --cli${NC} for CLI usage"
+        ;;
+esac

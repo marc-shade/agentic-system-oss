@@ -1,0 +1,616 @@
+"""
+Redis connector for caching, sessions, and real-time data.
+
+Supports:
+- Connection pooling with aioredis
+- Redis Streams
+- Pub/Sub messaging
+- Redis modules (RedisJSON, RediSearch, RedisTimeSeries)
+- Clustering support
+- Pipeline operations
+"""
+
+import asyncio
+import json
+from typing import Any, Dict, List, Optional, Union, AsyncGenerator
+from datetime import datetime, timedelta
+from loguru import logger
+
+try:
+    import aioredis
+    from aioredis import Redis, ConnectionPool
+except ImportError:
+    aioredis = None
+    Redis = ConnectionPool = None
+    logger.warning("aioredis not installed - Redis connector disabled")
+
+from ..base import NoSQLDatabaseConnector
+
+
+class RedisConnector(NoSQLDatabaseConnector):
+    """High-performance Redis connector with advanced features."""
+    
+    def __init__(self, connection_config: Dict[str, Any]):
+        """
+        Initialize Redis connector.
+        
+        Args:
+            connection_config: Redis connection parameters
+                - host: Redis host (default: localhost)
+                - port: Redis port (default: 6379)
+                - database: Redis database number (default: 0)
+                - password: Password (optional)
+                - ssl: Use SSL (default: False)
+                - max_connections: Maximum connections (default: 100)
+                - retry_on_timeout: Retry on timeout (default: True)
+                - decode_responses: Decode responses to strings (default: True)
+                - socket_timeout: Socket timeout in seconds (default: 5)
+                - socket_connect_timeout: Connect timeout in seconds (default: 5)
+                - health_check_interval: Health check interval in seconds (default: 30)
+        """
+        if aioredis is None:
+            raise ImportError("aioredis is required for Redis connector. Install with: pip install aioredis")
+            
+        super().__init__(connection_config)
+        
+        # Set defaults
+        self.config.setdefault('host', 'localhost')
+        self.config.setdefault('port', 6379)
+        self.config.setdefault('database', 0)
+        self.config.setdefault('ssl', False)
+        self.config.setdefault('max_connections', 100)
+        self.config.setdefault('retry_on_timeout', True)
+        self.config.setdefault('decode_responses', True)
+        self.config.setdefault('socket_timeout', 5)
+        self.config.setdefault('socket_connect_timeout', 5)
+        self.config.setdefault('health_check_interval', 30)
+        
+        self.redis: Optional[Redis] = None
+        self.connection_pool: Optional[ConnectionPool] = None
+    
+    async def connect(self) -> bool:
+        """Establish Redis connection pool."""
+        try:
+            # Create connection pool
+            self.connection_pool = ConnectionPool(
+                host=self.config['host'],
+                port=self.config['port'],
+                db=self.config['database'],
+                password=self.config.get('password'),
+                ssl=self.config['ssl'],
+                max_connections=self.config['max_connections'],
+                retry_on_timeout=self.config['retry_on_timeout'],
+                socket_timeout=self.config['socket_timeout'],
+                socket_connect_timeout=self.config['socket_connect_timeout'],
+                health_check_interval=self.config['health_check_interval']
+            )
+            
+            # Create Redis client
+            self.redis = Redis(
+                connection_pool=self.connection_pool,
+                decode_responses=self.config['decode_responses']
+            )
+            
+            # Test connection
+            await self.redis.ping()
+            
+            # Get server info
+            info = await self.redis.info()
+            redis_version = info.get('redis_version', 'unknown')
+            logger.info(f"Connected to Redis {redis_version}")
+            
+            self._connected = True
+            return True
+            
+        except Exception as e:
+            logger.error(f"Failed to connect to Redis: {e}")
+            self._connected = False
+            return False
+    
+    async def disconnect(self) -> None:
+        """Close Redis connection pool."""
+        if self.redis:
+            await self.redis.close()
+            self.redis = None
+        
+        if self.connection_pool:
+            await self.connection_pool.disconnect()
+            self.connection_pool = None
+        
+        self._connected = False
+        logger.info("Disconnected from Redis")
+    
+    async def execute_query(self, query: str, parameters: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
+        """Execute Redis query (GET/MGET operations)."""
+        if not self.redis:
+            raise RuntimeError("Not connected to Redis")
+        
+        try:
+            # Redis queries are typically key-based
+            if query.startswith('GET:'):
+                key = query[4:]
+                value = await self.redis.get(key)
+                return [{'key': key, 'value': value}] if value is not None else []
+            
+            elif query.startswith('MGET:'):
+                keys = query[5:].split(',')
+                values = await self.redis.mget(keys)
+                result = []
+                for key, value in zip(keys, values):
+                    if value is not None:
+                        result.append({'key': key, 'value': value})
+                return result
+            
+            elif query.startswith('KEYS:'):
+                pattern = query[5:]
+                keys = await self.redis.keys(pattern)
+                return [{'key': key} for key in keys]
+            
+            elif query.startswith('SCAN:'):
+                pattern = query[5:] if len(query) > 5 else '*'
+                cursor = 0
+                results = []
+                while True:
+                    cursor, keys = await self.redis.scan(cursor, match=pattern, count=100)
+                    for key in keys:
+                        value = await self.redis.get(key)
+                        results.append({'key': key, 'value': value})
+                    if cursor == 0:
+                        break
+                return results
+            
+            elif query.startswith('HGETALL:'):
+                key = query[9:]
+                hash_data = await self.redis.hgetall(key)
+                return [{'key': key, 'hash': dict(hash_data)}] if hash_data else []
+            
+            else:
+                raise ValueError(f"Unsupported query type: {query}")
+                
+        except Exception as e:
+            logger.error(f"Redis query failed: {e}")
+            logger.error(f"Query: {query}")
+            raise
+    
+    async def execute_write(self, query: str, parameters: Optional[Dict[str, Any]] = None) -> int:
+        """Execute Redis write operations."""
+        if not self.redis:
+            raise RuntimeError("Not connected to Redis")
+        
+        try:
+            params = parameters or {}
+            
+            if query.startswith('SET:'):
+                key = query[4:]
+                value = params.get('value')
+                ex = params.get('ex')  # Expiration in seconds
+                result = await self.redis.set(key, value, ex=ex)
+                return 1 if result else 0
+            
+            elif query.startswith('MSET:'):
+                mapping = params.get('mapping', {})
+                result = await self.redis.mset(mapping)
+                return len(mapping) if result else 0
+            
+            elif query.startswith('HSET:'):
+                key = query[5:]
+                field_values = params.get('field_values', {})
+                result = await self.redis.hset(key, mapping=field_values)
+                return result
+            
+            elif query.startswith('LPUSH:'):
+                key = query[6:]
+                values = params.get('values', [])
+                if not isinstance(values, list):
+                    values = [values]
+                result = await self.redis.lpush(key, *values)
+                return result
+            
+            elif query.startswith('SADD:'):
+                key = query[5:]
+                members = params.get('members', [])
+                if not isinstance(members, list):
+                    members = [members]
+                result = await self.redis.sadd(key, *members)
+                return result
+            
+            elif query.startswith('ZADD:'):
+                key = query[5:]
+                score_members = params.get('score_members', {})
+                result = await self.redis.zadd(key, score_members)
+                return result
+            
+            elif query.startswith('DEL:'):
+                keys = query[4:].split(',')
+                result = await self.redis.delete(*keys)
+                return result
+            
+            elif query.startswith('EXPIRE:'):
+                key = query[7:]
+                seconds = params.get('seconds', 3600)
+                result = await self.redis.expire(key, seconds)
+                return 1 if result else 0
+            
+            else:
+                raise ValueError(f"Unsupported write operation: {query}")
+                
+        except Exception as e:
+            logger.error(f"Redis write operation failed: {e}")
+            logger.error(f"Operation: {query}")
+            logger.error(f"Parameters: {parameters}")
+            raise
+    
+    async def create_table(self, table_name: str, schema: Dict[str, Any]) -> bool:
+        """Create Redis 'table' (namespace with schema metadata)."""
+        try:
+            # Store schema metadata
+            schema_key = f"_schema:{table_name}"
+            schema_data = {
+                'table_name': table_name,
+                'created_at': datetime.now().isoformat(),
+                'schema': json.dumps(schema),
+                'type': 'synthetic_data_table'
+            }
+            
+            result = await self.redis.hset(schema_key, mapping=schema_data)
+            
+            # Create indexes based on schema
+            for field_name, field_config in schema.items():
+                if field_config.get('index'):
+                    index_key = f"_index:{table_name}:{field_name}"
+                    await self.redis.sadd(f"_indexes:{table_name}", index_key)
+            
+            logger.info(f"Created Redis table schema: {table_name}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Failed to create table {table_name}: {e}")
+            return False
+    
+    async def insert_bulk(self, table_name: str, data: List[Dict[str, Any]]) -> int:
+        """Efficient bulk insert using Redis pipeline."""
+        if not data:
+            return 0
+        
+        try:
+            pipe = self.redis.pipeline()
+            inserted_count = 0
+            
+            for i, record in enumerate(data):
+                record_id = record.get('id', f"record_{i}")
+                record_key = f"{table_name}:{record_id}"
+                
+                # Add timestamps
+                record['created_at'] = datetime.now().isoformat()
+                record['updated_at'] = datetime.now().isoformat()
+                
+                # Store as hash
+                pipe.hset(record_key, mapping=record)
+                
+                # Add to table index
+                pipe.sadd(f"_table:{table_name}", record_key)
+                
+                # Create field indexes
+                for field_name, value in record.items():
+                    if field_name not in ['id', 'created_at', 'updated_at']:
+                        index_key = f"_index:{table_name}:{field_name}:{value}"
+                        pipe.sadd(index_key, record_key)
+                
+                inserted_count += 1
+            
+            await pipe.execute()
+            
+            logger.info(f"Bulk inserted {inserted_count} records into {table_name}")
+            return inserted_count
+            
+        except Exception as e:
+            logger.error(f"Bulk insert failed for {table_name}: {e}")
+            raise
+    
+    async def create_collection(self, collection_name: str, schema: Optional[Dict[str, Any]] = None) -> bool:
+        """Create a Redis collection (same as table)."""
+        return await self.create_table(collection_name, schema or {})
+    
+    async def insert_document(self, collection_name: str, document: Dict[str, Any]) -> str:
+        """Insert a single document."""
+        try:
+            document_id = document.get('id', f"doc_{int(datetime.now().timestamp())}")
+            document_key = f"{collection_name}:{document_id}"
+            
+            # Add timestamps
+            document['created_at'] = datetime.now().isoformat()
+            document['updated_at'] = datetime.now().isoformat()
+            
+            # Store document
+            await self.redis.hset(document_key, mapping=document)
+            
+            # Add to collection index
+            await self.redis.sadd(f"_collection:{collection_name}", document_key)
+            
+            return document_id
+            
+        except Exception as e:
+            logger.error(f"Failed to insert document into {collection_name}: {e}")
+            raise
+    
+    async def find_documents(self, collection_name: str, query: Dict[str, Any], limit: int = 100) -> List[Dict[str, Any]]:
+        """Find documents matching query criteria."""
+        try:
+            # Get all documents in collection
+            document_keys = await self.redis.smembers(f"_collection:{collection_name}")
+            
+            results = []
+            count = 0
+            
+            for doc_key in document_keys:
+                if count >= limit:
+                    break
+                
+                document = await self.redis.hgetall(doc_key)
+                
+                # Filter by query criteria
+                matches = True
+                for field, expected_value in query.items():
+                    if document.get(field) != str(expected_value):
+                        matches = False
+                        break
+                
+                if matches:
+                    results.append(dict(document))
+                    count += 1
+            
+            return results
+            
+        except Exception as e:
+            logger.error(f"Find documents failed for {collection_name}: {e}")
+            raise
+    
+    async def cache_set(self, key: str, value: Any, expire_seconds: Optional[int] = None) -> bool:
+        """Set cache value with optional expiration."""
+        try:
+            serialized_value = json.dumps(value) if not isinstance(value, str) else value
+            result = await self.redis.set(key, serialized_value, ex=expire_seconds)
+            return result is True
+        except Exception as e:
+            logger.error(f"Cache set failed for {key}: {e}")
+            return False
+    
+    async def cache_get(self, key: str) -> Optional[Any]:
+        """Get cached value."""
+        try:
+            value = await self.redis.get(key)
+            if value is None:
+                return None
+            
+            try:
+                return json.loads(value)
+            except (json.JSONDecodeError, TypeError):
+                return value
+        except Exception as e:
+            logger.error(f"Cache get failed for {key}: {e}")
+            return None
+    
+    async def cache_delete(self, key: str) -> bool:
+        """Delete cached value."""
+        try:
+            result = await self.redis.delete(key)
+            return result > 0
+        except Exception as e:
+            logger.error(f"Cache delete failed for {key}: {e}")
+            return False
+    
+    async def session_create(self, session_id: str, data: Dict[str, Any], expire_seconds: int = 3600) -> bool:
+        """Create user session."""
+        try:
+            session_key = f"session:{session_id}"
+            session_data = {
+                'created_at': datetime.now().isoformat(),
+                'expires_at': (datetime.now() + timedelta(seconds=expire_seconds)).isoformat(),
+                **data
+            }
+            
+            result = await self.redis.hset(session_key, mapping=session_data)
+            await self.redis.expire(session_key, expire_seconds)
+            
+            return result is not None
+        except Exception as e:
+            logger.error(f"Session creation failed for {session_id}: {e}")
+            return False
+    
+    async def session_get(self, session_id: str) -> Optional[Dict[str, Any]]:
+        """Get session data."""
+        try:
+            session_key = f"session:{session_id}"
+            session_data = await self.redis.hgetall(session_key)
+            return dict(session_data) if session_data else None
+        except Exception as e:
+            logger.error(f"Session get failed for {session_id}: {e}")
+            return None
+    
+    async def session_update(self, session_id: str, data: Dict[str, Any], extend_ttl: bool = True) -> bool:
+        """Update session data."""
+        try:
+            session_key = f"session:{session_id}"
+            
+            if extend_ttl:
+                data['updated_at'] = datetime.now().isoformat()
+            
+            result = await self.redis.hset(session_key, mapping=data)
+            
+            if extend_ttl:
+                await self.redis.expire(session_key, 3600)  # Extend by 1 hour
+            
+            return result is not None
+        except Exception as e:
+            logger.error(f"Session update failed for {session_id}: {e}")
+            return False
+    
+    async def session_delete(self, session_id: str) -> bool:
+        """Delete session."""
+        try:
+            session_key = f"session:{session_id}"
+            result = await self.redis.delete(session_key)
+            return result > 0
+        except Exception as e:
+            logger.error(f"Session delete failed for {session_id}: {e}")
+            return False
+    
+    async def publish_message(self, channel: str, message: Dict[str, Any]) -> int:
+        """Publish message to Redis channel."""
+        try:
+            serialized_message = json.dumps(message)
+            result = await self.redis.publish(channel, serialized_message)
+            return result
+        except Exception as e:
+            logger.error(f"Message publish failed for {channel}: {e}")
+            return 0
+    
+    async def subscribe_messages(self, channels: List[str]) -> AsyncGenerator[Dict[str, Any], None]:
+        """Subscribe to Redis channels."""
+        try:
+            pubsub = self.redis.pubsub()
+            await pubsub.subscribe(*channels)
+            
+            async for message in pubsub.listen():
+                if message['type'] == 'message':
+                    try:
+                        data = json.loads(message['data'])
+                        yield {
+                            'channel': message['channel'],
+                            'data': data,
+                            'timestamp': datetime.now().isoformat()
+                        }
+                    except json.JSONDecodeError:
+                        yield {
+                            'channel': message['channel'],
+                            'data': message['data'],
+                            'timestamp': datetime.now().isoformat()
+                        }
+        except Exception as e:
+            logger.error(f"Message subscription failed: {e}")
+            raise
+    
+    async def stream_add(self, stream_name: str, data: Dict[str, Any], message_id: str = '*') -> str:
+        """Add message to Redis stream."""
+        try:
+            result = await self.redis.xadd(stream_name, data, id=message_id)
+            return result
+        except Exception as e:
+            logger.error(f"Stream add failed for {stream_name}: {e}")
+            raise
+    
+    async def stream_read(self, streams: Dict[str, str], count: int = 10, block: Optional[int] = None) -> Dict[str, List[Dict[str, Any]]]:
+        """Read messages from Redis streams."""
+        try:
+            messages = await self.redis.xread(streams, count=count, block=block)
+            
+            result = {}
+            for stream_name, stream_messages in messages.items():
+                result[stream_name] = []
+                for message_id, fields in stream_messages:
+                    result[stream_name].append({
+                        'id': message_id,
+                        'fields': dict(fields),
+                        'timestamp': datetime.now().isoformat()
+                    })
+            
+            return result
+        except Exception as e:
+            logger.error(f"Stream read failed: {e}")
+            return {}
+    
+    async def get_table_schema(self, table_name: str) -> Dict[str, Any]:
+        """Get Redis table schema and statistics."""
+        try:
+            schema_key = f"_schema:{table_name}"
+            schema_data = await self.redis.hgetall(schema_key)
+            
+            if not schema_data:
+                return {}
+            
+            # Get record count
+            table_key = f"_table:{table_name}"
+            record_count = await self.redis.scard(table_key)
+            
+            # Get indexes
+            indexes_key = f"_indexes:{table_name}"
+            indexes = await self.redis.smembers(indexes_key)
+            
+            return {
+                'table_name': table_name,
+                'schema': json.loads(schema_data.get('schema', '{}')),
+                'created_at': schema_data.get('created_at'),
+                'record_count': record_count,
+                'indexes': list(indexes),
+                'type': schema_data.get('type', 'redis_table')
+            }
+            
+        except Exception as e:
+            logger.error(f"Failed to get schema for {table_name}: {e}")
+            return {}
+    
+    async def list_tables(self) -> List[str]:
+        """List all Redis tables (schema keys)."""
+        try:
+            schema_keys = await self.redis.keys('_schema:*')
+            table_names = [key.replace('_schema:', '') for key in schema_keys]
+            return sorted(table_names)
+        except Exception as e:
+            logger.error(f"Failed to list tables: {e}")
+            return []
+    
+    async def clear_database(self) -> bool:
+        """Clear all data in current database."""
+        try:
+            await self.redis.flushdb()
+            logger.info("Cleared Redis database")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to clear database: {e}")
+            return False
+    
+    async def health_check(self) -> Dict[str, Any]:
+        """Comprehensive health check."""
+        try:
+            start_time = datetime.now()
+            
+            # Basic ping test
+            await self.redis.ping()
+            
+            # Performance test
+            query_start = datetime.now()
+            await self.redis.set('_health_check', 'test', ex=10)
+            await self.redis.get('_health_check')
+            await self.redis.delete('_health_check')
+            query_time = (datetime.now() - query_start).total_seconds()
+            
+            # Get server info
+            info = await self.redis.info()
+            
+            health_check_time = (datetime.now() - start_time).total_seconds()
+            
+            return {
+                'status': 'healthy',
+                'version': info.get('redis_version', 'unknown'),
+                'uptime_seconds': info.get('uptime_in_seconds', 0),
+                'connected_clients': info.get('connected_clients', 0),
+                'used_memory_mb': info.get('used_memory', 0) / 1024 / 1024,
+                'used_memory_peak_mb': info.get('used_memory_peak', 0) / 1024 / 1024,
+                'keyspace_hits': info.get('keyspace_hits', 0),
+                'keyspace_misses': info.get('keyspace_misses', 0),
+                'expired_keys': info.get('expired_keys', 0),
+                'evicted_keys': info.get('evicted_keys', 0),
+                'total_commands_processed': info.get('total_commands_processed', 0),
+                'query_response_time_ms': query_time * 1000,
+                'health_check_time_ms': health_check_time * 1000,
+                'role': info.get('role', 'master'),
+                'timestamp': datetime.now().isoformat()
+            }
+            
+        except Exception as e:
+            logger.error(f"Health check failed: {e}")
+            return {
+                'status': 'unhealthy',
+                'error': str(e),
+                'timestamp': datetime.now().isoformat()
+            }

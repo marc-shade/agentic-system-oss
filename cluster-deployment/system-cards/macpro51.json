@@ -1,0 +1,205 @@
+{
+  "$schema": "system-card-v1",
+  "generated_at": "2025-11-27T06:55:00Z",
+  "node_id": "macpro51",
+
+  "identity": {
+    "hostname": "macpro51.local",
+    "role": "builder",
+    "persona": "pragmatic, execution-focused, technical",
+    "primary_function": "Compilation, testing, containerization, benchmarking"
+  },
+
+  "hardware": {
+    "system": {
+      "model": "Apple Mac Pro 5,1 (2012)",
+      "form_factor": "tower",
+      "year": 2012
+    },
+    "cpu": {
+      "model": "Intel Xeon X5680",
+      "architecture": "x86_64",
+      "sockets": 2,
+      "cores_per_socket": 6,
+      "threads_per_core": 2,
+      "total_threads": 24,
+      "base_clock_ghz": 3.33,
+      "max_clock_ghz": 3.46,
+      "l3_cache_mb": 12,
+      "tdp_watts": 130,
+      "features": ["SSE4.2", "AVX", "AES-NI", "VT-x", "VT-d"]
+    },
+    "memory": {
+      "total_gb": 126,
+      "type": "DDR3",
+      "speed_mhz": 1333,
+      "channels": 3,
+      "ecc": true,
+      "slots_used": 8,
+      "slots_total": 8
+    },
+    "gpu": {
+      "model": "NVIDIA GeForce GTX 680",
+      "architecture": "Kepler (GK104)",
+      "vram_gb": 2,
+      "cuda_cores": 1536,
+      "compute_capability": "3.0",
+      "driver": "nouveau",
+      "notes": "Legacy GPU - suitable for display only, not AI inference"
+    },
+    "storage": {
+      "primary": {
+        "type": "RAID10",
+        "device": "/dev/md0",
+        "drives": [
+          {"model": "Samsung SSD 970 EVO 500GB", "device": "nvme0n1"},
+          {"model": "Samsung SSD 970 EVO 500GB", "device": "nvme1n1"},
+          {"model": "Samsung SSD 970 EVO 500GB", "device": "nvme2n1"},
+          {"model": "Samsung SSD 970 EVO 500GB", "device": "nvme3n1"}
+        ],
+        "usable_capacity_gb": 931,
+        "mount_point": "/mnt/agentic-system",
+        "filesystem": "ext4",
+        "read_speed_mbps": 3500,
+        "write_speed_mbps": 2500
+      },
+      "secondary": [
+        {"model": "Crucial MX500 250GB", "device": "sda", "purpose": "system"},
+        {"model": "Crucial MX500 250GB", "device": "sdb", "purpose": "backup"},
+        {"model": "Crucial MX500 250GB", "device": "sdc", "purpose": "swap/staging"},
+        {"model": "Crucial MX500 250GB", "device": "sdd", "purpose": "docker"},
+        {"model": "Crucial MX500 250GB", "device": "sde", "purpose": "scratch"}
+      ]
+    },
+    "network": {
+      "interfaces": [
+        {"name": "enp20s0", "type": "ethernet", "speed_gbps": 1, "mac": "e8:06:88:ca:da:a5"},
+        {"name": "wls5", "type": "wifi", "speed_mbps": 300}
+      ],
+      "primary_ip": "192.168.1.183",
+      "secondary_ip": "192.168.1.87"
+    },
+    "thermal": {
+      "cpu_max_temp_c": 81,
+      "cpu_critical_temp_c": 101,
+      "typical_idle_temp_c": 45,
+      "typical_load_temp_c": 65,
+      "cooling": "dual-fan tower coolers"
+    }
+  },
+
+  "software": {
+    "os": {
+      "name": "Fedora Linux",
+      "version": "43",
+      "edition": "Workstation",
+      "kernel": "6.17.8-300.fc43.x86_64",
+      "display_server": "Wayland"
+    },
+    "runtimes": {
+      "python": {"version": "3.14.0", "venv": "/mnt/agentic-system/.venv"},
+      "node": {"version": "22.20.0"},
+      "rust": {"version": "1.91.1"},
+      "go": {"version": "1.25.4"}
+    },
+    "containers": {
+      "docker": {"version": "28.5.2", "enabled": true},
+      "podman": {"version": "5.7.0", "enabled": true, "rootless": true}
+    },
+    "compilers": ["gcc", "clang", "rustc", "go"],
+    "mcp_servers": [
+      "enhanced-memory-mcp",
+      "agent-runtime-mcp",
+      "ember-mcp",
+      "research-paper-mcp",
+      "voice-mode",
+      "node-chat-mcp",
+      "security-scanner-mcp",
+      "claude-flow"
+    ]
+  },
+
+  "services": {
+    "always_running": [
+      {"name": "builder-api", "port": 8080, "purpose": "Build task API"},
+      {"name": "builder-task-queue", "port": null, "purpose": "Task queue worker"},
+      {"name": "cluster-heartbeat", "port": null, "purpose": "Health reporting"},
+      {"name": "autonomous-node-agent", "port": null, "purpose": "AI-to-AI coordination"},
+      {"name": "node-chat-daemon", "port": null, "purpose": "Inter-node messaging"}
+    ],
+    "containers": [
+      {"name": "qdrant", "port": 6333, "purpose": "Vector database"},
+      {"name": "redis", "port": 6379, "purpose": "Caching/queues"},
+      {"name": "grafana", "port": 3000, "purpose": "Monitoring UI"},
+      {"name": "prometheus", "port": 9090, "purpose": "Metrics collection"},
+      {"name": "loki", "port": 3100, "purpose": "Log aggregation"},
+      {"name": "n8n", "port": 5678, "purpose": "Workflow automation"}
+    ]
+  },
+
+  "capabilities": {
+    "compute": {
+      "can_compile": ["c", "cpp", "rust", "go", "python", "node"],
+      "can_containerize": true,
+      "can_run_tests": true,
+      "can_benchmark": true,
+      "parallel_jobs": 24
+    },
+    "ai_inference": {
+      "local_llm": false,
+      "embedding_models": true,
+      "reason": "CPU-only node, LLM inference offloaded to GPU nodes"
+    },
+    "storage": {
+      "can_host_databases": true,
+      "can_store_artifacts": true,
+      "raid_redundancy": true
+    }
+  },
+
+  "performance_profile": {
+    "cpu_single_thread": "medium",
+    "cpu_multi_thread": "high",
+    "memory_bandwidth": "high",
+    "storage_iops": "very_high",
+    "network_throughput": "medium",
+    "power_consumption_watts": 250,
+    "best_for": [
+      "parallel compilation",
+      "test suite execution",
+      "container builds",
+      "database hosting",
+      "artifact storage"
+    ],
+    "avoid_for": [
+      "GPU inference",
+      "real-time audio/video",
+      "mobile/portable tasks"
+    ]
+  },
+
+  "cluster_integration": {
+    "reachable_from": ["mac-studio", "macbook-air-m3", "completeu-server"],
+    "can_reach": ["mac-studio", "macbook-air-m3", "completeu-server"],
+    "shared_storage": {
+      "exports": ["/mnt/agentic-system via SMB/SSHFS"],
+      "mounts": [
+        {"from": "mac-studio", "path": "/mnt/mac-studio", "method": "sshfs"},
+        {"from": "completeu-server", "path": "/mnt/completeu-server", "method": "sshfs"}
+      ]
+    },
+    "message_protocols": ["node-chat-mcp", "ssh", "http"],
+    "task_protocols": ["builder-api", "temporal"]
+  },
+
+  "operational": {
+    "availability": "24/7",
+    "maintenance_window": "Sundays 03:00-05:00 UTC",
+    "backup_schedule": "daily incremental, weekly full",
+    "monitoring": {
+      "prometheus": true,
+      "grafana": true,
+      "alertmanager": true
+    }
+  }
+}

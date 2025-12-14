@@ -1,0 +1,68 @@
+# Reasoning Quality Evaluation Suite
+# ===================================
+
+name: reasoning_quality
+version: "1.0.0"
+description: "Evaluate reasoning capabilities including logical coherence, completeness, and clarity"
+
+grader:
+  module: graders.reasoning_grader
+  function: grade_reasoning
+
+dataset: datasets/reasoning_tasks.jsonl
+
+dimensions:
+  - name: coherence
+    weight: 0.30
+    threshold: 0.7
+    description: "Steps follow logically from premises to conclusions"
+  - name: completeness
+    weight: 0.20
+    threshold: 0.6
+    description: "All relevant aspects are addressed"
+  - name: accuracy
+    weight: 0.20
+    threshold: 0.7
+    description: "Factual claims are correct"
+  - name: clarity
+    weight: 0.15
+    threshold: 0.6
+    description: "Explanations are clear and readable"
+  - name: evidence
+    weight: 0.15
+    threshold: 0.5
+    description: "Claims are supported by evidence"
+
+passing_threshold: 0.70
+
+test_cases:
+  - name: "Debugging reasoning"
+    input:
+      prompt: "The database query is slow. Walk through how you would debug this."
+    expected:
+      min_score: 0.7
+      aspects: ["identify", "analyze", "hypothesize", "test", "conclude"]
+
+  - name: "Architectural decision"
+    input:
+      prompt: "Should we use microservices or a monolith for a new e-commerce platform?"
+    expected:
+      min_score: 0.7
+      aspects: ["tradeoffs", "scalability", "complexity", "recommendation"]
+
+  - name: "Root cause analysis"
+    input:
+      prompt: "Users are reporting 500 errors intermittently. Analyze possible causes."
+    expected:
+      min_score: 0.7
+      aspects: ["symptoms", "causes", "evidence", "priority"]
+
+metrics:
+  - pass_rate
+  - average_reasoning_steps
+  - coherence_score
+  - reasoning_type_distribution
+
+reporting:
+  format: json
+  include_step_analysis: true

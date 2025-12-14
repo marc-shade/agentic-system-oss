@@ -1,0 +1,41 @@
+[Unit]
+Description=Node Health Reporter Agent
+Documentation=https://github.com/agentic-system
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=agentic
+Group=agentic
+WorkingDirectory=/mnt/agentic-system/intelligent-agents
+
+# Main service executable
+ExecStart=/mnt/agentic-system/.venv/bin/python3 /mnt/agentic-system/intelligent-agents/node_health_reporter.py --interval 30
+
+# Restart policy
+Restart=always
+RestartSec=10
+StartLimitInterval=0
+
+# Environment
+Environment="PYTHONUNBUFFERED=1"
+Environment="PATH=/mnt/agentic-system/.venv/bin:/usr/local/bin:/usr/bin:/bin"
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=node-health-reporter
+
+# Resource limits
+LimitNOFILE=4096
+LimitNPROC=256
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/mnt/agentic-system/databases /tmp
+
+[Install]
+WantedBy=multi-user.target

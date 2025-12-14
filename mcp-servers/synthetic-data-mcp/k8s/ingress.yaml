@@ -1,0 +1,127 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: synthetic-data-ingress
+  namespace: synthetic-data
+  labels:
+    app: synthetic-data-mcp
+  annotations:
+    # Nginx ingress controller annotations
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    
+    # SSL/TLS configuration
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    
+    # Rate limiting
+    nginx.ingress.kubernetes.io/rate-limit: "100"
+    nginx.ingress.kubernetes.io/rate-limit-window: "1m"
+    nginx.ingress.kubernetes.io/rate-limit-connections: "10"
+    
+    # Security headers
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      more_set_headers "X-Content-Type-Options: nosniff";
+      more_set_headers "X-Frame-Options: DENY";
+      more_set_headers "X-XSS-Protection: 1; mode=block";
+      more_set_headers "Strict-Transport-Security: max-age=31536000; includeSubDomains";
+      more_set_headers "Referrer-Policy: strict-origin-when-cross-origin";
+    
+    # Load balancing
+    nginx.ingress.kubernetes.io/upstream-hash-by: "$remote_addr"
+    nginx.ingress.kubernetes.io/affinity: "cookie"
+    nginx.ingress.kubernetes.io/affinity-mode: "persistent"
+    
+    # Timeouts
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "10"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+    
+    # Body size limits
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+    
+    # CORS (adjust as needed)
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-methods: "GET, POST, OPTIONS, PUT, DELETE"
+    nginx.ingress.kubernetes.io/cors-allow-headers: "DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization"
+    nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
+
+spec:
+  tls:
+  - hosts:
+    - synthetic-data.example.com  # Replace with your domain
+    - api.synthetic-data.example.com
+    secretName: synthetic-data-tls
+  
+  rules:
+  # Main application domain
+  - host: synthetic-data.example.com  # Replace with your domain
+    http:
+      paths:
+      # Health check endpoint (high frequency, minimal processing)
+      - path: /health
+        pathType: Exact
+        backend:
+          service:
+            name: synthetic-data-internal
+            port:
+              number: 3000
+      
+      # API endpoints
+      - path: /api
+        pathType: Prefix
+        backend:
+          service:
+            name: synthetic-data-internal
+            port:
+              number: 3000
+      
+      # Root and other paths
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: synthetic-data-internal
+            port:
+              number: 3000
+  
+  # API subdomain for dedicated API access
+  - host: api.synthetic-data.example.com  # Replace with your API domain
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: synthetic-data-internal
+            port:
+              number: 3000
+
+---
+# Internal ingress for metrics (cluster-only access)
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: synthetic-data-metrics-ingress
+  namespace: synthetic-data
+  labels:
+    app: synthetic-data-mcp
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/whitelist-source-range: "10.0.0.0/8,172.16.0.0/12,192.168.0.0/16"
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    
+spec:
+  rules:
+  - host: metrics.synthetic-data.internal  # Internal domain for metrics
+    http:
+      paths:
+      - path: /metrics
+        pathType: Exact
+        backend:
+          service:
+            name: synthetic-data-internal
+            port:
+              number: 9090

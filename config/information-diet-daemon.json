@@ -1,0 +1,28 @@
+{
+  "rss": {
+    "enabled": true,
+    "interval_minutes": 60
+  },
+  "research": {
+    "enabled": true,
+    "interval_hours": 6
+  },
+  "youtube": {
+    "enabled": true,
+    "interval_hours": 12
+  },
+  "consolidation": {
+    "enabled": true,
+    "interval_hours": 6,
+    "full_interval_hours": 24
+  },
+  "digest": {
+    "enabled": true,
+    "daily_hour": 8,
+    "weekly_day": 0
+  },
+  "webhook": {
+    "enabled": true,
+    "port": 8110
+  }
+}

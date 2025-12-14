@@ -1,0 +1,212 @@
+# MCP Roster Configuration
+# Defines which MCPs load at different levels
+
+## Philosophy
+# - Essential MCPs: Always loaded - critical for basic operation
+# - Project MCPs: Loaded for specific projects via .mcp.json
+# - On-Demand: Run via CLI or subagents - never preload
+# - CLI-Only: Security/specialty tools - always CLI
+
+## Essential MCPs (Always Load)
+# These load in ~/.claude.json for EVERY session
+
+essential_mcps = [
+    {
+        name = "enhanced-memory"
+        reason = "Core persistence and memory system"
+        tools = "~150 tools but essential for continuity"
+    },
+    {
+        name = "voice-mode"
+        reason = "Voice communication with Marc"
+        tools = "~10 tools"
+    },
+    {
+        name = "agent-runtime"
+        reason = "Goal/task persistence across sessions"
+        tools = "~10 tools"
+    }
+]
+
+## Project MCPs (Load for agentic-system project)
+# These go in /mnt/agentic-system/.mcp.json
+
+project_mcps = [
+    {
+        name = "cluster-execution"
+        reason = "Offload to cluster nodes"
+        tools = "~5 tools"
+    },
+    {
+        name = "ember"
+        reason = "Quality guardian"
+        tools = "~10 tools"
+    },
+    {
+        name = "node-chat"
+        reason = "Inter-node communication"
+        tools = "~15 tools"
+    }
+]
+
+## On-Demand MCPs (Subagents load these)
+# Run via: mcp-cli <name> or have subagents use them
+
+on_demand_mcps = [
+    {
+        name = "claude-flow"
+        cli = "npx claude-flow@alpha mcp start"
+        reason = "Swarm orchestration - heavy"
+    },
+    {
+        name = "ruv-swarm"
+        cli = "npx ruv-swarm@latest mcp start"
+        reason = "Alternative swarm - heavy"
+    },
+    {
+        name = "flow-nexus"
+        cli = "npx flow-nexus@latest mcp start"
+        reason = "Cloud platform integration"
+    },
+    {
+        name = "safla"
+        cli = "mcp-cli safla"
+        reason = "Specialized hybrid memory"
+    },
+    {
+        name = "code-execution"
+        cli = "mcp-cli code-execution"
+        reason = "Sandboxed code execution"
+    },
+    {
+        name = "coral-tpu"
+        cli = "mcp-cli coral-tpu"
+        reason = "TPU acceleration - hardware specific"
+    },
+    {
+        name = "agi"
+        cli = "mcp-cli agi"
+        reason = "AGI workflows"
+    },
+    {
+        name = "research-paper"
+        cli = "mcp-cli research-paper"
+        reason = "ArXiv/paper research"
+    },
+    {
+        name = "video-transcript"
+        cli = "mcp-cli video-transcript"
+        reason = "YouTube transcripts"
+    },
+    {
+        name = "agent-eval"
+        cli = "mcp-cli agent-eval"
+        reason = "Evaluation framework"
+    },
+    {
+        name = "typst"
+        cli = "mcp-cli typst"
+        reason = "Document generation"
+    },
+    {
+        name = "chrome-devtools"
+        cli = "npx -y chrome-devtools-mcp@latest --browserUrl http://localhost:9222"
+        reason = "Browser automation"
+    },
+    {
+        name = "universal-ai-chat"
+        cli = "mcp-cli universal-ai-chat"
+        reason = "Multi-AI chat"
+    },
+    {
+        name = "voice-agi"
+        cli = "mcp-cli voice-agi"
+        reason = "Voice conversation with context"
+    }
+]
+
+## CLI-Only MCPs (Never load - use as shell tools)
+# Security and specialty tools that should never be in context
+
+cli_only_mcps = [
+    {
+        name = "security-scanner"
+        cli = "mcp-cli security-scanner"
+        reason = "Nuclei vulnerability scanning"
+    },
+    {
+        name = "security-auditor"
+        cli = "mcp-cli security-auditor"
+        reason = "Code security analysis"
+    },
+    {
+        name = "network-scanner"
+        cli = "mcp-cli network-scanner"
+        reason = "Network discovery"
+    },
+    {
+        name = "threat-intel"
+        cli = "mcp-cli threat-intel"
+        reason = "Threat intelligence"
+    },
+    {
+        name = "crypto-tools"
+        cli = "mcp-cli crypto-tools"
+        reason = "Cryptography utilities"
+    },
+    {
+        name = "dos-detector"
+        cli = "mcp-cli dos-detector"
+        reason = "DoS detection"
+    },
+    {
+        name = "file-analyzer"
+        cli = "mcp-cli file-analyzer"
+        reason = "File analysis"
+    },
+    {
+        name = "fraud-detection"
+        cli = "mcp-cli fraud-detection"
+        reason = "Fraud pattern detection"
+    },
+    {
+        name = "hids"
+        cli = "mcp-cli hids"
+        reason = "Host intrusion detection"
+    },
+    {
+        name = "image-gen"
+        cli = "mcp-cli image-gen"
+        reason = "Image generation"
+    },
+    {
+        name = "synthetic-data"
+        cli = "mcp-cli synthetic-data"
+        reason = "Synthetic data generation"
+    },
+    {
+        name = "web-vuln-scanner"
+        cli = "mcp-cli web-vuln-scanner"
+        reason = "Web vulnerability scanning"
+    }
+]
+
+## Context Token Impact Estimates
+
+token_estimates = {
+    full_load = "~50,000+ tokens (current)"
+    essential_only = "~8,000 tokens"
+    project_load = "~12,000 tokens"
+    savings = "~75% context reduction"
+}
+
+## Usage Examples
+
+# Run security scan without loading MCP:
+# $ mcp-cli security-scanner scan --target example.com
+
+# Research paper lookup without loading MCP:
+# $ mcp-cli research-paper search "transformer attention"
+
+# Have subagent use claude-flow:
+# Task tool with appropriate subagent loads claude-flow MCP

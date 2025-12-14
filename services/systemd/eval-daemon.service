@@ -1,0 +1,36 @@
+[Unit]
+Description=AGI Continuous Evaluation Daemon
+Documentation=https://github.com/marc/agentic-system
+After=network.target
+
+[Service]
+Type=simple
+User=marc
+Group=marc
+WorkingDirectory=/home/marc/agentic-system/evaluation
+
+# Main execution
+ExecStart=/usr/bin/python3 /home/marc/agentic-system/evaluation/eval_daemon.py \
+    --interval 300 \
+    --watch-dir /home/marc/agentic-system/intelligent-agents \
+    --watch-dir /home/marc/agentic-system/evaluation
+
+# Restart policy
+Restart=on-failure
+RestartSec=10
+
+# Environment
+Environment=PYTHONUNBUFFERED=1
+Environment=PYTHONPATH=/home/marc/agentic-system/intelligent-agents:/home/marc/agentic-system/evaluation/graders
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=eval-daemon
+
+# Resource limits
+MemoryMax=512M
+CPUQuota=25%
+
+[Install]
+WantedBy=multi-user.target

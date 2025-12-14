@@ -1,0 +1,12 @@
+{
+  "name": "file_analyzer",
+  "category": "security",
+  "description": "Analyze files for type, entropy, and suspicious characteristics",
+  "functions": [
+    "identify_file",
+    "calculate_file_hashes",
+    "analyze_entropy",
+    "scan_directory"
+  ],
+  "usage": "from mcp_tools import file_analyzer; info = file_analyzer.identify_file(\"/path/to/file\")"
+}
