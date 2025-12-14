@@ -156,6 +156,7 @@ services/kutiraai/
 # ============================================================================
 monitoring/prometheus-data/
 monitoring/loki/chunks/
+monitoring/loki/data/
 monitoring/grafana/grafana.db
 
 # ============================================================================
