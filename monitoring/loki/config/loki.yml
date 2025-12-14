@@ -9,11 +9,11 @@ server:
 
 common:
   instance_addr: 127.0.0.1
-  path_prefix: /mnt/agentic-system/monitoring/loki/data
+  path_prefix: /Volumes/SSDRAID0/agentic-system/monitoring/loki/data
   storage:
     filesystem:
-      chunks_directory: /mnt/agentic-system/monitoring/loki/data/chunks
-      rules_directory: /mnt/agentic-system/monitoring/loki/data/rules
+      chunks_directory: /Volumes/SSDRAID0/agentic-system/monitoring/loki/data/chunks
+      rules_directory: /Volumes/SSDRAID0/agentic-system/monitoring/loki/data/rules
   replication_factor: 1
   ring:
     kvstore:
@@ -42,14 +42,14 @@ ruler:
 # Storage configuration
 storage_config:
   tsdb_shipper:
-    active_index_directory: /mnt/agentic-system/monitoring/loki/data/tsdb-shipper-active
-    cache_location: /mnt/agentic-system/monitoring/loki/data/tsdb-shipper-cache
+    active_index_directory: /Volumes/SSDRAID0/agentic-system/monitoring/loki/data/tsdb-shipper-active
+    cache_location: /Volumes/SSDRAID0/agentic-system/monitoring/loki/data/tsdb-shipper-cache
     cache_ttl: 24h
   filesystem:
-    directory: /mnt/agentic-system/monitoring/loki/data/chunks
+    directory: /Volumes/SSDRAID0/agentic-system/monitoring/loki/data/chunks
 
 compactor:
-  working_directory: /mnt/agentic-system/monitoring/loki/data/tsdb-shipper-compactor
+  working_directory: /Volumes/SSDRAID0/agentic-system/monitoring/loki/data/tsdb-shipper-compactor
   compaction_interval: 10m
   retention_enabled: true
   retention_delete_delay: 2h
