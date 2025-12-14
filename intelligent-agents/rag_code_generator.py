@@ -23,6 +23,8 @@ Integration:
 - Uses enhanced-memory-mcp for structured metadata
 - Connects to Ollama for code generation
 """
+import os
+import platform
 
 import asyncio
 import hashlib
@@ -50,6 +52,27 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 # Configure logging
 logger = logging.getLogger("rag-code-generator")
+
+
+def _get_storage_base() -> Path:
+    """Detect storage base path based on platform."""
+    env_path = os.environ.get("AGENTIC_SYSTEM_PATH")
+    if env_path and Path(env_path).exists():
+        return Path(env_path)
+
+    system = platform.system()
+    if system == "Darwin":  # macOS
+        ssd_path = Path("/Volumes/SSDRAID0/agentic-system")
+        if ssd_path.exists():
+            return ssd_path
+    elif system == "Linux":
+        linux_path = Path("/home/marc/agentic-system")
+        if linux_path.exists():
+            return linux_path
+    return Path(__file__).parent.parent
+
+
+_STORAGE_BASE = _get_storage_base()
 
 
 class CodeEmbedder:
@@ -145,11 +168,7 @@ class RAGCodeGenerator:
         qdrant_host: str = "localhost",
         qdrant_port: int = 6333,
         ollama_host: str = "http://localhost:11434",
-<<<<<<< HEAD
-        base_path: str = "/Volumes/SSDRAID0/agentic-system"
-=======
-        base_path: str = "/mnt/agentic-system"
->>>>>>> origin/main
+        base_path: str = str(_STORAGE_BASE)
     ):
         """
         Initialize RAG Code Generator.
