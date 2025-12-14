@@ -3,6 +3,33 @@
 
 set -e
 
+
+# Platform-aware storage detection
+detect_storage_base() {
+    if [ -n "$AGENTIC_SYSTEM_PATH" ] && [ -d "$AGENTIC_SYSTEM_PATH" ]; then
+        echo "$AGENTIC_SYSTEM_PATH"
+        return
+    fi
+    case "$(uname -s)" in
+        Darwin)
+            if [ -d "/Volumes/SSDRAID0/agentic-system" ]; then
+                echo "/Volumes/SSDRAID0/agentic-system"
+            elif [ -d "/Volumes/FILES/agentic-system" ]; then
+                echo "/Volumes/FILES/agentic-system"
+            fi
+            ;;
+        Linux)
+            if [ -d "/home/marc/agentic-system" ]; then
+                echo "/home/marc/agentic-system"
+            elif [ -d "/mnt/agentic-system" ]; then
+                echo "/mnt/agentic-system"
+            fi
+            ;;
+    esac
+}
+
+STORAGE_BASE=$(detect_storage_base)
+
 echo "=== Builder Node API Installation Verification ==="
 echo ""
 
@@ -69,7 +96,7 @@ fi
 echo ""
 echo "2. Checking API files..."
 
-SERVICES_DIR="/home/marc/agentic-system/services"
+SERVICES_DIR="$STORAGE_BASE/services"
 
 if [ -f "$SERVICES_DIR/builder-node-api.py" ]; then
     check_pass "builder-node-api.py exists"
@@ -100,8 +127,8 @@ fi
 echo ""
 echo "3. Checking directories..."
 
-ARTIFACT_DIR="/home/marc/agentic-system/artifacts"
-LOG_DIR="/home/marc/agentic-system/logs"
+ARTIFACT_DIR="$STORAGE_BASE/artifacts"
+LOG_DIR="$STORAGE_BASE/logs"
 
 if [ -d "$ARTIFACT_DIR" ]; then
     check_pass "Artifacts directory exists: $ARTIFACT_DIR"

@@ -36,14 +36,39 @@ This is it. This is the answer.
 
 import asyncio
 import logging
+import os
+import platform
 import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional, Any
 
 
+def _get_storage_base() -> Path:
+    """Detect storage base path based on platform."""
+    env_path = os.environ.get("AGENTIC_SYSTEM_PATH")
+    if env_path and Path(env_path).exists():
+        return Path(env_path)
+
+    system = platform.system()
+    if system == "Darwin":  # macOS
+        if Path("/Volumes/SSDRAID0/agentic-system").exists():
+            return Path("/Volumes/SSDRAID0/agentic-system")
+        elif Path("/Volumes/FILES/agentic-system").exists():
+            return Path("/Volumes/FILES/agentic-system")
+    elif system == "Linux":
+        if Path("/home/marc/agentic-system").exists():
+            return Path("/home/marc/agentic-system")
+        elif Path("/mnt/agentic-system").exists():
+            return Path("/mnt/agentic-system")
+    # Fallback to script location
+    return Path(__file__).parent
+
+
+STORAGE_BASE = _get_storage_base()
+
 # Add intelligent-agents to path
-sys.path.insert(0, str(Path(__file__).parent / "intelligent-agents"))
+sys.path.insert(0, str(STORAGE_BASE / "intelligent-agents"))
 
 # Import all components
 from darwin_godel_machine import DarwinGodelMachine, ModificationType
@@ -60,14 +85,17 @@ from knowledge_synthesis_engine import (
     KnowledgeSource
 )
 from rag_code_generator import RAGCodeGenerator  # RAG integration for code optimization
+from claude_code_changelog_watcher import ClaudeCodeChangelogWatcher  # Claude Code feature adoption
 
 
-# Configure logging
+# Configure logging with platform-aware paths
+log_file = STORAGE_BASE / "logs" / "autonomous_agi_loop.log"
+log_file.parent.mkdir(parents=True, exist_ok=True)
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler('/mnt/agentic-system/logs/autonomous_agi_loop.log'),
+        logging.FileHandler(str(log_file)),
         logging.StreamHandler(sys.stdout)
     ]
 )
@@ -82,9 +110,9 @@ class AutonomousRecursiveAGILoop:
     improvement cycle that operates 24/7 without human intervention.
     """
 
-    def __init__(self, base_path: str = "/mnt/agentic-system"):
+    def __init__(self, base_path: str = None):
         """Initialize the autonomous AGI loop."""
-        self.base_path = Path(base_path)
+        self.base_path = Path(base_path) if base_path else STORAGE_BASE
 
         # Load configuration
         import json
@@ -107,6 +135,10 @@ class AutonomousRecursiveAGILoop:
         if self.rag_enabled:
             self.rag_generator = RAGCodeGenerator()
             logger.info("✓ RAG code generator initialized")
+
+        # Initialize Claude Code changelog watcher for self-improvement
+        self.changelog_watcher = ClaudeCodeChangelogWatcher()
+        logger.info("✓ Claude Code changelog watcher initialized")
 
         # Loop control
         self.running = False
@@ -176,8 +208,12 @@ class AutonomousRecursiveAGILoop:
     async def _run_cycle(self):
         """Run one complete AGI cycle."""
 
+        # Phase 0: Claude Code Feature Adoption (Self-Tooling Improvement)
+        logger.info("Phase 0: Claude Code Feature Monitoring")
+        await self._check_claude_code_features()
+
         # Phase 1: Knowledge Acquisition
-        logger.info("Phase 1: Knowledge Acquisition")
+        logger.info("\nPhase 1: Knowledge Acquisition")
         await self._acquire_knowledge()
 
         # Phase 2: Knowledge Synthesis
@@ -200,6 +236,35 @@ class AutonomousRecursiveAGILoop:
                 self.successful_improvements += 1
             else:
                 self.failed_improvements += 1
+
+    async def _check_claude_code_features(self):
+        """Check for new Claude Code features and propose adoption."""
+        logger.info("  Monitoring Claude Code changelog for new features...")
+
+        try:
+            result = await self.changelog_watcher.check_for_updates()
+
+            if "error" in result:
+                logger.warning(f"  Changelog check failed: {result['error']}")
+                return
+
+            logger.info(f"  ✓ Claude Code version: {result.get('current_version', 'unknown')}")
+            logger.info(f"  ✓ Entries analyzed: {result.get('entries_analyzed', 0)}")
+            logger.info(f"  ✓ New proposals: {result.get('proposals_generated', 0)}")
+
+            # Log adopted features
+            adopted = result.get('adopted_features', {})
+            adopted_count = sum(1 for v in adopted.values() if v)
+            logger.info(f"  ✓ Features adopted: {adopted_count}/{len(adopted)}")
+
+            # If there are new proposals, log them
+            new_proposals = result.get('new_proposals', [])
+            for proposal in new_proposals:
+                auto_tag = "[AUTO]" if proposal.get('auto_adoptable') else "[MANUAL]"
+                logger.info(f"    {auto_tag} {proposal.get('feature_name')}: {proposal.get('benefit', '')[:50]}...")
+
+        except Exception as e:
+            logger.error(f"  Claude Code feature check failed: {e}", exc_info=True)
 
     async def _acquire_knowledge(self):
         """Acquire new knowledge from external sources."""

@@ -6,6 +6,8 @@ Week 5 Phase 5: Autonomous Configuration Optimization
 This module analyzes system configuration files, detects suboptimal settings,
 generates configuration optimizations, and applies them safely with backup and rollback.
 """
+import os
+import platform
 
 import json
 import sqlite3
@@ -18,12 +20,35 @@ from typing import List, Dict, Any, Optional, Tuple
 from dataclasses import dataclass
 from enum import Enum
 
+def _get_storage_base() -> Path:
+    """Detect storage base path based on platform."""
+    env_path = os.environ.get("AGENTIC_SYSTEM_PATH")
+    if env_path and Path(env_path).exists():
+        return Path(env_path)
+
+    system = platform.system()
+    if system == "Darwin":  # macOS
+        if Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+        elif Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+    elif system == "Linux":
+        if Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+        elif Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+    return Path(__file__).parent.parent
+
+
+_STORAGE_BASE = _get_storage_base()
+
+
 # Configuration
-CONFIG_TUNING_DB = Path("/mnt/agentic-system/databases/config_tuning.db")
+CONFIG_TUNING_DB = Path(str(_STORAGE_BASE / "databases/config_tuning.db"))
 SETTINGS_FILE = Path("/Users/marc/.claude/settings.json")
 SETTINGS_LOCAL = Path("/Users/marc/.claude/settings.local.json")
-QDRANT_CONFIG = Path("/mnt/agentic-system/config/qdrant-config.yaml")
-EVOLUTION_CONFIG = Path("/mnt/agentic-system/config/evolution_phases.json")
+QDRANT_CONFIG = Path(str(_STORAGE_BASE / "config/qdrant-config.yaml"))
+EVOLUTION_CONFIG = Path(str(_STORAGE_BASE / "config/evolution_phases.json"))
 
 class TuningType(Enum):
     """Types of configuration tuning"""
@@ -249,7 +274,7 @@ class ConfigTuner:
             # Safety check - differentiate system vs project space
             # Project space (SSDRAID0/agentic-system) - more permissive for autonomous operations
             # System space (/Users/marc/.claude) - stricter controls
-            is_project_space = str(config_file.file_path).startswith('/mnt/agentic-system')
+            is_project_space = str(config_file.file_path).startswith(str(_STORAGE_BASE))
             is_system_space = str(config_file.file_path).startswith('/Users/marc/.claude')
 
             # Never modify main settings.json (system critical)
@@ -346,7 +371,7 @@ def main():
 
     for config_file, tuning_type, param_path, current, tuned, confidence in opportunities:
         # More permissive thresholds for project space vs system space
-        is_project_space = str(config_file.file_path).startswith('/mnt/agentic-system')
+        is_project_space = str(config_file.file_path).startswith(str(_STORAGE_BASE))
         min_confidence = 0.60 if is_project_space else 0.70
 
         if confidence >= min_confidence:

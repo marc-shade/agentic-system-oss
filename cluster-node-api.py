@@ -13,26 +13,66 @@ Features:
 from flask import Flask, jsonify, request
 import sqlite3
 import json
+import os
+import platform
 from pathlib import Path
 from datetime import datetime
 import logging
 import subprocess
+import sys
+
+
+def _get_storage_base() -> Path:
+    """Detect storage base path based on platform."""
+    env_path = os.environ.get("AGENTIC_SYSTEM_PATH")
+    if env_path and Path(env_path).exists():
+        return Path(env_path)
+
+    system = platform.system()
+    if system == "Darwin":  # macOS
+        if Path("/Volumes/SSDRAID0/agentic-system").exists():
+            return Path("/Volumes/SSDRAID0/agentic-system")
+        elif Path("/Volumes/FILES/agentic-system").exists():
+            return Path("/Volumes/FILES/agentic-system")
+    elif system == "Linux":
+        if Path("/home/marc/agentic-system").exists():
+            return Path("/home/marc/agentic-system")
+        elif Path("/mnt/agentic-system").exists():
+            return Path("/mnt/agentic-system")
+    return Path(__file__).parent
+
+
+_STORAGE_BASE = _get_storage_base()
+
+# Add path for toon_config
+sys.path.insert(0, str(_STORAGE_BASE / "cluster-deployment"))
+from toon_config import load_config
+
 
 app = Flask(__name__)
 
 # Configuration
 NODE_CONFIG_PATH = Path.home() / '.claude' / 'node-config.json'
-# Store on SSDRAID0 (not /Users/marc - see FILE_LOCATION_POLICY.md)
-CLUSTER_DB = Path('/Volumes/SSDRAID0/agentic-system/databases/cluster/node_registry.db')
-LOCAL_DB = Path('/Volumes/SSDRAID0/agentic-system/databases/cluster/nodes/macbook-air-m3/local_memory.db')
-SHARED_DB_SSDRAID = Path('/Volumes/SSDRAID0/agentic-system/databases/cluster/shared_memories.db')
+CLUSTER_DB = _STORAGE_BASE / 'databases' / 'cluster' / 'node_registry.db'
+
+# Determine node ID for local DB path (will be updated after config load)
+_node_id = "unknown"
+if NODE_CONFIG_PATH.exists():
+    import json as _json
+    with open(NODE_CONFIG_PATH) as _f:
+        _node_id = _json.load(_f).get('node_id', 'unknown')
+
+LOCAL_DB = _STORAGE_BASE / 'databases' / 'cluster' / 'nodes' / _node_id / 'local_memory.db'
+SHARED_DB = _STORAGE_BASE / 'databases' / 'cluster' / 'shared_memories.db'
 
 # Setup logging
+_log_dir = _STORAGE_BASE / 'logs'
+_log_dir.mkdir(parents=True, exist_ok=True)
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler(Path('/Volumes/SSDRAID0/agentic-system/logs/cluster-node-api.log')),
+        logging.FileHandler(_log_dir / 'cluster-node-api.log'),
         logging.StreamHandler()
     ]
 )
@@ -155,8 +195,9 @@ def trigger_cluster_sync():
         sync_type = request.json.get('type', 'sync')  # push, pull, or sync
 
         # Run cluster sync script
+        sync_script = str(_STORAGE_BASE / 'scripts' / 'cluster-memory-sync.py')
         result = subprocess.run(
-            ['python3', '/Volumes/SSDRAID0/agentic-system/scripts/cluster-memory-sync.py', sync_type],
+            ['python3', sync_script, sync_type],
             capture_output=True,
             text=True,
             timeout=60

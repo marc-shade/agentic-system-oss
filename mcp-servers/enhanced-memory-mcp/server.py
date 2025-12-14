@@ -32,9 +32,28 @@ from memory_client import MemoryClient
 from sandbox.executor import CodeExecutor, create_api_context
 from sandbox.security import comprehensive_safety_check, sanitize_output
 
-# TPU Importance Scoring - Add to Python path
+# TPU Importance Scoring - Add to Python path with platform detection
 import sys
-_HOOKS_PATH = Path("/mnt/agentic-system/scripts/hooks")
+import platform
+
+def _get_storage_base() -> Path:
+    """Detect storage base path based on platform."""
+    system = platform.system()
+    if system == "Darwin":  # macOS
+        if Path("/Volumes/SSDRAID0/agentic-system").exists():
+            return Path("/Volumes/SSDRAID0/agentic-system")
+        elif Path("/Volumes/FILES/agentic-system").exists():
+            return Path("/Volumes/FILES/agentic-system")
+    elif system == "Linux":
+        if Path("/home/marc/agentic-system").exists():
+            return Path("/home/marc/agentic-system")
+        elif Path("/mnt/agentic-system").exists():
+            return Path("/mnt/agentic-system")
+    # Fallback to script location
+    return Path(__file__).parent.parent.parent
+
+_STORAGE_BASE = _get_storage_base()
+_HOOKS_PATH = _STORAGE_BASE / "scripts" / "hooks"
 if str(_HOOKS_PATH) not in sys.path:
     sys.path.insert(0, str(_HOOKS_PATH))
 
@@ -58,11 +77,19 @@ except ImportError:
 # Set up logging - CRITICAL: Must use stderr for MCP compatibility
 # MCP protocol requires stdout is reserved for JSON-RPC messages only
 import sys
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    stream=sys.stderr  # Critical: redirect all logging to stderr
-)
+from pathlib import Path as _LogPath
+
+# MCP servers MUST NOT output to stderr - Claude Code interprets it as errors
+# Force-redirect ALL logging to file (basicConfig doesn't work if already configured)
+_log_file = _LogPath(__file__).parent / "server.log"
+_file_handler = logging.FileHandler(str(_log_file), mode='a')
+_file_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+
+# Remove ALL existing handlers from root logger and add file handler only
+logging.root.handlers.clear()
+logging.root.addHandler(_file_handler)
+logging.root.setLevel(logging.INFO)
+
 logger = logging.getLogger("enhanced-memory-git")
 
 # Configuration
@@ -1121,6 +1148,30 @@ if __name__ == "__main__":
         logger.info("✅ AGI Memory Phase 4 tools integrated (Meta-Cognitive Awareness & Self-Improvement)")
     except Exception as e:
         logger.warning(f"⚠️  AGI Memory Phase 4 integration skipped: {e}")
+
+    # Register Provenance & L-Score tools (God Agent integration - Phase 1)
+    try:
+        from provenance import register_provenance_tools
+        register_provenance_tools(app, DB_PATH)
+        logger.info("✅ Provenance/L-Score tools integrated (God Agent Phase 1: Source chain tracking)")
+    except Exception as e:
+        logger.warning(f"⚠️  Provenance/L-Score integration skipped: {e}")
+
+    # Register Shadow Vector tools (God Agent integration - Phase 3: Adversarial Validation)
+    try:
+        from shadow_vector import register_shadow_vector_tools
+        register_shadow_vector_tools(app, DB_PATH)
+        logger.info("✅ Shadow Vector tools integrated (God Agent Phase 3: Adversarial contradiction detection)")
+    except Exception as e:
+        logger.warning(f"⚠️  Shadow Vector integration skipped: {e}")
+
+    # Register Surprise-Based Consolidation tools (Titans/MIRAS inspired)
+    try:
+        from surprise_consolidation_tools import register_surprise_consolidation_tools
+        register_surprise_consolidation_tools(app, DB_PATH)
+        logger.info("✅ Surprise Consolidation tools integrated (Titans/MIRAS inspired novelty-based memory)")
+    except Exception as e:
+        logger.warning(f"⚠️  Surprise Consolidation integration skipped: {e}")
 
     # Register ART (Adaptive Resonance Theory) tools - Online learning without catastrophic forgetting
     try:

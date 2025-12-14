@@ -8,10 +8,17 @@ Provides backward compatibility with JSON files during migration.
 
 import json
 from pathlib import Path
-from typing import Any, Dict
-from toon_py import encode
+from typing import Any, Dict, Union
 
-def load_config(config_path: Path | str) -> Dict[str, Any]:
+# Make toon_py optional for Python 3.9 compatibility
+try:
+    from toon_py import encode
+    TOON_AVAILABLE = True
+except ImportError:
+    TOON_AVAILABLE = False
+    encode = None  # Will only be used if TOON_AVAILABLE is True
+
+def load_config(config_path: Union[Path, str]) -> Dict[str, Any]:
     """
     Load configuration from TOON or JSON file.
 
@@ -64,7 +71,7 @@ def load_config(config_path: Path | str) -> Dict[str, Any]:
         )
 
 
-def save_config(data: Dict[str, Any], config_path: Path | str,
+def save_config(data: Dict[str, Any], config_path: Union[Path, str],
                 format: str = 'both') -> None:
     """
     Save configuration to TOON and/or JSON format.
@@ -83,6 +90,8 @@ def save_config(data: Dict[str, Any], config_path: Path | str,
         base_path = config_path
 
     if format in ['toon', 'both']:
+        if not TOON_AVAILABLE:
+            raise ImportError("toon_py not available (requires Python 3.10+). Use format='json' instead.")
         toon_path = base_path.with_suffix('.toon')
         toon_content = encode(data)
         with open(toon_path, 'w') as f:

@@ -28,6 +28,7 @@ Created: 2025-11-19 (Phase 5)
 """
 
 import sqlite3
+from storage_path_utils import get_database_path, get_logs_path, STORAGE_BASE
 import subprocess
 import json
 from datetime import datetime, timedelta
@@ -36,7 +37,7 @@ from typing import Dict, List, Optional, Tuple
 from dataclasses import dataclass, asdict
 
 # Database path
-DB_PATH = Path("/Volumes/SSDRAID0/agentic-system/databases/capability_registry.db")
+DB_PATH = get_database_path("capability_registry.db")
 
 
 @dataclass

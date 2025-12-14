@@ -20,23 +20,26 @@ import platform
 from pathlib import Path
 from typing import Dict, Any, List, Tuple, Optional
 from datetime import datetime
-import anthropic
+# NOTE: Removed anthropic import - statuslines should NEVER call external APIs
+# They must be instant and local-only for responsive UI
 
-# Platform detection
-IS_MACOS = platform.system() == "Darwin"
-IS_LINUX = platform.system() == "Linux"
 
-# Storage path detection - Support multiple mount points
-if IS_MACOS:
-    # Try SSDRAID0 first (mac-studio), then FILES (completeu-server)
-    if Path("/Volumes/SSDRAID0/agentic-system").exists():
-        STORAGE_BASE = Path("/Volumes/SSDRAID0/agentic-system")
-    elif Path("/Volumes/FILES/agentic-system").exists():
-        STORAGE_BASE = Path("/Volumes/FILES/agentic-system")
-    else:
-        STORAGE_BASE = Path("/Volumes/SSDRAID0/agentic-system")  # Default
-else:  # Linux
-    STORAGE_BASE = Path("/mnt/agentic-system")
+def get_storage_base() -> Path:
+    """Detect storage base path based on platform."""
+    system = platform.system()
+    if system == "Darwin":  # macOS
+        if Path("/Volumes/SSDRAID0/agentic-system").exists():
+            return Path("/Volumes/SSDRAID0/agentic-system")
+        elif Path("/Volumes/FILES/agentic-system").exists():
+            return Path("/Volumes/FILES/agentic-system")
+    elif system == "Linux":
+        if Path("/home/marc/agentic-system").exists():
+            return Path("/home/marc/agentic-system")
+    # Fallback to script location
+    return Path(__file__).parent.parent
+
+
+STORAGE_BASE = get_storage_base()
 
 # ANSI color codes for rich terminal display
 class Colors:
@@ -53,20 +56,16 @@ class Colors:
 
 
 class IntelligentStatusLine:
-    """Production AI-powered adaptive statusline generator"""
+    """Production rule-based adaptive statusline generator
+
+    NOTE: AI prioritization removed - statuslines must be instant and local-only.
+    Rule-based approach provides consistent, fast results without API dependencies.
+    """
 
     def __init__(self):
         self.max_length = 150  # Increased to fit all items including token usage
-        self.api_key = os.environ.get("ANTHROPIC_API_KEY")
-        self.use_ai = self.api_key is not None
-
-        if self.use_ai:
-            try:
-                self.client = anthropic.Anthropic(api_key=self.api_key)
-                self.model = "claude-sonnet-4-20250514"
-            except Exception as e:
-                print(f"AI initialization failed: {e}", file=sys.stderr)
-                self.use_ai = False
+        # AI disabled - statuslines should never call external APIs
+        self.use_ai = False
 
     def collect_system_data(self) -> Dict[str, Any]:
         """
@@ -121,21 +120,21 @@ class IntelligentStatusLine:
             data['claude_sessions'] = 0
             data['claude_running'] = False
 
-        # Hook activity detection - Read from settings.json
+        # Hook activity detection - Read from settings.local.json (where hooks are stored)
         try:
             import json
-            settings_file = Path.home() / ".claude" / "settings.json"
+            settings_file = Path.home() / ".claude" / "settings.local.json"
 
             active_hooks = 0
             if settings_file.exists():
                 with open(settings_file, 'r') as f:
                     settings = json.load(f)
                     hooks_config = settings.get('hooks', {})
-                    # Count configured hook events
+                    # Count configured hook events (PreToolUse, PostToolUse, etc.)
                     active_hooks = len(hooks_config)
 
             # Check recent hook activity from logs
-            hook_log = Path.home() / "agentic-system" / "logs" / "tool-usage.log"
+            hook_log = STORAGE_BASE / "logs" / "tool-usage.log"
             recent_hook_activity = False
 
             if hook_log.exists():
@@ -270,7 +269,7 @@ class IntelligentStatusLine:
         cutoff_time = datetime.now() - timedelta(minutes=5)
 
         log_paths = [
-            Path("/mnt/agentic-system/arduino-surface/logs/display-agent.log"),
+            STORAGE_BASE / "arduino-surface" / "logs" / "display-agent.log",
             Path("/tmp/phoenix_session_start.log")
         ]
 
@@ -398,7 +397,7 @@ class IntelligentStatusLine:
         try:
             # Try Prometheus first (real-time metrics)
             import sys
-            sys.path.insert(0, '/home/marc/agentic-system/intelligent-self-healing')
+            sys.path.insert(0, str(STORAGE_BASE / "intelligent-self-healing"))
             from prometheus_metrics import get_prometheus_usage
 
             metrics = get_prometheus_usage()
@@ -459,7 +458,7 @@ class IntelligentStatusLine:
     def _check_storage_usage(self) -> int:
         """Check storage usage percentage on hot tier"""
         try:
-            hot_tier = Path("/mnt/agentic-system")
+            hot_tier = STORAGE_BASE
             if not hot_tier.exists():
                 return 0
 
@@ -509,44 +508,66 @@ class IntelligentStatusLine:
     def _detect_current_model(self) -> str:
         """
         Detect current Claude model being used
-        Checks environment variable, settings, or defaults to sonnet-4.5
+        Checks session context, environment variable, settings, or defaults to sonnet-4
         """
         try:
+            # Check session context from Claude Code stdin (highest priority)
+            if hasattr(self, 'session_context') and self.session_context:
+                model_info = self.session_context.get('model', {})
+                if isinstance(model_info, dict):
+                    model_name = model_info.get('display_name') or model_info.get('name', '')
+                    if model_name:
+                        return self._simplify_model_name(model_name)
+                elif isinstance(model_info, str) and model_info:
+                    return self._simplify_model_name(model_info)
+
             # Check environment variable
             model_env = os.environ.get('ANTHROPIC_MODEL', '')
             if model_env:
-                # Simplify model name (e.g., claude-sonnet-4-5-20250929 -> sonnet-4.5)
-                if 'sonnet-4-5' in model_env or 'sonnet-4.5' in model_env:
-                    return 'sonnet-4.5'
-                elif 'sonnet-4' in model_env:
-                    return 'sonnet-4'
-                elif 'opus' in model_env:
-                    return 'opus'
-                elif 'haiku' in model_env:
-                    return 'haiku'
-                return model_env.split('-')[-1][:8]  # Last part, max 8 chars
+                return self._simplify_model_name(model_env)
 
-            # Check settings file
+            # Check settings.local.json for model override
+            settings_local = Path.home() / ".claude" / "settings.local.json"
+            if settings_local.exists():
+                with open(settings_local, 'r') as f:
+                    settings = json.load(f)
+                    model_setting = settings.get('model', '')
+                    if model_setting:
+                        return self._simplify_model_name(model_setting)
+
+            # Check settings.json
             settings_file = Path.home() / ".claude" / "settings.json"
             if settings_file.exists():
                 with open(settings_file, 'r') as f:
                     settings = json.load(f)
                     model_setting = settings.get('model', '')
                     if model_setting:
-                        if 'sonnet-4-5' in model_setting or 'sonnet-4.5' in model_setting:
-                            return 'sonnet-4.5'
-                        elif 'sonnet-4' in model_setting:
-                            return 'sonnet-4'
-                        elif 'opus' in model_setting:
-                            return 'opus'
-                        elif 'haiku' in model_setting:
-                            return 'haiku'
+                        return self._simplify_model_name(model_setting)
 
-            # Default to sonnet-4.5 (current default for Claude Code)
-            return 'sonnet-4.5'
+            # Default to sonnet-4 (current default for Claude Code)
+            return 'sonnet-4'
 
         except Exception:
+            return 'sonnet-4'
+
+    def _simplify_model_name(self, model: str) -> str:
+        """Simplify full model name to short display form"""
+        model_lower = model.lower()
+        if 'opus-4-5' in model_lower or 'opus-4.5' in model_lower:
+            return 'opus-4.5'
+        elif 'opus-4' in model_lower or 'opus4' in model_lower:
+            return 'opus-4'
+        elif 'opus' in model_lower:
+            return 'opus'
+        elif 'sonnet-4-5' in model_lower or 'sonnet-4.5' in model_lower:
             return 'sonnet-4.5'
+        elif 'sonnet-4' in model_lower or 'sonnet4' in model_lower:
+            return 'sonnet-4'
+        elif 'sonnet' in model_lower:
+            return 'sonnet'
+        elif 'haiku' in model_lower:
+            return 'haiku'
+        return model.split('-')[-1][:10]  # Last part, max 10 chars
 
     def _check_memory_activity(self) -> Dict[str, Any]:
         """Check enhanced memory system activity (4-tier memory)"""
@@ -587,9 +608,9 @@ class IntelligentStatusLine:
 
     def _check_raid_health(self) -> Dict[str, Any]:
         """Check RAID array health from /proc/mdstat (Linux only)"""
-        # RAID is Linux-only (mdadm)
-        if IS_MACOS:
-            return {'status': 'not_applicable', 'healthy': True}
+        # RAID check only applicable on Linux
+        if platform.system() != 'Linux':
+            return {'status': 'none', 'healthy': True}
 
         try:
             with open('/proc/mdstat', 'r') as f:
@@ -618,59 +639,36 @@ class IntelligentStatusLine:
                 return {'status': 'unknown', 'healthy': False}
 
         except Exception:
-            return {'status': 'error', 'healthy': False}
+            return {'status': 'none', 'healthy': True}
 
     def _check_system_services(self) -> Dict[str, Any]:
-        """Check critical system services status (platform-aware)"""
+        """Check critical system services status (Linux only - uses systemctl)"""
+        # systemctl only available on Linux
+        if platform.system() != 'Linux':
+            return {'running': 0, 'total': 0, 'all_healthy': True}
+
         try:
-            if IS_LINUX:
-                # Linux: Check systemd services
-                services = ['agentic-guardian', 'agentic-memory-db', 'builder-node-api']
-                running = 0
-                total = len(services)
+            services = ['agentic-guardian', 'agentic-memory-db', 'builder-node-api']
+            running = 0
+            total = len(services)
 
-                for service in services:
-                    result = subprocess.run(
-                        ['systemctl', 'is-active', service],
-                        capture_output=True,
-                        text=True,
-                        timeout=1
-                    )
-                    if result.stdout.strip() == 'active':
-                        running += 1
+            for service in services:
+                result = subprocess.run(
+                    ['systemctl', 'is-active', service],
+                    capture_output=True,
+                    text=True,
+                    timeout=1
+                )
+                if result.stdout.strip() == 'active':
+                    running += 1
 
-                return {
-                    'running': running,
-                    'total': total,
-                    'all_healthy': running == total
-                }
-            else:
-                # macOS: Check key processes instead
-                services_to_check = [
-                    ('temporal', 'Temporal'),
-                    ('autokitteh', 'AutoKitteh'),
-                    ('qdrant', 'Qdrant')
-                ]
-                running = 0
-                total = len(services_to_check)
-
-                for process_name, display_name in services_to_check:
-                    result = subprocess.run(
-                        ['pgrep', '-f', process_name],
-                        capture_output=True,
-                        text=True,
-                        timeout=1
-                    )
-                    if result.stdout.strip():
-                        running += 1
-
-                return {
-                    'running': running,
-                    'total': total,
-                    'all_healthy': running == total
-                }
+            return {
+                'running': running,
+                'total': total,
+                'all_healthy': running == total
+            }
         except Exception:
-            return {'running': 0, 'total': 3, 'all_healthy': False}
+            return {'running': 0, 'total': 0, 'all_healthy': True}
 
     def _check_qdrant_status(self) -> bool:
         """Check if Qdrant vector database is running"""
@@ -735,7 +733,7 @@ class IntelligentStatusLine:
     def _check_subagent_queue(self) -> int:
         """Check pending subagent tasks in queue"""
         try:
-            log_file = Path('/mnt/agentic-system/logs/subagent-activity.log')
+            log_file = STORAGE_BASE / "logs" / "subagent-activity.log"
             if not log_file.exists():
                 return 0
 
@@ -781,7 +779,7 @@ class IntelligentStatusLine:
     def _check_memory_db_size(self) -> Optional[int]:
         """Check agent memory database size in MB"""
         try:
-            memory_dir = Path('/mnt/agentic-system/agent-memory')
+            memory_dir = STORAGE_BASE / "agent-memory"
             if not memory_dir.exists():
                 return None
 
@@ -812,107 +810,14 @@ class IntelligentStatusLine:
 
     def ai_prioritize_display(self, data: Dict[str, Any]) -> List[Tuple[str, str, int]]:
         """
-        Use Claude AI to intelligently prioritize statusline content
+        Prioritize statusline content using rule-based logic
 
         Returns: List of (emoji, text, priority) tuples
         Priority levels: 0=critical, 1=high, 2=normal, 3=low
+
+        NOTE: AI prioritization removed for performance - statuslines must be instant.
         """
-
-        if not self.use_ai:
-            return self._rule_based_prioritize(data)
-
-        context_prompt = f"""Analyze this agentic system state and create a statusline with ALL useful information.
-
-System Data:
-{json.dumps(data, indent=2)}
-
-Prioritization Rules:
-1. Errors/critical issues: Always show first (priority 0)
-2. Resource warnings (memory, storage): High priority (priority 1)
-3. Active work (training, workflows, active_skill): High priority (priority 1)
-4. Service status changes: Important if down (priority 1)
-5. Normal operations (agents, Claude with hooks, MCP): Medium priority (priority 2)
-6. Background services running: Low priority (priority 3)
-
-MANDATORY ITEMS (include ALL of these):
-1. memory_status: ALWAYS show display field (e.g., "🧠🔄11" if active, "🧠💤11" if idle)
-   - Priority 1 if active (🔄) or recent_pull (📥)
-   - Priority 2 if idle (💤)
-2. mcp_count: ALWAYS show (e.g., "🔌 7mcp") with priority 2
-3. agent_count with normal priority (2) if > 0 (e.g., "🤖 18agents")
-4. claude_running: show "💻 active" if true with priority 2 (NOT 🧠, that's memory!)
-5. temporal_running: show "⏰" if true with priority 3
-6. autokitteh_running: show "🐈" if true with priority 3
-7. current model (e.g., "🧬 sonnet-4.5") with priority 3
-8. current directory (e.g., "📁 agentic-system") with priority 3
-9. If active_skill present, show it with priority 1 (e.g., "⚡ skill-name")
-10. If memory_pressure is moderate/high, show it with priority 1 (e.g., "⚠️ high memory")
-
-CONDITIONAL ITEMS (only show if abnormal):
-- Hooks: ONLY if != 2 (e.g., "⚠️ 0hooks!" or "⚠️ 3hooks?")
-- MCP: ONLY if < 6 or > 10 (e.g., "⚠️ 3mcp low!")
-- Self-Healing: Show dynamic state based on self_healing.state:
-  * analyzing: "🔍 Analyzing..." (priority 1)
-  * healing: "🔧 Fixing N" where N is error_count (priority 1)
-  * completed: "✅ N fixed!" where N is fixed_count (priority 2, celebratory)
-  * idle with errors: "❌ N errors" (priority 0)
-  * idle without errors: don't show
-- Services down: ONLY if temporal/autokitteh down
-
-Keep total under 120 characters. Use all available space for useful info.
-
-Return JSON array of items:
-[
-  {{"emoji": "❌", "text": "3 errors", "priority": 0}},
-  {{"emoji": "🔥", "text": "MLX training", "priority": 1}},
-  {{"emoji": "🤖", "text": "19 agents", "priority": 2}}
-]
-
-Priority meanings:
-- 0: Critical (display in red)
-- 1: High importance (display in yellow)
-- 2: Normal status (display in green)
-- 3: Background info (display in gray)
-"""
-
-        try:
-            response = self.client.messages.create(
-                model=self.model,
-                max_tokens=512,
-                messages=[{"role": "user", "content": context_prompt}]
-            )
-
-            response_text = response.content[0].text
-
-            # Extract JSON from response
-            if "```json" in response_text:
-                json_start = response_text.find("```json") + 7
-                json_end = response_text.find("```", json_start)
-                json_str = response_text[json_start:json_end].strip()
-            elif "```" in response_text:
-                json_start = response_text.find("```") + 3
-                json_end = response_text.find("```", json_start)
-                json_str = response_text[json_start:json_end].strip()
-            else:
-                json_str = response_text.strip()
-
-            items = json.loads(json_str)
-
-            # Validate and convert to tuples
-            result = []
-            for item in items:
-                if all(key in item for key in ['emoji', 'text', 'priority']):
-                    result.append((item['emoji'], item['text'], item['priority']))
-
-            if not result:
-                # AI returned invalid format - use rules
-                return self._rule_based_prioritize(data)
-
-            return result
-
-        except (json.JSONDecodeError, anthropic.APIError, Exception) as e:
-            print(f"AI prioritization failed: {e}", file=sys.stderr)
-            return self._rule_based_prioritize(data)
+        return self._rule_based_prioritize(data)
 
     def _make_progress_bar(self, percentage: int, width: int = 10) -> str:
         """
@@ -1064,14 +969,10 @@ Priority meanings:
         # Normal: Claude Code status (only show hook info if abnormal)
         if data.get('claude_running'):
             hook_count = data.get('hook_count', 0)
-            # Platform-aware hook expectations
-            if IS_MACOS:
-                expected_hooks = 4  # macOS: SessionStart, PreToolUse, PostToolUse, Stop
-            else:
-                expected_hooks = 6  # Linux builder node: Additional hooks
+            expected_hooks = 2  # Normal state: 2 hook event types (PreToolUse, PostToolUse)
 
             # Only show hook count if it's different from expected
-            if hook_count != expected_hooks:
+            if hook_count != expected_hooks and hook_count != 0:
                 items.append(('⚠️', f"{hook_count}hooks!", 1))  # High priority warning
 
             # Show session duration if available
@@ -1113,13 +1014,8 @@ Priority meanings:
 
         # Normal: MCP configuration (ALWAYS show)
         mcp_count = data.get('mcp_count', 0)
-        # Platform-aware MCP expectations
-        if IS_MACOS:
-            expected_mcp_min = 8   # macOS orchestrator: enhanced-memory, agent-runtime, etc.
-            expected_mcp_max = 20  # Can have many MCP servers for integrations
-        else:
-            expected_mcp_min = 3   # Linux builder: fewer MCPs needed
-            expected_mcp_max = 10  # Builder doesn't need as many
+        expected_mcp_min = 6
+        expected_mcp_max = 10
 
         if mcp_count < expected_mcp_min:
             items.append(('⚠️', f"{mcp_count}mcp low!", 1))  # Warning - too few
@@ -1220,7 +1116,28 @@ Priority meanings:
 
 def main():
     """Command-line interface for intelligent statusline"""
+    import select
+
+    session_context = {}
+
+    # Read stdin JSON data from Claude Code (if available) - non-blocking
+    # This provides: session_id, transcript_path, cwd, model, workspace, version, output_style
+    try:
+        # Check if stdin has data (non-blocking)
+        if select.select([sys.stdin], [], [], 0.0)[0]:
+            stdin_data = sys.stdin.read()
+            if stdin_data:
+                session_context = json.loads(stdin_data)
+    except (json.JSONDecodeError, ValueError, Exception):
+        # No stdin or invalid JSON - run in standalone mode
+        pass
+
     statusline = IntelligentStatusLine()
+
+    # Pass session context to allow model detection from Claude Code
+    if session_context:
+        statusline.session_context = session_context
+
     output = statusline.generate()
     print(output)
 

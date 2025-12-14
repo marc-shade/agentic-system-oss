@@ -2,10 +2,10 @@
   "nodes": {
     "macpro51": {
       "hostname": "macpro51.local",
-      "ip": "192.168.1.183",
       "os": "linux",
       "arch": "x86_64",
       "role": "builder",
+      "node_id": "builder",
       "storage_base": "/mnt/agentic-system",
       "specialties": [
         "compilation",
@@ -22,12 +22,13 @@
       ]
     },
     "mac-studio": {
-      "hostname": "mac-studio.local",
-      "ip": "192.168.1.16",
+      "hostname": "Marcs-Mac-Studio.local",
       "os": "macos",
       "arch": "arm64",
       "role": "orchestrator",
+      "node_id": "orchestrator",
       "storage_base": "/Volumes/SSDRAID0/agentic-system",
+      "note": "IMPORTANT: This is mac-studio's path. Other nodes have different paths.",
       "specialties": [
         "orchestration",
         "coordination",
@@ -43,12 +44,12 @@
       ]
     },
     "macbook-air-m3": {
-      "hostname": "macbook-air.local",
-      "ip": "192.168.1.76",
+      "hostname": "Marcs-MacBook-Air.local",
       "os": "macos",
       "arch": "arm64",
       "role": "researcher",
-      "storage_base": "~/agentic-system",
+      "node_id": "researcher",
+      "storage_base": "/Users/marc/agentic-system",
       "specialties": [
         "research",
         "documentation",
@@ -63,28 +64,80 @@
     },
     "completeu-server": {
       "hostname": "completeu-server.local",
-      "ip": "192.168.1.186",
       "os": "macos",
       "arch": "arm64",
-      "role": "data",
-      "storage_base": "~/agentic-system",
+      "role": "ai-inference",
+      "node_id": "ai-inference",
+      "storage_base": "/Volumes/FILES/agentic-system",
       "specialties": [
-        "persistence",
-        "apis",
-        "databases",
-        "completeu-platform"
+        "ollama-inference",
+        "model-serving",
+        "api-endpoints",
+        "quota-isolation"
       ],
       "capabilities": [
-        "data-storage",
-        "api-hosting",
-        "database-management"
+        "ollama",
+        "inference",
+        "model-serving",
+        "llm-api"
       ]
+    },
+    "macmini": {
+      "hostname": "macmini.local",
+      "os": "macos",
+      "arch": "arm64",
+      "role": "small-inference",
+      "node_id": "small-inference",
+      "storage_base": "/Users/marc/agentic-system",
+      "specialties": [
+        "small-model-inference",
+        "embedding-generation",
+        "lightweight-llm"
+      ],
+      "capabilities": [
+        "ollama",
+        "inference",
+        "mlx-gpu"
+      ],
+      "hardware": {
+        "chip": "Apple M1",
+        "ram_gb": 16,
+        "max_model_params": "13B"
+      }
+    },
+    "bpi-sentinel": {
+      "hostname": "bpi-sentinel.local",
+      "os": "linux",
+      "arch": "arm64",
+      "role": "sentinel",
+      "node_id": "sentinel",
+      "storage_base": "/home/marc/agentic-system",
+      "specialties": [
+        "sentinel",
+        "monitoring",
+        "heartbeat-relay",
+        "environmental-awareness"
+      ],
+      "capabilities": [
+        "sentinel",
+        "monitoring",
+        "sensor-integration"
+      ],
+      "hardware": {
+        "device": "Banana Pi M4 Zero",
+        "cpu": "Allwinner H618",
+        "ram_gb": 2
+      }
     }
   },
   "discovery": {
+    "method": "mdns",
+    "resolve_hostnames": true,
     "ssh_user": "marc",
     "ssh_key": "~/.ssh/id_ed25519",
     "timeout": 10,
-    "retry": 3
+    "retry": 3,
+    "mdns_suffix": ".local",
+    "note": "NEVER use hardcoded IPs - always resolve via mDNS/Avahi"
   }
 }

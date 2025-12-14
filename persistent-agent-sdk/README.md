@@ -45,7 +45,10 @@ Unified persistent agent system that intelligently leverages Claude Code, OpenAI
 ### Quick Setup
 
 ```bash
-cd /Volumes/FILES/agentic-system/persistent-agent-sdk
+# First source the storage detection script
+source $HOME/agentic-system/scripts/detect-storage.sh 2>/dev/null || source /Volumes/SSDRAID0/agentic-system/scripts/detect-storage.sh
+
+cd $STORAGE_BASE/persistent-agent-sdk
 ./setup.sh
 ```
 
@@ -235,7 +238,9 @@ app.post('/api/agent-sdk/execute', async (req, res) => {
       context
     };
 
-    const command = `cd /Volumes/FILES/agentic-system/persistent-agent-sdk && source venv/bin/activate && python3 -c "
+    // Note: STORAGE_BASE should be set via detect-storage.sh or environment variable
+    const storageBase = process.env.STORAGE_BASE || process.env.AGENTIC_SYSTEM_PATH || '/Volumes/SSDRAID0/agentic-system';
+    const command = `cd ${storageBase}/persistent-agent-sdk && source venv/bin/activate && python3 -c "
 import asyncio
 from unified_agent_runtime import UnifiedAgentRuntime, AgentTask, TaskType
 import json
@@ -269,7 +274,8 @@ asyncio.run(execute())
 Run the built-in test suite:
 
 ```bash
-cd /Volumes/FILES/agentic-system/persistent-agent-sdk
+# Ensure STORAGE_BASE is set (via detect-storage.sh)
+cd $STORAGE_BASE/persistent-agent-sdk
 source venv/bin/activate
 python3 unified_agent_runtime.py
 ```

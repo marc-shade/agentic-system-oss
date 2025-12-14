@@ -2,9 +2,36 @@
 # AutoKitteh Monitoring Script for Autonomous System
 # Auto-restarts AutoKitteh if it becomes unhealthy
 
+
+# Platform-aware storage detection
+detect_storage_base() {
+    if [ -n "$AGENTIC_SYSTEM_PATH" ] && [ -d "$AGENTIC_SYSTEM_PATH" ]; then
+        echo "$AGENTIC_SYSTEM_PATH"
+        return
+    fi
+    case "$(uname -s)" in
+        Darwin)
+            if [ -d "/Volumes/SSDRAID0/agentic-system" ]; then
+                echo "/Volumes/SSDRAID0/agentic-system"
+            elif [ -d "/Volumes/FILES/agentic-system" ]; then
+                echo "/Volumes/FILES/agentic-system"
+            fi
+            ;;
+        Linux)
+            if [ -d "/home/marc/agentic-system" ]; then
+                echo "/home/marc/agentic-system"
+            elif [ -d "/mnt/agentic-system" ]; then
+                echo "/mnt/agentic-system"
+            fi
+            ;;
+    esac
+}
+
+STORAGE_BASE=$(detect_storage_base)
+
 AK_PORT=9980
 PID_FILE="/tmp/autokitteh.pid"
-LOG_DIR="/mnt/agentic-system/logs"
+LOG_DIR="$STORAGE_BASE/logs"
 
 check_autokitteh() {
     # Check if AutoKitteh is responding (port check is more reliable than /health endpoint)
@@ -16,7 +43,7 @@ check_autokitteh() {
 
 start_autokitteh() {
     echo "$(date '+%Y-%m-%d %H:%M:%S') - Starting AutoKitteh..."
-    /mnt/agentic-system/scripts/start-autokitteh.sh &
+    $STORAGE_BASE/scripts/start-autokitteh.sh &
     AK_PID=$!
     echo $AK_PID > "$PID_FILE"
 

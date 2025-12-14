@@ -4,9 +4,36 @@
 
 set -e
 
-HOT_SENSORY="/mnt/agentic-system/sensory-recent"
-COLD_SENSORY="/Volumes/FILES/agentic-system/data/sensory"
-LOG_FILE="/mnt/agentic-system/cleanup.log"
+
+# Platform-aware storage detection
+detect_storage_base() {
+    if [ -n "$AGENTIC_SYSTEM_PATH" ] && [ -d "$AGENTIC_SYSTEM_PATH" ]; then
+        echo "$AGENTIC_SYSTEM_PATH"
+        return
+    fi
+    case "$(uname -s)" in
+        Darwin)
+            if [ -d "/Volumes/SSDRAID0/agentic-system" ]; then
+                echo "/Volumes/SSDRAID0/agentic-system"
+            elif [ -d "/Volumes/FILES/agentic-system" ]; then
+                echo "/Volumes/FILES/agentic-system"
+            fi
+            ;;
+        Linux)
+            if [ -d "/home/marc/agentic-system" ]; then
+                echo "/home/marc/agentic-system"
+            elif [ -d "/mnt/agentic-system" ]; then
+                echo "/mnt/agentic-system"
+            fi
+            ;;
+    esac
+}
+
+STORAGE_BASE=$(detect_storage_base)
+
+HOT_SENSORY="$STORAGE_BASE/sensory-recent"
+COLD_SENSORY="$STORAGE_BASE/data/sensory"
+LOG_FILE="$STORAGE_BASE/cleanup.log"
 ARCHIVE_DIR="$COLD_SENSORY/archive"
 
 echo "$(date): Starting sensory data cleanup (30-day window)..." >> "$LOG_FILE"

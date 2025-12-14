@@ -21,11 +21,36 @@ components share a consistent memory architecture.
 
 import json
 import logging
+import os
+import platform
 import sqlite3
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
+
+
+def _get_storage_base() -> Path:
+    """Detect storage base path based on platform."""
+    env_path = os.environ.get("AGENTIC_SYSTEM_PATH")
+    if env_path and Path(env_path).exists():
+        return Path(env_path)
+
+    system = platform.system()
+    if system == "Darwin":  # macOS
+        if Path("/Volumes/SSDRAID0/agentic-system").exists():
+            return Path("/Volumes/SSDRAID0/agentic-system")
+        elif Path("/Volumes/FILES/agentic-system").exists():
+            return Path("/Volumes/FILES/agentic-system")
+    elif system == "Linux":
+        if Path("/home/marc/agentic-system").exists():
+            return Path("/home/marc/agentic-system")
+        elif Path("/mnt/agentic-system").exists():
+            return Path("/mnt/agentic-system")
+    return Path(__file__).parent.parent
+
+
+_STORAGE_BASE = _get_storage_base()
 
 logger = logging.getLogger(__name__)
 
@@ -60,8 +85,10 @@ class UnifiedMemory:
 
     def __init__(
         self,
-        databases_dir: Path = Path("/mnt/agentic-system/databases")
+        databases_dir: Path = None
     ):
+        if databases_dir is None:
+            databases_dir = _STORAGE_BASE / "databases"
         """
         Initialize unified memory interface.
 

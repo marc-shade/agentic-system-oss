@@ -26,6 +26,7 @@ Safety Features:
 """
 
 import asyncio
+from storage_path_utils import get_database_path, get_logs_path, STORAGE_BASE
 import logging
 import subprocess
 import tempfile
@@ -61,7 +62,7 @@ class VerifiedImprovementExecutor:
 
     def __init__(
         self,
-        working_dir: Path = Path("/Volumes/SSDRAID0/agentic-system"),
+        working_dir: Path = STORAGE_BASE,
         enable_git_rollback: bool = True,
         require_approval_threshold: float = 0.95  # Require human approval if safety < 95%
     ):
@@ -514,7 +515,7 @@ class VerifiedImprovementExecutor:
         logger.info(f"Applying modification {modification_id}...")
 
         # Save modification record
-        modifications_dir = Path("/Volumes/SSDRAID0/agentic-system/logs/applied_modifications")
+        modifications_dir = get_logs_path("applied_modifications")
         modifications_dir.mkdir(parents=True, exist_ok=True)
 
         mod_file = modifications_dir / f"{modification_id}.json"
@@ -539,7 +540,7 @@ class VerifiedImprovementExecutor:
         perf_stats = self.performance_tracker.get_summary_stats()
 
         # Get modification records
-        modifications_dir = Path("/Volumes/SSDRAID0/agentic-system/logs/applied_modifications")
+        modifications_dir = get_logs_path("applied_modifications")
 
         if modifications_dir.exists():
             applied_count = len(list(modifications_dir.glob("*.json")))

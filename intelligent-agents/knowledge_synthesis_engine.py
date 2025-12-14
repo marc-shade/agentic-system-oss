@@ -33,6 +33,8 @@ from enum import Enum
 from pathlib import Path
 from typing import Dict, List, Optional, Any, Set, Tuple
 
+from storage_path_utils import STORAGE_BASE
+
 
 # Configure logging
 logging.basicConfig(
@@ -105,13 +107,9 @@ class KnowledgeSynthesisEngine:
     to generate novel insights through cross-domain synthesis.
     """
 
-<<<<<<< HEAD
-    def __init__(self, base_path: str = "/Volumes/SSDRAID0/agentic-system"):
-=======
-    def __init__(self, base_path: str = "/mnt/agentic-system"):
->>>>>>> origin/main
+    def __init__(self, base_path: str = None):
         """Initialize knowledge synthesis engine."""
-        self.base_path = Path(base_path)
+        self.base_path = Path(base_path) if base_path else STORAGE_BASE
         self.knowledge_dir = self.base_path / "synthesized-knowledge"
         self.knowledge_dir.mkdir(exist_ok=True)
 

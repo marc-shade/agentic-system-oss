@@ -16,12 +16,36 @@ import os
 import json
 import fcntl
 import datetime
+import platform
 from pathlib import Path
 from typing import Dict, Any, List, Optional
 
+
+def _get_storage_base() -> Path:
+    """Detect storage base path based on platform."""
+    env_path = os.environ.get("AGENTIC_SYSTEM_PATH")
+    if env_path and Path(env_path).exists():
+        return Path(env_path)
+
+    system = platform.system()
+    if system == "Darwin":  # macOS
+        if Path("/Volumes/SSDRAID0/agentic-system").exists():
+            return Path("/Volumes/SSDRAID0/agentic-system")
+        elif Path("/Volumes/FILES/agentic-system").exists():
+            return Path("/Volumes/FILES/agentic-system")
+    elif system == "Linux":
+        if Path("/home/marc/agentic-system").exists():
+            return Path("/home/marc/agentic-system")
+        elif Path("/mnt/agentic-system").exists():
+            return Path("/mnt/agentic-system")
+    return Path(__file__).parent.parent.parent
+
+
+_STORAGE_BASE = _get_storage_base()
+
 # Secure directories (not /tmp/)
-SECURE_RUN_DIR = "/mnt/agentic-system/run"
-SECURE_LOG_DIR = "/mnt/agentic-system/logs"
+SECURE_RUN_DIR = str(_STORAGE_BASE / "run")
+SECURE_LOG_DIR = str(_STORAGE_BASE / "logs")
 
 # Ensure directories exist with proper permissions
 os.makedirs(SECURE_RUN_DIR, mode=0o700, exist_ok=True)

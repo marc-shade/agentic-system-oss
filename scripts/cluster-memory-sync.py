@@ -9,6 +9,8 @@ Features:
 - Intelligent sync scoring based on access patterns and SAFLA metrics
 - SAFLA-aware synchronization
 """
+import os
+import platform
 
 import sqlite3
 import json
@@ -17,6 +19,12 @@ from pathlib import Path
 from datetime import datetime, timedelta
 from typing import Dict, List, Any, Optional
 import logging
+import sys
+
+# Add path for toon_config
+sys.path.insert(0, str(_STORAGE_BASE / "cluster-deployment"))
+from toon_config import load_config
+
 
 # Setup logging
 logging.basicConfig(
@@ -69,8 +77,10 @@ class ClusterMemorySync:
                 return db_path
 
         # Final fallback detection
-        if Path('/Volumes/SSDRAID0/agentic-system').exists():
+        if Path(str(_STORAGE_BASE)).exists():
             return Path('/Volumes/SSDRAID0/agentic-system/databases/mcp/enhanced_memories.db')
+        elif Path(str(_STORAGE_BASE)).exists():
+            return Path('/Volumes/FILES/agentic-system/databases/mcp/enhanced_memories.db')
         else:
             return Path.home() / 'agentic-system' / 'databases' / 'cluster' / 'nodes' / self.node_id / 'enhanced_memories.db'
 
@@ -81,8 +91,10 @@ class ClusterMemorySync:
             return Path(self.node_config['memory']['cluster_db'])
 
         # Fallback to orchestrator location
-        if Path('/Volumes/SSDRAID0/agentic-system').exists():
+        if Path(str(_STORAGE_BASE)).exists():
             return Path('/Volumes/SSDRAID0/agentic-system/databases/cluster/shared_memories.db')
+        elif Path(str(_STORAGE_BASE)).exists():
+            return Path('/Volumes/FILES/agentic-system/databases/cluster/shared_memories.db')
         else:
             # Mobile node - can't access cluster DB directly
             logger.warning("⚠️ Cluster database not accessible from mobile node")
@@ -398,6 +410,29 @@ class ClusterMemorySync:
 def main():
     """Main CLI entry point"""
     import argparse
+
+def _get_storage_base() -> Path:
+    """Detect storage base path based on platform."""
+    env_path = os.environ.get("AGENTIC_SYSTEM_PATH")
+    if env_path and Path(env_path).exists():
+        return Path(env_path)
+
+    system = platform.system()
+    if system == "Darwin":  # macOS
+        if Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+        elif Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+    elif system == "Linux":
+        if Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+        elif Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+    return Path(__file__).parent.parent
+
+
+_STORAGE_BASE = _get_storage_base()
+
 
     parser = argparse.ArgumentParser(description='Cluster Memory Synchronization')
     parser.add_argument('action', choices=['push', 'pull', 'status', 'sync'],

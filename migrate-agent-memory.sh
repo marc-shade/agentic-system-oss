@@ -4,8 +4,35 @@
 
 set -e
 
-HOT_MEMORY="/mnt/agentic-system/agent-memory"
-LOG_FILE="/mnt/agentic-system/migration.log"
+
+# Platform-aware storage detection
+detect_storage_base() {
+    if [ -n "$AGENTIC_SYSTEM_PATH" ] && [ -d "$AGENTIC_SYSTEM_PATH" ]; then
+        echo "$AGENTIC_SYSTEM_PATH"
+        return
+    fi
+    case "$(uname -s)" in
+        Darwin)
+            if [ -d "/Volumes/SSDRAID0/agentic-system" ]; then
+                echo "/Volumes/SSDRAID0/agentic-system"
+            elif [ -d "/Volumes/FILES/agentic-system" ]; then
+                echo "/Volumes/FILES/agentic-system"
+            fi
+            ;;
+        Linux)
+            if [ -d "/home/marc/agentic-system" ]; then
+                echo "/home/marc/agentic-system"
+            elif [ -d "/mnt/agentic-system" ]; then
+                echo "/mnt/agentic-system"
+            fi
+            ;;
+    esac
+}
+
+STORAGE_BASE=$(detect_storage_base)
+
+HOT_MEMORY="$STORAGE_BASE/agent-memory"
+LOG_FILE="$STORAGE_BASE/migration.log"
 
 echo "$(date): Starting agent memory migration to SSDRAID0..." | tee -a "$LOG_FILE"
 
@@ -69,14 +96,14 @@ echo "$(date): Phase 4: Agentic Evolution..." | tee -a "$LOG_FILE"
 migrate_dir "$HOME/.claude/agentic-evolution" "$HOT_MEMORY/agentic-evolution"
 
 # Migrate basic memory if exists
-if [ -d "/Volumes/FILES/agentic-system/mcp/.basic-memory" ]; then
+if [ -d "$STORAGE_BASE/mcp/.basic-memory" ]; then
     echo "$(date): Phase 5: Basic Memory MCP..." | tee -a "$LOG_FILE"
     mkdir -p "$HOT_MEMORY/basic-memory"
-    rsync -av "/Volumes/FILES/agentic-system/mcp/.basic-memory/" "$HOT_MEMORY/basic-memory/" >> "$LOG_FILE" 2>&1
+    rsync -av "$STORAGE_BASE/mcp/.basic-memory/" "$HOT_MEMORY/basic-memory/" >> "$LOG_FILE" 2>&1
 
     # Backup and symlink
-    mv "/Volumes/FILES/agentic-system/mcp/.basic-memory" "/Volumes/FILES/agentic-system/mcp/.basic-memory.backup-$(date +%Y%m%d)"
-    ln -s "$HOT_MEMORY/basic-memory" "/Volumes/FILES/agentic-system/mcp/.basic-memory"
+    mv "$STORAGE_BASE/mcp/.basic-memory" "$STORAGE_BASE/mcp/.basic-memory.backup-$(date +%Y%m%d)"
+    ln -s "$HOT_MEMORY/basic-memory" "$STORAGE_BASE/mcp/.basic-memory"
     echo "$(date): ✅ Basic memory migrated and symlinked" | tee -a "$LOG_FILE"
 fi
 

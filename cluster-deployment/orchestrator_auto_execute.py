@@ -18,6 +18,8 @@ Usage:
 Example:
     python3 orchestrator_auto_execute.py 192.168.1.183 macpro51/build_toon.sh 10
 """
+import os
+import platform
 
 import socket
 import subprocess
@@ -27,13 +29,36 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
+def _get_storage_base() -> Path:
+    """Detect storage base path based on platform."""
+    env_path = os.environ.get("AGENTIC_SYSTEM_PATH")
+    if env_path and Path(env_path).exists():
+        return Path(env_path)
+
+    system = platform.system()
+    if system == "Darwin":  # macOS
+        if Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+        elif Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+    elif system == "Linux":
+        if Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+        elif Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+    return Path(__file__).parent.parent
+
+
+_STORAGE_BASE = _get_storage_base()
+
+
 class OrchestratorAutoExecute:
     def __init__(self, node_ip, task_script, check_interval=10, port=9999):
         self.node_ip = node_ip
         self.task_script = task_script
         self.check_interval = check_interval
         self.port = port
-        self.base_path = Path("/Volumes/SSDRAID0/agentic-system")
+        self.base_path = Path(str(_STORAGE_BASE))
         self.results_dir = self.base_path / "cluster-deployment" / "execution-results"
         self.results_dir.mkdir(exist_ok=True)
         self.log_file = self.results_dir / f"orchestrator_{node_ip.replace('.', '_')}.log"
@@ -113,7 +138,7 @@ class OrchestratorAutoExecute:
 
         if result and "NOT_FOUND" in result:
             # Try alternate path
-            script_path = f"/Volumes/SSDRAID0/agentic-system/databases/cluster/nodes/{self.task_script}"
+            script_path = fstr(_STORAGE_BASE / "databases/cluster/nodes/{self.task_script}")
             check_cmd = f"exec test -f {script_path} && echo 'EXISTS' || echo 'NOT_FOUND'"
             result = self.send_command(check_cmd)
 

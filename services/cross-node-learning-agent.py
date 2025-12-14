@@ -12,6 +12,8 @@ Monitors other cluster nodes and learns from their:
 This agent continuously improves macpro51 by incorporating
 lessons learned from mac-studio and macbook-air.
 """
+import os
+import platform
 
 import json
 import subprocess
@@ -30,12 +32,12 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "cluster-deployment"))
 
 # Auto-detect storage base for logging
 try:
-    from cluster_config import get_node_config, get_local_node_id
+    from simple_cluster_config import get_node_config, get_local_node_id
     local_node = get_local_node_id()
     local_config = get_node_config(local_node)
     STORAGE_BASE = Path(local_config['storage_base'])
 except:
-    STORAGE_BASE = Path("/mnt/agentic-system")
+    STORAGE_BASE = Path(str(_STORAGE_BASE))
 
 # Ensure logs directory exists
 (STORAGE_BASE / "logs").mkdir(parents=True, exist_ok=True)
@@ -83,12 +85,12 @@ class CrossNodeLearningAgent:
         # Auto-detect storage base if not provided
         if storage_base is None:
             try:
-                from cluster_config import get_node_config, get_local_node_id
+                from simple_cluster_config import get_node_config, get_local_node_id
                 local_node = get_local_node_id()
                 local_config = get_node_config(local_node)
                 storage_base = local_config['storage_base']
             except:
-                storage_base = "/mnt/agentic-system"  # Fallback
+                storage_base = str(_STORAGE_BASE)  # Fallback
 
         self.storage_base = Path(storage_base)
         self.db_path = self.storage_base / "databases" / "cluster" / "node_learning.db"
@@ -104,7 +106,7 @@ class CrossNodeLearningAgent:
     def _init_nodes(self) -> Dict[str, NodeStatus]:
         """Initialize node configurations from cluster config"""
         try:
-            from cluster_config import get_other_nodes, get_local_node_id
+            from simple_cluster_config import get_other_nodes, get_local_node_id
 
             self.local_node_id = get_local_node_id()
             other_nodes = get_other_nodes()
@@ -222,7 +224,7 @@ class CrossNodeLearningAgent:
 
         # Get base path from cluster config
         try:
-            from cluster_config import get_node_config
+            from simple_cluster_config import get_node_config
             node_config = get_node_config(node_id)
             base_path = node_config['storage_base']
         except:
@@ -524,6 +526,29 @@ class CrossNodeLearningAgent:
 def main():
     """Main execution"""
     import argparse
+
+def _get_storage_base() -> Path:
+    """Detect storage base path based on platform."""
+    env_path = os.environ.get("AGENTIC_SYSTEM_PATH")
+    if env_path and Path(env_path).exists():
+        return Path(env_path)
+
+    system = platform.system()
+    if system == "Darwin":  # macOS
+        if Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+        elif Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+    elif system == "Linux":
+        if Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+        elif Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+    return Path(__file__).parent.parent
+
+
+_STORAGE_BASE = _get_storage_base()
+
 
     parser = argparse.ArgumentParser(description="Cross-Node Learning Agent - Hive Mind Observer")
     parser.add_argument('--continuous', action='store_true', help='Run continuously (for systemd service)')

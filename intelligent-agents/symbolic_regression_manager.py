@@ -27,6 +27,7 @@ Integration:
 """
 
 import asyncio
+from storage_path_utils import get_database_path, get_logs_path, STORAGE_BASE
 import json
 import logging
 import sqlite3
@@ -60,10 +61,10 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Database paths
-DARWIN_GODEL_DB = Path("/Volumes/SSDRAID0/agentic-system/databases/darwin_godel.db")
-META_LEARNING_DB = Path("/Volumes/SSDRAID0/agentic-system/databases/meta_learning.db")
-SKILL_EVOLUTION_DB = Path("/Volumes/SSDRAID0/agentic-system/databases/skill_evolution.db")
-EQUATIONS_DB = Path("/Volumes/SSDRAID0/agentic-system/databases/discovered_equations.db")
+DARWIN_GODEL_DB = get_database_path("darwin_godel.db")
+META_LEARNING_DB = get_database_path("meta_learning.db")
+SKILL_EVOLUTION_DB = get_database_path("skill_evolution.db")
+EQUATIONS_DB = get_database_path("discovered_equations.db")
 
 
 # Default PySR configuration

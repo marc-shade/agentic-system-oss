@@ -8,6 +8,33 @@
 #   ./verify-complete-system.sh           # Human-readable output
 #   ./verify-complete-system.sh --json    # JSON output for agents
 
+
+# Platform-aware storage detection
+detect_storage_base() {
+    if [ -n "$AGENTIC_SYSTEM_PATH" ] && [ -d "$AGENTIC_SYSTEM_PATH" ]; then
+        echo "$AGENTIC_SYSTEM_PATH"
+        return
+    fi
+    case "$(uname -s)" in
+        Darwin)
+            if [ -d "/Volumes/SSDRAID0/agentic-system" ]; then
+                echo "/Volumes/SSDRAID0/agentic-system"
+            elif [ -d "/Volumes/FILES/agentic-system" ]; then
+                echo "/Volumes/FILES/agentic-system"
+            fi
+            ;;
+        Linux)
+            if [ -d "/home/marc/agentic-system" ]; then
+                echo "/home/marc/agentic-system"
+            elif [ -d "/mnt/agentic-system" ]; then
+                echo "/mnt/agentic-system"
+            fi
+            ;;
+    esac
+}
+
+STORAGE_BASE=$(detect_storage_base)
+
 JSON_OUTPUT=false
 
 # Parse arguments
@@ -160,9 +187,9 @@ check_file() {
 if [[ "$JSON_OUTPUT" == false ]]; then
     echo "${BLUE}━━━ Storage Architecture ━━━${NC}"
 fi
-check_file "Hot Storage (SSDRAID0)" "/mnt/agentic-system" false
-check_file "Cold Storage (FILES)" "/Volumes/FILES/agentic-system" false
-check_file "Config File" "/mnt/agentic-system/config.env" false
+check_file "Hot Storage (SSDRAID0)" "$STORAGE_BASE" false
+check_file "Cold Storage (FILES)" "$STORAGE_BASE" false
+check_file "Config File" "$STORAGE_BASE/config.env" false
 
 # ============================================
 # SECTION 2: MCP Servers & Databases
@@ -171,8 +198,8 @@ if [[ "$JSON_OUTPUT" == false ]]; then
     echo ""
     echo "${BLUE}━━━ MCP Servers & Databases ━━━${NC}"
 fi
-check_file "Enhanced Memory DB" "/mnt/agentic-system/databases/mcp/enhanced_memories.db" true
-check_file "Agent Runtime DB" "/mnt/agentic-system/databases/mcp/agent_runtime.db" true
+check_file "Enhanced Memory DB" "$STORAGE_BASE/databases/mcp/enhanced_memories.db" true
+check_file "Agent Runtime DB" "$STORAGE_BASE/databases/mcp/agent_runtime.db" true
 check_process "Enhanced Memory MCP" "enhanced-memory"
 check_process "Agent Runtime MCP" "agent-runtime-mcp"
 check_process "Sequential Thinking MCP" "sequential-thinking"
@@ -188,7 +215,7 @@ if [[ "$JSON_OUTPUT" == false ]]; then
 fi
 check_process "Qdrant Server" "qdrant"
 check_service "Qdrant Health" 6333 "/healthz" "status"
-check_file "Qdrant Database" "/mnt/agentic-system/databases/qdrant" false
+check_file "Qdrant Database" "$STORAGE_BASE/databases/qdrant" false
 
 # ============================================
 # SECTION 4: Workflow Engines
@@ -222,7 +249,7 @@ if [[ "$JSON_OUTPUT" == false ]]; then
 fi
 check_file "Performance Metrics" "/tmp/claude_performance_metrics.json" true
 check_file "Learning Memory" "/tmp/claude_learning_memory.jsonl" true
-check_file "Metrics Collection Script" "/mnt/agentic-system/monitoring/metrics_collector.py" false
+check_file "Metrics Collection Script" "$STORAGE_BASE/monitoring/metrics_collector.py" false
 check_process "Metrics Collector" "metrics_collector"
 
 # ============================================
@@ -285,9 +312,9 @@ if [[ "$JSON_OUTPUT" == false ]]; then
     echo ""
     echo "${BLUE}━━━ Self-Healing System ━━━${NC}"
 fi
-check_file "Simple Optimizer" "/mnt/agentic-system/workflows/simple_optimizer.py" false
-check_file "Temporal Deep Learning" "/mnt/agentic-system/workflows/temporal/claude_deep_learning_optimizer.py" false
-check_file "AutoKitteh Event Handlers" "/mnt/agentic-system/workflows/autokitteh/system_event_optimizer.py" false
+check_file "Simple Optimizer" "$STORAGE_BASE/workflows/simple_optimizer.py" false
+check_file "Temporal Deep Learning" "$STORAGE_BASE/workflows/temporal/claude_deep_learning_optimizer.py" false
+check_file "AutoKitteh Event Handlers" "$STORAGE_BASE/workflows/autokitteh/system_event_optimizer.py" false
 check_file "Agentic Markers Log" "$HOME/.claude/.config_modifications.jsonl" true
 
 # ============================================
@@ -297,7 +324,7 @@ if [[ "$JSON_OUTPUT" == false ]]; then
     echo ""
     echo "${BLUE}━━━ Arduino Smart Surface ━━━${NC}"
 fi
-check_file "Arduino MCP Server" "/mnt/agentic-system/arduino-surface/mcp-server/arduino_surface_mcp.py" false
+check_file "Arduino MCP Server" "$STORAGE_BASE/arduino-surface/mcp-server/arduino_surface_mcp.py" false
 check_file "Arduino Socket" "/dev/tty.usbmodem8344401"
 
 # ============================================
@@ -307,7 +334,7 @@ if [[ "$JSON_OUTPUT" == false ]]; then
     echo ""
     echo "${BLUE}━━━ Machine Learning (MLX) ━━━${NC}"
 fi
-check_file "MLX Config" "/mnt/agentic-system/mlx_config.py" false
+check_file "MLX Config" "$STORAGE_BASE/mlx_config.py" false
 
 total_checks=$((total_checks + 1))
 if [[ "$JSON_OUTPUT" == false ]]; then
@@ -380,8 +407,8 @@ if [[ "$JSON_OUTPUT" == false ]]; then
     fi
     echo ""
     echo "Detailed Analysis:"
-    echo "  AGI Roadmap: /mnt/agentic-system/SYSTEM_AUDIT_AND_COMPLETION_ROADMAP.md"
-    echo "  Action Plan: /mnt/agentic-system/IMMEDIATE_ACTION_PLAN.md"
+    echo "  AGI Roadmap: $STORAGE_BASE/SYSTEM_AUDIT_AND_COMPLETION_ROADMAP.md"
+    echo "  Action Plan: $STORAGE_BASE/IMMEDIATE_ACTION_PLAN.md"
     echo "=========================================="
 fi
 

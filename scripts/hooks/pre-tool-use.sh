@@ -1,6 +1,9 @@
 #!/bin/bash
-# PreToolUse Hook - Intelligent pre-flight checks and context loading
-# Fires before each tool execution to enhance agentic awareness
+# PreToolUse Hook - TPU-Enhanced intelligent pre-flight checks
+# Uses TPU Warm Service for intent classification and context loading
+# User-level operational hook (not project-specific)
+
+exec 2>/dev/null  # Suppress stderr for clean operation
 
 # Read hook input from stdin
 INPUT=$(cat)
@@ -8,6 +11,26 @@ INPUT=$(cat)
 # Extract tool information
 TOOL_NAME=$(echo "$INPUT" | python3 -c "import json, sys; data=json.load(sys.stdin); print(data.get('tool_name', 'unknown'))" 2>/dev/null || echo "unknown")
 TOOL_PARAMS=$(echo "$INPUT" | python3 -c "import json, sys; data=json.load(sys.stdin); print(json.dumps(data.get('parameters', {})))" 2>/dev/null || echo "{}")
+
+# TPU Intent Classification for complex operations (via TPU Warm Service)
+# Only for Task tool (agent spawning) - classify intent to optimize routing
+if [ "$TOOL_NAME" = "Task" ]; then
+    TASK_DESC=$(echo "$TOOL_PARAMS" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('prompt','')[:300])" 2>/dev/null || echo "")
+    if [ -n "$TASK_DESC" ]; then
+        INTENT=$(python3 -c "
+import sys
+sys.path.insert(0, '/mnt/agentic-system/scripts/hooks')
+try:
+    from tpu_importance import classify_intent
+    result = classify_intent('''$TASK_DESC''')
+    print(result.get('intent', 'general'))
+except:
+    print('general')
+" 2>/dev/null || echo "general")
+        # Log classified intent for analytics
+        echo "{\"pre_tool\":\"$TOOL_NAME\",\"intent\":\"$INTENT\",\"ts\":\"$(date -Is)\"}" >> /home/marc/agentic-system/logs/intent-classification.log &
+    fi
+fi
 
 # Log pre-tool event (non-blocking)
 echo "{\"event\": \"pre_tool_use\", \"node\": \"macpro51\", \"tool\": \"$TOOL_NAME\", \"timestamp\": \"$(date -Iseconds)\"}" >> /home/marc/agentic-system/logs/tool-usage.log 2>/dev/null || true

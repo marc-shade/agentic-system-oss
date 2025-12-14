@@ -27,11 +27,7 @@ from datetime import datetime
 from pathlib import Path
 
 # Add Arduino bridge to path
-<<<<<<< HEAD
-sys.path.insert(0, '/Volumes/SSDRAID0/agentic-system/arduino-surface/bridge')
-=======
 sys.path.insert(0, '/mnt/agentic-system/arduino-surface/bridge')
->>>>>>> origin/main
 
 try:
     from surface_bridge import ArduinoSurface
@@ -45,11 +41,7 @@ logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-<<<<<<< HEAD
-        logging.FileHandler('/Volumes/SSDRAID0/agentic-system/logs/arduino_status_rotation.log'),
-=======
         logging.FileHandler('/mnt/agentic-system/logs/arduino_status_rotation.log'),
->>>>>>> origin/main
         logging.StreamHandler()
     ]
 )

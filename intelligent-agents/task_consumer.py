@@ -11,6 +11,7 @@ Persistent background process that:
 This is the missing piece that connects Agent Runtime MCP's task queue
 to actual execution.
 """
+import platform
 
 import asyncio
 import json
@@ -55,7 +56,7 @@ class TaskConsumer:
     """Consumes tasks from agent-runtime-mcp and executes them"""
 
     def __init__(self):
-        self.base_path = Path("/mnt/agentic-system")
+        self.base_path = Path(str(_STORAGE_BASE))
         self.running = True
         self.poll_interval = 5  # seconds
         self.current_task = None
@@ -110,6 +111,29 @@ class TaskConsumer:
         """Update task status in agent-runtime-mcp"""
         try:
             import sqlite3
+
+def _get_storage_base() -> Path:
+    """Detect storage base path based on platform."""
+    env_path = os.environ.get("AGENTIC_SYSTEM_PATH")
+    if env_path and Path(env_path).exists():
+        return Path(env_path)
+
+    system = platform.system()
+    if system == "Darwin":  # macOS
+        if Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+        elif Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+    elif system == "Linux":
+        if Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+        elif Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+    return Path(__file__).parent.parent
+
+
+_STORAGE_BASE = _get_storage_base()
+
             db_path = Path.home() / ".claude" / "agent_runtime.db"
 
             conn = sqlite3.connect(str(db_path))

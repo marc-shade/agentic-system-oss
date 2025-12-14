@@ -3,6 +3,7 @@
 Environmental Awareness - Self-Discovery for Agentic Nodes
 Run this BEFORE any installation or configuration changes
 """
+import platform
 
 import json
 import os
@@ -11,6 +12,29 @@ import socket
 import psutil
 from pathlib import Path
 from datetime import datetime
+
+def _get_storage_base() -> Path:
+    """Detect storage base path based on platform."""
+    env_path = os.environ.get("AGENTIC_SYSTEM_PATH")
+    if env_path and Path(env_path).exists():
+        return Path(env_path)
+
+    system = platform.system()
+    if system == "Darwin":  # macOS
+        if Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+        elif Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+    elif system == "Linux":
+        if Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+        elif Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+    return Path(__file__).parent.parent
+
+
+_STORAGE_BASE = _get_storage_base()
+
 
 def check_running_services():
     """Discover what services are already running"""
@@ -53,8 +77,8 @@ def find_databases():
     search_paths = [
         Path.home() / ".qdrant",
         Path.home() / ".temporal",
-        Path("/Volumes/SSDRAID0/agentic-system/databases"),
-        Path("/Volumes/FILES/agentic-system/databases"),
+        Path(str(_STORAGE_BASE / "databases")),
+        Path(str(_STORAGE_BASE / "databases")),
         Path.home() / "agentic-system/databases",
         Path.cwd() / "databases"
     ]
@@ -201,8 +225,8 @@ def check_git_repos():
     repos = {}
 
     possible_locations = [
-        Path("/Volumes/SSDRAID0/agentic-system"),
-        Path("/Volumes/FILES/agentic-system"),
+        Path(str(_STORAGE_BASE)),
+        Path(str(_STORAGE_BASE)),
         Path.home() / "agentic-system",
         Path.cwd()
     ]

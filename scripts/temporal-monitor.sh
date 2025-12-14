@@ -2,10 +2,37 @@
 # Temporal Server Monitoring Script for Autonomous System
 # Auto-restarts Temporal if it becomes unhealthy
 
+
+# Platform-aware storage detection
+detect_storage_base() {
+    if [ -n "$AGENTIC_SYSTEM_PATH" ] && [ -d "$AGENTIC_SYSTEM_PATH" ]; then
+        echo "$AGENTIC_SYSTEM_PATH"
+        return
+    fi
+    case "$(uname -s)" in
+        Darwin)
+            if [ -d "/Volumes/SSDRAID0/agentic-system" ]; then
+                echo "/Volumes/SSDRAID0/agentic-system"
+            elif [ -d "/Volumes/FILES/agentic-system" ]; then
+                echo "/Volumes/FILES/agentic-system"
+            fi
+            ;;
+        Linux)
+            if [ -d "/home/marc/agentic-system" ]; then
+                echo "/home/marc/agentic-system"
+            elif [ -d "/mnt/agentic-system" ]; then
+                echo "/mnt/agentic-system"
+            fi
+            ;;
+    esac
+}
+
+STORAGE_BASE=$(detect_storage_base)
+
 GRPC_PORT=7233
 UI_PORT=8233
 PID_FILE="/tmp/temporal.pid"
-LOG_DIR="/mnt/agentic-system/logs"
+LOG_DIR="$STORAGE_BASE/logs"
 
 check_temporal() {
     # Check if Temporal gRPC port is responding
@@ -20,7 +47,7 @@ check_temporal() {
 
 start_temporal() {
     echo "$(date '+%Y-%m-%d %H:%M:%S') - Starting Temporal server..."
-    /mnt/agentic-system/scripts/start-temporal.sh &
+    $STORAGE_BASE/scripts/start-temporal.sh &
     TEMPORAL_PID=$!
     echo $TEMPORAL_PID > "$PID_FILE"
 

@@ -52,8 +52,8 @@ logging.basicConfig(
 logger = logging.getLogger("video-transcript-mcp")
 
 # Configuration
-TRANSCRIPTS_DIR = Path("/mnt/agentic-system/video-transcripts")
-TRANSCRIPTS_DIR.mkdir(exist_ok=True)
+TRANSCRIPTS_DIR = Path(os.environ.get("AGENTIC_SYSTEM_PATH", Path.home() / "agentic-system")) / "video-transcripts"
+TRANSCRIPTS_DIR.mkdir(parents=True, exist_ok=True)
 
 
 # Create MCP server

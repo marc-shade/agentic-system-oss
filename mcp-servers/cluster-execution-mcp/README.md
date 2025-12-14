@@ -1,261 +1,246 @@
 # Cluster Execution MCP Server
 
-**Cluster-aware command execution for Claude Code sessions**
+Cluster-aware command execution for distributed task routing across the AGI agentic cluster.
 
-## Overview
+**Version**: 0.2.0
 
-This MCP server makes Claude Code automatically cluster-aware. Instead of using the regular `Bash` tool, Claude Code can use `cluster_bash` which automatically routes commands to optimal nodes.
+## Features
 
-## Tools Provided
-
-### `cluster_bash`
-Execute bash commands with automatic cluster routing.
-
-**Auto-routing logic**:
-- Heavy commands (make, cargo, pytest, docker, etc.) → Offloaded to least loaded node
-- Simple commands (ls, cat, echo) → Execute locally for speed
-- High local load (>40% CPU) → Offload to remote node
-- Low local load → Execute locally
-
-**Example usage in Claude Code**:
-```
-User: "Run the test suite"
-
-Claude Code: Uses cluster_bash tool
-  command: "pytest tests/"
-
-Result: Automatically routes to macbook-air (least loaded)
-  Executed on: macbook-air
-  Success: true
-  [test output]
-```
-
-### `cluster_status`
-Get real-time cluster health and load distribution.
-
-**Returns**:
-- CPU, memory, load for each node
-- Health status (healthy/overloaded)
-- Active task counts
-- Node reachability
-
-**Use before**:
-- Heavy operations (check cluster has capacity)
-- Manual routing decisions
-- Debugging distribution issues
-
-### `offload_to`
-Explicitly route command to specific node.
-
-**Use cases**:
-- Linux-specific commands → `offload_to(node_id="macpro51")`
-- Architecture-specific builds
-- Node-specific testing
-- Manual load balancing
-
-**Example**:
-```
-User: "Build the project on Linux"
-
-Claude Code: Uses offload_to tool
-  command: "make build"
-  node_id: "macpro51"
-
-Result: Executes on macpro51 regardless of load
-```
-
-### `parallel_execute`
-Run multiple commands in parallel across cluster.
-
-**Automatically distributes across available nodes**:
-```
-User: "Run all test files in parallel"
-
-Claude Code: Uses parallel_execute tool
-  commands: [
-    "pytest tests/test_auth.py",
-    "pytest tests/test_api.py",
-    "pytest tests/test_db.py"
-  ]
-
-Result:
-  - test_auth.py → macpro51
-  - test_api.py → mac-studio
-  - test_db.py → macbook-air
-  All run simultaneously
-```
+- **Automatic task routing**: Commands routed to optimal nodes based on load, capabilities, and requirements
+- **Multi-node support**: macpro51 (Linux x86_64), mac-studio (macOS ARM64), macbook-air (macOS ARM64), inference node
+- **Dynamic IP resolution**: mDNS, DNS, and fallback methods with caching
+- **Security hardened**: No shell injection, environment-based configuration, command validation
+- **SSH connectivity verification**: Retry logic with configurable timeouts
+- **Parallel execution**: Distribute commands across cluster for maximum throughput
 
 ## Installation
 
-1. **Install in Claude Code config** (`~/.claude.json`):
+```bash
+cd /mnt/agentic-system/mcp-servers/cluster-execution-mcp
+pip install -e .
+
+# For development:
+pip install -e ".[dev]"
+```
+
+## Configuration
+
+### Claude Code Configuration
+
+Add to `~/.claude.json`:
 
 ```json
 {
   "mcpServers": {
     "cluster-execution": {
-      "command": "python3",
-      "args": ["/home/marc/agentic-system/mcp-servers/cluster-execution-mcp/server.py"],
-      "env": {},
-      "disabled": false
+      "command": "/mnt/agentic-system/.venv/bin/python3",
+      "args": ["-m", "cluster_execution_mcp.server"]
     }
   }
 }
 ```
 
-2. **Restart Claude Code** to load the MCP server
+### Environment Variables
 
-3. **Verify** it's loaded:
-```bash
-# In Claude Code session, check available tools
-# Should see: cluster_bash, cluster_status, offload_to, parallel_execute
-```
+All configuration is externalized via environment variables:
 
-## Usage in Claude Code Sessions
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `CLUSTER_SSH_USER` | `marc` | SSH username for remote execution |
+| `CLUSTER_SSH_TIMEOUT` | `5` | SSH connection timeout (seconds) |
+| `CLUSTER_SSH_CONNECT_TIMEOUT` | `2` | Initial SSH connect timeout (seconds) |
+| `CLUSTER_SSH_RETRIES` | `2` | Number of SSH retry attempts |
+| `CLUSTER_CPU_THRESHOLD` | `40` | CPU usage % threshold for offloading |
+| `CLUSTER_LOAD_THRESHOLD` | `4` | Load average threshold for offloading |
+| `CLUSTER_MEMORY_THRESHOLD` | `80` | Memory usage % threshold for offloading |
+| `CLUSTER_CMD_TIMEOUT` | `300` | Command execution timeout (seconds) |
+| `CLUSTER_STATUS_TIMEOUT` | `5` | Status check timeout (seconds) |
+| `CLUSTER_IP_CACHE_TTL` | `300` | IP resolution cache TTL (seconds) |
+| `CLUSTER_GATEWAY` | `192.168.1.1` | Gateway IP for route detection |
+| `CLUSTER_DNS` | `8.8.8.8` | DNS server for IP detection |
+| `AGENTIC_SYSTEM_PATH` | `/mnt/agentic-system` | Base path for databases |
 
-### Automatic Routing (Recommended)
+### Node Configuration
 
-Just ask Claude Code to run commands normally. Claude Code can choose to use `cluster_bash` instead of regular `Bash`:
+Node hostnames and IPs can be customized:
 
-```
-User: "Run the test suite"
-→ Claude Code uses cluster_bash automatically
-→ Routes to optimal node
-→ Returns results
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `CLUSTER_MACPRO51_HOST` | `macpro51.local` | Mac Pro hostname |
+| `CLUSTER_MACPRO51_IP` | `192.168.1.183` | Mac Pro fallback IP |
+| `CLUSTER_MACSTUDIO_HOST` | `Marcs-Mac-Studio.local` | Mac Studio hostname |
+| `CLUSTER_MACSTUDIO_IP` | `192.168.1.16` | Mac Studio fallback IP |
+| `CLUSTER_MACBOOKAIR_HOST` | `Marcs-MacBook-Air.local` | MacBook Air hostname |
+| `CLUSTER_MACBOOKAIR_IP` | `192.168.1.172` | MacBook Air fallback IP |
+| `CLUSTER_INFERENCE_HOST` | `completeu-server.local` | Inference node hostname |
+| `CLUSTER_INFERENCE_IP` | `192.168.1.186` | Inference node fallback IP |
 
-User: "Build the project"
-→ Claude Code uses cluster_bash
-→ Detects "build" pattern, offloads to macpro51
-→ Returns build output
+## MCP Tools
 
-User: "List files"
-→ Claude Code uses regular Bash (simple command)
-→ Executes locally
-```
+| Tool | Description |
+|------|-------------|
+| `cluster_bash` | Execute bash commands with automatic cluster routing |
+| `cluster_status` | Get current cluster state and load distribution |
+| `offload_to` | Explicitly route command to specific node |
+| `parallel_execute` | Run multiple commands in parallel across nodes |
 
-### Explicit Cluster Control
+## Usage Examples
 
-For specific requirements:
+### Automatic Routing
 
-```
-User: "Check cluster status before running tests"
-→ Claude Code uses cluster_status
-→ Shows all node loads
-→ Decides optimal routing
-
-User: "Build on Linux specifically"
-→ Claude Code uses offload_to with node_id="macpro51"
-→ Forces execution on Linux builder
-
-User: "Run these 5 tests in parallel"
-→ Claude Code uses parallel_execute
-→ Distributes across all nodes
-→ Shows combined results
-```
-
-## How It Works
-
-1. **You use Claude Code normally** in a session
-2. **Claude Code has access** to cluster execution tools via MCP
-3. **Claude Code decides** whether to use cluster_bash or regular Bash
-4. **Commands auto-route** based on:
-   - Command characteristics (build/test patterns)
-   - Current cluster load
-   - Node capabilities
-5. **Results return** to you transparently
-
-<<<<<<< HEAD
-=======
-## Advanced Integration Options
-
-Beyond direct tool use, you can leverage Claude Code's native features:
-
-### Skills
-Create reusable skills that wrap cluster operations:
 ```python
-# .claude/skills/cluster_build.py
-def cluster_build(project_path):
-    """Build project using cluster resources"""
-    return cluster_bash(f"cd {project_path} && make build")
+# Heavy commands auto-route to least loaded node
+result = await cluster_bash("make -j8 all")
+
+# Simple commands run locally
+result = await cluster_bash("ls -la")
 ```
 
-### Hooks
-Use hooks to automatically suggest cluster execution:
-```json
-{
-  "PostToolUse": {
-    "hook": "detect_heavy_bash.sh",
-    "description": "Suggest cluster execution for heavy commands"
-  }
-}
+### Force Specific Requirements
+
+```python
+# Force Linux execution
+result = await cluster_bash("docker build .", requires_os="linux")
+
+# Force x86_64 architecture
+result = await cluster_bash("cargo build", requires_arch="x86_64")
 ```
 
-### tmux Sessions
-Run distributed workflows across tmux sessions on different nodes for long-running operations.
+### Explicit Node Routing
 
->>>>>>> origin/main
-## Benefits
+```python
+# Run on Linux builder
+result = await offload_to("podman run -it ubuntu:22.04", node_id="macpro51")
 
-✅ **Zero configuration** - Works automatically once MCP server installed
-✅ **Transparent** - You use Claude Code normally
-✅ **Intelligent** - Auto-routes based on load and command type
-✅ **Fast** - Simple commands still run locally
-✅ **Parallel** - Can distribute multiple operations
-✅ **Explicit control** - Can force specific nodes when needed
-
-## Examples
-
-### Before (Regular Bash)
-```
-User: "Run pytest on the entire test suite"
-
-Claude Code: Bash tool
-  pytest tests/
-
-Result: Runs locally, uses 80% CPU, takes 5 minutes
-```
-
-### After (Cluster Bash)
-```
-User: "Run pytest on the entire test suite"
-
-Claude Code: cluster_bash tool
-  command: "pytest tests/"
-
-Auto-routing:
-  - Detects "pytest" pattern
-  - Checks local load: 65% (high)
-  - Queries cluster: macbook-air at 15% (available)
-  - Routes to macbook-air
-
-Result: Runs on macbook-air, local CPU stays at 10%, takes 5 minutes
+# Run on Mac Studio
+result = await offload_to("swift build", node_id="mac-studio")
 ```
 
 ### Parallel Execution
+
+```python
+# Run tests across cluster
+results = await parallel_execute([
+    "pytest tests/unit/",
+    "pytest tests/integration/",
+    "pytest tests/e2e/"
+])
 ```
-User: "Run all test modules in parallel"
 
-Claude Code: parallel_execute tool
-  commands: [
-    "pytest tests/test_auth.py",
-    "pytest tests/test_api.py",
-    "pytest tests/test_db.py",
-    "pytest tests/test_models.py",
-    "pytest tests/test_views.py"
-  ]
+### Cluster Status
 
-Distribution:
-  - test_auth.py → macpro51 (Linux)
-  - test_api.py → mac-studio (macOS)
-  - test_db.py → macbook-air (macOS)
-  - test_models.py → macpro51 (Linux)
-  - test_views.py → mac-studio (macOS)
+```python
+# Get cluster health before heavy operations
+status = await cluster_status()
+# Returns:
+# {
+#   "local_node": "macpro51",
+#   "nodes": {
+#     "macpro51": {"cpu_percent": 15.2, "memory_percent": 45.3, ...},
+#     "mac-studio": {"cpu_percent": 8.1, "memory_percent": 32.1, ...},
+#     ...
+#   }
+# }
+```
 
-Result: All run simultaneously, complete in 1/5 the time
+## Cluster Nodes
+
+| Node | OS | Arch | Capabilities | Specialties |
+|------|-----|------|--------------|-------------|
+| `macpro51` | Linux | x86_64 | docker, podman, raid, nvme, compilation, testing, tpu | compilation, testing, containerization, benchmarking |
+| `mac-studio` | macOS | ARM64 | orchestration, coordination, temporal, mlx-gpu, arduino | orchestration, coordination, monitoring |
+| `macbook-air` | macOS | ARM64 | research, documentation, analysis | research, documentation, mobile |
+| `inference` | macOS | ARM64 | ollama, inference, model-serving, llm-api | ollama-inference, model-serving |
+
+## Offload Patterns
+
+Commands matching these patterns are automatically offloaded:
+
+- Build: `make`, `cargo`, `npm`, `yarn`, `pnpm`
+- Test: `pytest`, `jest`, `mocha`, `test`
+- Compile: `gcc`, `g++`, `clang`
+- Container: `docker`, `podman`, `kubectl`
+- File ops: `rsync`, `scp`, `tar`, `zip`, `find`, `grep -r`
+
+Commands that stay local:
+- Simple: `ls`, `pwd`, `cd`, `echo`, `cat`, `head`, `tail`, `which`, `type`
+
+## Security
+
+### Shell Injection Prevention
+
+All commands use `subprocess.run()` with list arguments where possible:
+
+```python
+# SAFE: List arguments
+subprocess.run(["ssh", "-o", "ConnectTimeout=5", f"{user}@{ip}", command])
+
+# Complex shell commands are validated before execution
+```
+
+### Command Validation
+
+Commands are validated for dangerous patterns:
+- `rm -rf /`
+- `rm -rf /*`
+- `> /dev/sda`
+- Fork bombs
+- And more...
+
+### SSH Configuration
+
+- `StrictHostKeyChecking=accept-new` - Accept new hosts but verify returning hosts
+- `BatchMode=yes` - Non-interactive mode for scripting
+- Configurable timeouts and retries
+
+## Development
+
+### Running Tests
+
+```bash
+# Install dev dependencies
+pip install -e ".[dev]"
+
+# Run tests
+pytest tests/ -v
+
+# With coverage
+pytest tests/ --cov=cluster_execution_mcp --cov-report=html
+```
+
+### Project Structure
+
+```
+cluster-execution-mcp/
+├── src/cluster_execution_mcp/
+│   ├── __init__.py      # Package exports
+│   ├── config.py        # Configuration, validation, node definitions
+│   ├── router.py        # Task routing and IP resolution
+│   └── server.py        # FastMCP server and tools
+├── tests/
+│   ├── conftest.py      # Pytest fixtures
+│   ├── test_config.py   # Config module tests (29 tests)
+│   ├── test_router.py   # Router module tests (21 tests)
+│   └── test_server.py   # Server and tool tests (21 tests)
+└── pyproject.toml       # Package configuration
+```
+
+## CLI Interface
+
+```bash
+# Submit a command
+cluster-router submit "make -j8 all"
+
+# Check task status
+cluster-router status <task_id>
+
+# Show cluster status
+cluster-router cluster-status
 ```
 
 ## Monitoring
 
-Check what's being executed where:
+Check cluster health before operations:
 
 ```
 User: "Show me cluster status"
@@ -263,19 +248,19 @@ User: "Show me cluster status"
 Claude Code: cluster_status tool
 
 Output:
-  ✅ macpro51:
+  macpro51:
     CPU: 45.2%
     Memory: 18.3%
     Load: 3.21
     Status: healthy
 
-  ✅ mac-studio:
+  mac-studio:
     CPU: 22.1%
     Memory: 54.7%
     Load: 2.15
     Status: healthy
 
-  ✅ macbook-air:
+  macbook-air:
     CPU: 12.8%
     Memory: 38.2%
     Load: 1.03
@@ -289,88 +274,69 @@ Output:
 # Check config
 cat ~/.claude.json | jq '.mcpServers["cluster-execution"]'
 
-# Test server directly
-python3 /home/marc/agentic-system/mcp-servers/cluster-execution-mcp/server.py
-```
-
-**Commands not routing**:
-```bash
-# Check cluster-deployment is accessible
-ls -la ~/agentic-system/cluster-deployment/
-
-# Verify distributed_task_router.py exists
-python3 -c "import sys; sys.path.insert(0, '~/agentic-system/cluster-deployment'); from distributed_task_router import DistributedTaskRouter"
+# Test server import
+python3 -c "from cluster_execution_mcp.server import main; print('OK')"
 ```
 
 **Node unreachable**:
 ```bash
 # Test SSH connectivity
-ssh marc@192.168.1.176 hostname
-ssh marc@192.168.1.76 hostname
+ssh marc@macpro51.local hostname
+ssh marc@Marcs-Mac-Studio.local hostname
 
-# Check if nodes are running self-X daemon
-systemctl --user status cluster-self-x.service  # Linux
-ssh marc@192.168.1.176 "launchctl list | grep cluster-self-x"  # macOS
+# Check with fallback IP
+ssh marc@192.168.1.183 hostname
 ```
 
-## Advanced Usage
-
-### Custom Routing Logic
-
-Force specific OS or architecture:
-
-```
-Claude Code: cluster_bash
-  command: "make build-linux"
-  requires_os: "linux"
-
-→ Forces execution on macpro51 (only Linux node)
+**Commands timing out**:
+```bash
+# Increase timeout via environment
+export CLUSTER_CMD_TIMEOUT=600  # 10 minutes
+export CLUSTER_SSH_TIMEOUT=10   # 10 seconds
 ```
 
-```
-Claude Code: cluster_bash
-  command: "cargo build --target aarch64"
-  requires_arch: "arm64"
+## Changelog
 
-→ Routes to mac-studio or macbook-air (ARM64 nodes)
-```
+### v0.2.0
 
-### Disable Auto-routing
+- **New Features**:
+  - Proper package structure with pyproject.toml
+  - Environment-based configuration (no hardcoded credentials)
+  - Shared config module with validation functions
+  - Retry logic for SSH connectivity
+  - IP resolution caching with TTL
+  - Inference node support
 
-For debugging, execute locally even if it's a heavy command:
+- **Security Improvements**:
+  - Eliminated shell injection vulnerabilities
+  - Command validation for dangerous patterns
+  - IP validation rejecting loopback/Docker/link-local
+  - SSH host key handling (accept-new)
 
-```
-Claude Code: cluster_bash
-  command: "pytest tests/"
-  auto_route: false
+- **Code Quality**:
+  - Full type hints throughout codebase
+  - Replaced bare except clauses with specific exceptions
+  - Added comprehensive logging
+  - 71 unit tests with mocking
 
-→ Executes locally regardless of load
-```
+- **Bug Fixes**:
+  - Fixed darwin/macos OS alias handling
+  - Proper timeout handling in SSH operations
+  - Better error messages for failed operations
 
-## Performance Impact
+### v0.1.0
 
-**Before cluster-execution-mcp**:
-- All commands run locally
-- Active node gets overloaded
-- Long wait times for heavy operations
-- Can't parallelize
+- Initial release with basic cluster execution
 
-**After cluster-execution-mcp**:
-- Heavy commands auto-offload
-- Active node stays responsive
-- Parallel execution across cluster
-- Optimal resource utilization
+## License
 
-**Expected improvement**:
-- 60-90% reduction in active node load
-- 3-5x faster for parallel operations
-- Zero manual intervention required
+MIT
 
 ---
 
-**Part of the Distributed Self-X System**
+**Part of the AGI Agentic System**
 
 See also:
-- `cluster-deployment/CLUSTER_SELF_X_SYSTEM.md` - Background self-improvement system
-- `cluster-deployment/distributed_task_router.py` - Core routing engine
-- `cluster-deployment/DISTRIBUTED_EXECUTION.md` - Manual execution guide
+- Node Chat MCP - Inter-node communication
+- Enhanced Memory MCP - Persistent memory with RAG
+- Agent Runtime MCP - Goals and task queue

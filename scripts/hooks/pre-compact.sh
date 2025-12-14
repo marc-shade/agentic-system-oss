@@ -1,53 +1,57 @@
 #!/bin/bash
-# PreCompact Hook - Save critical context before compaction
-# Fires before context window is compacted (manual /compact or automatic)
+# PreCompact Hook - Full AGI Integration
+# Saves working memory before context compaction
+#
+# Integrations: Memory (context preservation), Activity Dashboard
+# Performance target: <200ms (important to preserve state)
 
-NODE_ID="macpro51"
-TIMESTAMP=$(date -Iseconds)
-SESSION_DIR="${CLAUDE_SESSION_DIR:-unknown}"
+exec 2>/dev/null  # Suppress stderr
 
-# Log pre-compact event
-echo "{\"event\": \"pre_compact\", \"node\": \"$NODE_ID\", \"timestamp\": \"$TIMESTAMP\", \"session_dir\": \"$SESSION_DIR\"}" >> /home/marc/agentic-system/logs/claude-sessions.log 2>/dev/null || true
+# Source performance helpers
+source /home/marc/agentic-system/scripts/hooks/hook_performance.sh 2>/dev/null || true
 
-# Create compaction checkpoint in enhanced memory (background task)
-(
-    if [ -f ~/.claude/enhanced_memories/memory.db ]; then
-        # Store pre-compact milestone
-        python3 -c "
-import sys
+# Read hook input
+INPUT=$(cat)
+
+SESSION_ID="${CLAUDE_SESSION_ID:-unknown}"
+COMPACT_TYPE=$(echo "$INPUT" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('type', d.get('compact_type', 'auto')))" 2>/dev/null || echo "auto")
+
+# Start time for metrics
+START_MS=$(get_timestamp_ms 2>/dev/null || date +%s000)
+
+# Run unified integrations
+{
+    python3 /home/marc/agentic-system/scripts/hooks/unified_hook_integrations.py \
+        pre_compact 2>/dev/null
+} &
+
+# NOTE: Activity Dashboard (port 4100) was aspirational - service never implemented
+# Events logged to sessions.log below for activity tracking
+
+# Log compact event
+{
+    echo "{\"event\":\"pre_compact\",\"type\":\"$COMPACT_TYPE\",\"session\":\"$SESSION_ID\",\"ts\":\"$(date -Is)\"}" >> /home/marc/agentic-system/logs/sessions.log
+    # Log to dedicated compaction log for context tracking
+    echo "{\"event\":\"pre_compact\",\"type\":\"$COMPACT_TYPE\",\"session\":\"$SESSION_ID\",\"ts\":\"$(date -Is)\"}" >> /home/marc/agentic-system/logs/compaction-events.log
+    # Update context status - compaction indicates ~80%+ usage
+    python3 -c "
 import json
+from pathlib import Path
 from datetime import datetime
-sys.path.insert(0, '/mnt/agentic-system/mcp-servers/enhanced-memory-mcp')
+ctx_file = Path.home() / '.claude' / 'context_status.json'
+ctx_file.write_text(json.dumps({
+    'percent': 80,
+    'estimated': True,
+    'source': 'pre_compact_hook',
+    'updated_at': datetime.now().isoformat(),
+    'note': 'Compaction triggered - context was near limit'
+}))
+" 2>/dev/null
+} &
 
-try:
-    from memory_manager import MemoryManager
-    manager = MemoryManager()
+# Calculate and log performance
+END_MS=$(get_timestamp_ms 2>/dev/null || date +%s000)
+DURATION_MS=$((END_MS - START_MS))
+log_hook_metric "PreCompact" "pre_compact" "$DURATION_MS" "true" "false" "" 2>/dev/null &
 
-    # Create checkpoint entity
-    checkpoint_data = {
-        'name': f'compact_checkpoint_{datetime.now().strftime(\"%Y%m%d_%H%M%S\")}',
-        'entityType': 'checkpoint',
-        'observations': [
-            'Context compaction triggered',
-            f'Session: $SESSION_DIR',
-            f'Node: $NODE_ID',
-            'Save important conversation state before compaction'
-        ]
-    }
-
-    # Store checkpoint
-    manager.create_entities([checkpoint_data])
-except Exception as e:
-    pass
-" 2>/dev/null || true
-    fi
-) &
-
-# Save current conversation metrics
-if [ -f /tmp/claude_session_start.json ]; then
-    START_TIME=$(cat /tmp/claude_session_start.json | python3 -c "import json, sys; print(json.load(sys.stdin).get('start_time', ''))" 2>/dev/null)
-    echo "{\"event\": \"compact_metrics\", \"session_start\": \"$START_TIME\", \"compact_time\": \"$TIMESTAMP\"}" >> /home/marc/agentic-system/logs/compaction-events.log 2>/dev/null || true
-fi
-
-# Return success immediately
 exit 0

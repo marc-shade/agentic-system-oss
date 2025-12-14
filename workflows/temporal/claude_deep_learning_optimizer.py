@@ -14,11 +14,7 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Tuple, Optional
 
 # Add intelligent healing system to path
-<<<<<<< HEAD
-sys.path.insert(0, '/Volumes/SSDRAID0/agentic-system/intelligent-self-healing')
-=======
 sys.path.insert(0, '/mnt/agentic-system/intelligent-self-healing')
->>>>>>> origin/main
 from intelligent_config_agent import IntelligentConfigAgent
 
 # Temporal imports
@@ -26,11 +22,13 @@ try:
     from temporalio import activity, workflow
     from temporalio.common import RetryPolicy
     TEMPORAL_AVAILABLE = True
+    # Use activity.defn as decorator (correct Temporal SDK usage)
+    activity_defn = activity.defn
 except ImportError:
     print("⚠️  Temporal not installed - running in standalone mode")
     TEMPORAL_AVAILABLE = False
     # Mock decorators for standalone testing
-    def activity(fn):
+    def activity_defn(fn):
         return fn
     class workflow:
         @staticmethod
@@ -45,15 +43,8 @@ class PerformanceMetrics:
     """Collect and analyze Claude Code performance metrics"""
 
     def __init__(self):
-<<<<<<< HEAD
-        # Store on SSDRAID0 (not /tmp - see FILE_LOCATION_POLICY.md)
-        base = Path("/Volumes/SSDRAID0/agentic-system")
-        self.metrics_file = base / "logs/performance/claude_metrics.json"
-        self.learning_memory = base / "logs/learning/learning_memory.jsonl"
-=======
         self.metrics_file = Path("/tmp/claude_performance_metrics.json")
         self.learning_memory = Path("/tmp/claude_learning_memory.jsonl")
->>>>>>> origin/main
 
     def collect_metrics(self) -> Dict:
         """Collect current performance metrics"""
@@ -292,7 +283,7 @@ class PerformanceOptimizer:
 
 
 # Temporal Activities
-@activity
+@activity_defn
 async def collect_performance_metrics() -> Dict:
     """Activity: Collect performance metrics"""
     print("📊 Collecting performance metrics...")
@@ -302,7 +293,7 @@ async def collect_performance_metrics() -> Dict:
     return metrics
 
 
-@activity
+@activity_defn
 async def analyze_and_optimize(metrics: Dict, session_id: str) -> Dict:
     """Activity: Analyze metrics and apply optimizations"""
     print(f"🔍 Analyzing metrics for optimization...")
@@ -317,6 +308,38 @@ async def analyze_and_optimize(metrics: Dict, session_id: str) -> Dict:
     result = optimizer.apply_optimizations(optimizations, session_id)
 
     return result
+
+
+# Additional stub activities for backward compatibility with start_all_agi_workers.py
+@activity_defn
+async def analyze_usage_patterns(metrics: Dict) -> Dict:
+    """Activity: Analyze usage patterns from metrics"""
+    print("📈 Analyzing usage patterns...")
+    return {"patterns": [], "insights": []}
+
+@activity_defn
+async def generate_optimizations(analysis: Dict) -> List[Dict]:
+    """Activity: Generate optimization suggestions"""
+    print("💡 Generating optimizations...")
+    return []
+
+@activity_defn
+async def apply_optimizations(optimizations: List[Dict]) -> Dict:
+    """Activity: Apply suggested optimizations"""
+    print("⚙️ Applying optimizations...")
+    return {"applied": [], "skipped": []}
+
+@activity_defn
+async def verify_optimizations(results: Dict) -> Dict:
+    """Activity: Verify optimization results"""
+    print("✓ Verifying optimizations...")
+    return {"verified": True, "issues": []}
+
+@activity_defn
+async def store_learning_record(record: Dict) -> bool:
+    """Activity: Store learning record to memory"""
+    print("💾 Storing learning record...")
+    return True
 
 
 # Temporal Workflow
@@ -362,15 +385,8 @@ if TEMPORAL_AVAILABLE:
                 "optimizations": result
             }
 
-<<<<<<< HEAD
-            # Log to learning memory (SSDRAID0)
-            base = Path("/Volumes/SSDRAID0/agentic-system")
-            learning_memory = base / "logs/learning/learning_memory.jsonl"
-            learning_memory.parent.mkdir(parents=True, exist_ok=True)
-=======
             # Log to learning memory
             learning_memory = Path("/tmp/claude_learning_memory.jsonl")
->>>>>>> origin/main
             with open(learning_memory, 'a') as f:
                 f.write(json.dumps(learning_record) + '\n')
 
@@ -436,13 +452,7 @@ def main_standalone():
         "optimizations": result
     }
 
-<<<<<<< HEAD
-    base = Path("/Volumes/SSDRAID0/agentic-system")
-    learning_memory = base / "logs/learning/learning_memory.jsonl"
-    learning_memory.parent.mkdir(parents=True, exist_ok=True)
-=======
     learning_memory = Path("/tmp/claude_learning_memory.jsonl")
->>>>>>> origin/main
     with open(learning_memory, 'a') as f:
         f.write(json.dumps(learning_record) + '\n')
 

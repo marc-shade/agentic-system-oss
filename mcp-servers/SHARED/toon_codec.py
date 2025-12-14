@@ -5,10 +5,34 @@ Provides encode/decode functionality using Node.js CLI
 """
 
 import json
-import subprocess
 import os
+import platform
+import subprocess
 from pathlib import Path
 from typing import Any, Dict, Optional
+
+
+def _get_storage_base() -> Path:
+    """Detect storage base path based on platform."""
+    env_path = os.environ.get("AGENTIC_SYSTEM_PATH")
+    if env_path and Path(env_path).exists():
+        return Path(env_path)
+
+    system = platform.system()
+    if system == "Darwin":  # macOS
+        if Path("/Volumes/SSDRAID0/agentic-system").exists():
+            return Path("/Volumes/SSDRAID0/agentic-system")
+        elif Path("/Volumes/FILES/agentic-system").exists():
+            return Path("/Volumes/FILES/agentic-system")
+    elif system == "Linux":
+        if Path("/home/marc/agentic-system").exists():
+            return Path("/home/marc/agentic-system")
+        elif Path("/mnt/agentic-system").exists():
+            return Path("/mnt/agentic-system")
+    return Path(__file__).parent.parent.parent
+
+
+_STORAGE_BASE = _get_storage_base()
 
 # Path to TOON CLI (case-insensitive for macOS)
 _parent = Path(__file__).parent
@@ -32,7 +56,7 @@ class ToonCodec:
         if not TOON_CLI_PATH.exists():
             raise RuntimeError(
                 f"TOON CLI not found at {TOON_CLI_PATH}. "
-                "Run: cd /Volumes/SSDRAID0/agentic-system/mcp-servers/shared && "
+                f"Run: cd {_STORAGE_BASE / 'mcp-servers' / 'shared'} && "
                 "npm install @toon-format/toon @toon-format/cli"
             )
         if not NODE_PATH:

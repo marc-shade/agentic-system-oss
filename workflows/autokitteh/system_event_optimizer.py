@@ -9,17 +9,38 @@ TRIGGERS: High memory, high CPU, error spikes, MCP latency
 """
 
 import json
+import os
+import platform
 import sys
 from pathlib import Path
 from datetime import datetime
 from typing import Dict, Optional
 
+
+def _get_storage_base() -> Path:
+    """Detect storage base path based on platform."""
+    env_path = os.environ.get("AGENTIC_SYSTEM_PATH")
+    if env_path and Path(env_path).exists():
+        return Path(env_path)
+
+    system = platform.system()
+    if system == "Darwin":  # macOS
+        if Path("/Volumes/SSDRAID0/agentic-system").exists():
+            return Path("/Volumes/SSDRAID0/agentic-system")
+        elif Path("/Volumes/FILES/agentic-system").exists():
+            return Path("/Volumes/FILES/agentic-system")
+    elif system == "Linux":
+        if Path("/home/marc/agentic-system").exists():
+            return Path("/home/marc/agentic-system")
+        elif Path("/mnt/agentic-system").exists():
+            return Path("/mnt/agentic-system")
+    return Path(__file__).parent.parent.parent
+
+
+_STORAGE_BASE = _get_storage_base()
+
 # Add intelligent healing system to path
-<<<<<<< HEAD
-sys.path.insert(0, '/Volumes/SSDRAID0/agentic-system/intelligent-self-healing')
-=======
-sys.path.insert(0, '/mnt/agentic-system/intelligent-self-healing')
->>>>>>> origin/main
+sys.path.insert(0, str(_STORAGE_BASE / 'intelligent-self-healing'))
 from intelligent_config_agent import IntelligentConfigAgent
 
 
@@ -30,13 +51,7 @@ class SystemEventOptimizer:
         self.agent = IntelligentConfigAgent()
         self.settings_file = Path.home() / ".claude" / "settings.json"
         self.mcp_config_file = Path.home() / ".claude.json"
-<<<<<<< HEAD
-        # Store on SSDRAID0 (not /tmp - see FILE_LOCATION_POLICY.md)
-        base = Path("/Volumes/SSDRAID0/agentic-system")
-        self.event_log = base / "logs/autokitteh/events.jsonl"
-=======
         self.event_log = Path("/tmp/autokitteh_events.jsonl")
->>>>>>> origin/main
 
     def log_event(self, event: Dict):
         """Log event for analysis"""

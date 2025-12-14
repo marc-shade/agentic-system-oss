@@ -36,7 +36,10 @@ const LEARNING_LOG = join(homedir(), '.claude', 'pets', 'ember-learning.jsonl');
 const SESSION_CONTEXT_FILE = join(homedir(), '.claude', 'pets', 'ember-session-context.json');
 
 // Groq Configuration
-const GROQ_API_KEY = process.env.GROQ_API_KEY || '***REMOVED***';
+const GROQ_API_KEY = process.env.GROQ_API_KEY || '';
+if (!GROQ_API_KEY) {
+  console.warn('Warning: GROQ_API_KEY not set. Ember intelligence features will be limited.');
+}
 const groq = new Groq({ apiKey: GROQ_API_KEY });
 
 // Model selection - GPT-OSS 120B (largest on Groq, exceptional performance)

@@ -5,12 +5,39 @@
 set -e
 
 # Configuration
+
+# Platform-aware storage detection
+detect_storage_base() {
+    if [ -n "$AGENTIC_SYSTEM_PATH" ] && [ -d "$AGENTIC_SYSTEM_PATH" ]; then
+        echo "$AGENTIC_SYSTEM_PATH"
+        return
+    fi
+    case "$(uname -s)" in
+        Darwin)
+            if [ -d "/Volumes/SSDRAID0/agentic-system" ]; then
+                echo "/Volumes/SSDRAID0/agentic-system"
+            elif [ -d "/Volumes/FILES/agentic-system" ]; then
+                echo "/Volumes/FILES/agentic-system"
+            fi
+            ;;
+        Linux)
+            if [ -d "/home/marc/agentic-system" ]; then
+                echo "/home/marc/agentic-system"
+            elif [ -d "/mnt/agentic-system" ]; then
+                echo "/mnt/agentic-system"
+            fi
+            ;;
+    esac
+}
+
+STORAGE_BASE=$(detect_storage_base)
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-VENV_DIR="/home/marc/agentic-system/.venv"
+VENV_DIR="$STORAGE_BASE/.venv"
 PYTHON="${VENV_DIR}/bin/python3"
 EXECUTOR="${SCRIPT_DIR}/build_executor.py"
-PID_FILE="/home/marc/agentic-system/logs/build-executor.pid"
-LOG_DIR="/home/marc/agentic-system/logs"
+PID_FILE="$STORAGE_BASE/logs/build-executor.pid"
+LOG_DIR="$STORAGE_BASE/logs"
 
 # Ensure log directory exists
 mkdir -p "$LOG_DIR"

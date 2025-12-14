@@ -1,59 +1,55 @@
 #!/bin/bash
-# SubagentStop Hook - Capture subagent learnings and outcomes
-# Fires when Task tool (subagent) completes
+# SubagentStop Hook - Full AGI Integration
+# Records agent completion, captures learnings, updates memory
+#
+# Integrations: TPU, AGI Bridge (outcome recording), Memory, Activity Dashboard
+# Performance target: <200ms
 
-NODE_ID="macpro51"
-TIMESTAMP=$(date -Iseconds)
+exec 2>/dev/null  # Suppress stderr
 
-# Read hook input from stdin
+# Source performance helpers
+source /home/marc/agentic-system/scripts/hooks/hook_performance.sh 2>/dev/null || true
+
+# Read hook input
 INPUT=$(cat)
 
-# Extract subagent information
-SUBAGENT_TYPE=$(echo "$INPUT" | python3 -c "import json, sys; data=json.load(sys.stdin); params=data.get('parameters', {}); print(params.get('subagent_type', 'unknown'))" 2>/dev/null || echo "unknown")
-DESCRIPTION=$(echo "$INPUT" | python3 -c "import json, sys; data=json.load(sys.stdin); params=data.get('parameters', {}); print(params.get('description', ''))" 2>/dev/null || echo "")
+# Extract agent info
+AGENT_TYPE=$(echo "$INPUT" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('subagent_type', d.get('agent_type', 'unknown')))" 2>/dev/null || echo "unknown")
+AGENT_ID=$(echo "$INPUT" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('agent_id', d.get('id', 'unknown')))" 2>/dev/null || echo "unknown")
+RESULT=$(echo "$INPUT" | python3 -c "import json,sys; d=json.load(sys.stdin); print(str(d.get('result', d.get('output', '')))[:300])" 2>/dev/null || echo "")
+
+# Determine success
+SUCCESS="true"
+if echo "$RESULT" | grep -qiE "error|failed|exception|timeout"; then
+    SUCCESS="false"
+fi
+
+SESSION_ID="${CLAUDE_SESSION_ID:-unknown}"
+
+# Start time for metrics
+START_MS=$(get_timestamp_ms 2>/dev/null || date +%s000)
+
+# Run unified integrations (records AGI learning)
+{
+    python3 /home/marc/agentic-system/scripts/hooks/unified_hook_integrations.py \
+        subagent_stop \
+        --agent-type "$AGENT_TYPE" \
+        --output "$RESULT" \
+        $([ "$SUCCESS" = "true" ] && echo "--success") \
+        2>/dev/null
+} &
+
+# NOTE: Activity Dashboard (port 4100) was aspirational - service never implemented
+# Events logged to subagents.log below for activity tracking
 
 # Log subagent completion
-echo "{\"event\": \"subagent_stop\", \"node\": \"$NODE_ID\", \"subagent_type\": \"$SUBAGENT_TYPE\", \"description\": \"$DESCRIPTION\", \"timestamp\": \"$TIMESTAMP\"}" >> /home/marc/agentic-system/logs/subagent-activity.log 2>/dev/null || true
+{
+    echo "{\"event\":\"subagent_stop\",\"agent_type\":\"$AGENT_TYPE\",\"agent_id\":\"$AGENT_ID\",\"success\":$SUCCESS,\"session\":\"$SESSION_ID\",\"ts\":\"$(date -Is)\"}" >> /home/marc/agentic-system/logs/subagents.log
+} &
 
-# Track subagent performance metrics (background)
-(
-    # Update subagent execution statistics
-    STATS_FILE="/tmp/subagent_stats_${SUBAGENT_TYPE}.json"
+# Calculate and log performance
+END_MS=$(get_timestamp_ms 2>/dev/null || date +%s000)
+DURATION_MS=$((END_MS - START_MS))
+log_hook_metric "SubagentStop" "subagent_stop" "$DURATION_MS" "true" "false" "" 2>/dev/null &
 
-    if [ -f "$STATS_FILE" ]; then
-        # Increment execution count
-        COUNT=$(cat "$STATS_FILE" | python3 -c "import json, sys; data=json.load(sys.stdin); print(data.get('count', 0) + 1)" 2>/dev/null || echo 1)
-    else
-        COUNT=1
-    fi
-
-    echo "{\"subagent_type\": \"$SUBAGENT_TYPE\", \"count\": $COUNT, \"last_execution\": \"$TIMESTAMP\"}" > "$STATS_FILE" 2>/dev/null || true
-
-    # Log to memory system for procedural learning
-    if [ -f ~/.claude/enhanced_memories/memory.db ]; then
-        python3 -c "
-import sys
-sys.path.insert(0, '/mnt/agentic-system/mcp-servers/enhanced-memory-mcp')
-
-try:
-    from memory_manager import MemoryManager
-    manager = MemoryManager()
-
-    # Record subagent execution as procedural skill
-    skill_name = f'subagent_{\"$SUBAGENT_TYPE\"}'.replace('-', '_')
-    description = '${DESCRIPTION//\'/\\\"}'
-
-    # This could be enhanced to track success/failure
-    manager.record_skill_execution(
-        skill_name=skill_name,
-        success=True,  # Assume success if hook fires
-        execution_time_ms=1000  # Placeholder
-    )
-except Exception as e:
-    pass
-" 2>/dev/null || true
-    fi
-) &
-
-# Return success immediately
 exit 0

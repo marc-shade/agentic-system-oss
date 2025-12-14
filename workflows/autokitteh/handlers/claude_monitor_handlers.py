@@ -3,18 +3,37 @@ Claude Performance Monitor Handlers
 Monitors Claude Code execution patterns, performance, and learns optimization opportunities
 Runs continuously to improve Claude's effectiveness
 """
+import os
+import platform
 import subprocess
 import json
 import time
 import requests
 from datetime import datetime
-<<<<<<< HEAD
 from pathlib import Path
 
-# Store on SSDRAID0 (not /tmp - see FILE_LOCATION_POLICY.md)
-AGENTIC_BASE = Path("/Volumes/SSDRAID0/agentic-system")
-=======
->>>>>>> origin/main
+
+def _get_storage_base() -> Path:
+    """Detect storage base path based on platform."""
+    env_path = os.environ.get("AGENTIC_SYSTEM_PATH")
+    if env_path and Path(env_path).exists():
+        return Path(env_path)
+
+    system = platform.system()
+    if system == "Darwin":  # macOS
+        if Path("/Volumes/SSDRAID0/agentic-system").exists():
+            return Path("/Volumes/SSDRAID0/agentic-system")
+        elif Path("/Volumes/FILES/agentic-system").exists():
+            return Path("/Volumes/FILES/agentic-system")
+    elif system == "Linux":
+        if Path("/home/marc/agentic-system").exists():
+            return Path("/home/marc/agentic-system")
+        elif Path("/mnt/agentic-system").exists():
+            return Path("/mnt/agentic-system")
+    return Path(__file__).parent.parent.parent.parent
+
+
+_STORAGE_BASE = _get_storage_base()
 
 
 def monitor_claude_execution(event):
@@ -26,11 +45,7 @@ def monitor_claude_execution(event):
     # Run the advanced metrics collector Python script
     try:
         result = subprocess.run(
-<<<<<<< HEAD
-            ["python3", "/Volumes/SSDRAID0/agentic-system/scripts/claude_metrics_collector.py"],
-=======
-            ["python3", "/mnt/agentic-system/scripts/claude_metrics_collector.py"],
->>>>>>> origin/main
+            ["python3", str(_STORAGE_BASE / "scripts" / "claude_metrics_collector.py")],
             capture_output=True,
             text=True,
             timeout=30
@@ -42,14 +57,8 @@ def monitor_claude_execution(event):
             print(f"ERROR: {result.stderr}")
             return {"status": "error", "message": result.stderr}
 
-<<<<<<< HEAD
-        # Metrics are now saved to SSDRAID0
-        metrics_file = AGENTIC_BASE / "logs/performance/claude_metrics.json"
-        with open(metrics_file) as f:
-=======
         # Metrics are now saved to /tmp/claude_performance_metrics.json
         with open("/tmp/claude_performance_metrics.json") as f:
->>>>>>> origin/main
             metrics = json.load(f)
 
         # Alert if error rate is high
@@ -72,11 +81,7 @@ def analyze_patterns(event):
     try:
         # Run pattern detector
         result = subprocess.run(
-<<<<<<< HEAD
-            ["python3", "/Volumes/SSDRAID0/agentic-system/scripts/pattern_detector.py"],
-=======
-            ["python3", "/mnt/agentic-system/scripts/pattern_detector.py"],
->>>>>>> origin/main
+            ["python3", str(_STORAGE_BASE / "scripts" / "pattern_detector.py")],
             capture_output=True,
             text=True,
             timeout=60
@@ -90,11 +95,7 @@ def analyze_patterns(event):
 
         # Run cost tracker
         cost_result = subprocess.run(
-<<<<<<< HEAD
-            ["python3", "/Volumes/SSDRAID0/agentic-system/scripts/cost_tracker.py"],
-=======
-            ["python3", "/mnt/agentic-system/scripts/cost_tracker.py"],
->>>>>>> origin/main
+            ["python3", str(_STORAGE_BASE / "scripts" / "cost_tracker.py")],
             capture_output=True,
             text=True,
             timeout=60
@@ -107,11 +108,7 @@ def analyze_patterns(event):
 
         # Run predictive maintenance
         maint_result = subprocess.run(
-<<<<<<< HEAD
-            ["python3", "/Volumes/SSDRAID0/agentic-system/scripts/predictive_maintenance.py"],
-=======
-            ["python3", "/mnt/agentic-system/scripts/predictive_maintenance.py"],
->>>>>>> origin/main
+            ["python3", str(_STORAGE_BASE / "scripts" / "predictive_maintenance.py")],
             capture_output=True,
             text=True,
             timeout=60
@@ -123,21 +120,11 @@ def analyze_patterns(event):
         print(maint_result.stdout)
 
         # Load pattern analysis results
-<<<<<<< HEAD
-        pattern_file = AGENTIC_BASE / "logs/performance/pattern_analysis.json"
-        with open(pattern_file) as f:
-            patterns = json.load(f)
-
-        # Trigger deep learning if critical issues found
-        alerts_file = AGENTIC_BASE / "logs/alerts/maintenance_alerts.json"
-        with open(alerts_file) as f:
-=======
         with open("/tmp/claude_pattern_analysis.json") as f:
             patterns = json.load(f)
 
         # Trigger deep learning if critical issues found
         with open("/tmp/claude_maintenance_alerts.json") as f:
->>>>>>> origin/main
             alerts = json.load(f)
 
         if alerts.get("alerts_by_severity", {}).get("critical", 0) > 0:
@@ -163,11 +150,7 @@ def deep_learning(event):
     try:
         # Run code optimizer to apply improvements
         result = subprocess.run(
-<<<<<<< HEAD
-            ["python3", "/Volumes/SSDRAID0/agentic-system/scripts/code_optimizer.py"],
-=======
-            ["python3", "/mnt/agentic-system/scripts/code_optimizer.py"],
->>>>>>> origin/main
+            ["python3", str(_STORAGE_BASE / "scripts" / "code_optimizer.py")],
             capture_output=True,
             text=True,
             timeout=120
@@ -181,11 +164,7 @@ def deep_learning(event):
 
         # Run knowledge graph builder to store learnings
         kg_result = subprocess.run(
-<<<<<<< HEAD
-            ["python3", "/Volumes/SSDRAID0/agentic-system/scripts/knowledge_graph_builder.py"],
-=======
-            ["python3", "/mnt/agentic-system/scripts/knowledge_graph_builder.py"],
->>>>>>> origin/main
+            ["python3", str(_STORAGE_BASE / "scripts" / "knowledge_graph_builder.py")],
             capture_output=True,
             text=True,
             timeout=60
@@ -198,11 +177,7 @@ def deep_learning(event):
 
         # Run performance benchmarking
         bench_result = subprocess.run(
-<<<<<<< HEAD
-            ["python3", "/Volumes/SSDRAID0/agentic-system/scripts/performance_benchmarker.py"],
-=======
-            ["python3", "/mnt/agentic-system/scripts/performance_benchmarker.py"],
->>>>>>> origin/main
+            ["python3", str(_STORAGE_BASE / "scripts" / "performance_benchmarker.py")],
             capture_output=True,
             text=True,
             timeout=60
@@ -214,21 +189,11 @@ def deep_learning(event):
         print(bench_result.stdout)
 
         # Load optimization results
-<<<<<<< HEAD
-        optimizations_file = AGENTIC_BASE / "logs/optimizations/applied.json"
-        with open(optimizations_file) as f:
-            optimizations = json.load(f)
-
-        # Load learning summary
-        summary_file = AGENTIC_BASE / "logs/learning/summary.json"
-        with open(summary_file) as f:
-=======
         with open("/tmp/claude_optimizations_applied.json") as f:
             optimizations = json.load(f)
 
         # Load learning summary
         with open("/tmp/claude_learning_summary.json") as f:
->>>>>>> origin/main
             summary = json.load(f)
 
         # Send voice notification about improvements

@@ -2,11 +2,20 @@
 """
 Arduino Surface MCP Server
 Exposes Arduino physical control surface to Claude Desktop via MCP protocol
+
+Cluster-Aware Design:
+- Starts successfully even when Arduino is not connected to this node
+- Returns informative messages indicating Arduino location
+- Tools gracefully degrade when hardware unavailable
+- Can detect Arduino on other cluster nodes via network discovery
 """
 
 import sys
 import json
 import asyncio
+import glob
+import socket
+import platform
 from pathlib import Path
 
 # Add bridge directory to path
@@ -22,11 +31,53 @@ except ImportError as e:
 # Global Arduino surface instance
 arduino = None
 arduino_port = None
+arduino_available = False
+current_node = socket.gethostname()
+
+# Known cluster nodes (for Arduino detection)
+CLUSTER_NODES = ["mac-studio", "macbook-air", "macbook-pro"]
 
 
-def initialize_arduino(port: str) -> bool:
-    """Initialize Arduino connection"""
-    global arduino, arduino_port
+def detect_arduino_ports() -> list:
+    """Detect available Arduino serial ports on this system"""
+    ports = []
+    system = platform.system()
+
+    if system == "Darwin":  # macOS
+        # Arduino UNO typically shows as /dev/tty.usbmodem*
+        ports.extend(glob.glob("/dev/tty.usbmodem*"))
+        # Arduino Mega and others
+        ports.extend(glob.glob("/dev/tty.usbserial*"))
+        ports.extend(glob.glob("/dev/cu.usbmodem*"))
+    elif system == "Linux":
+        # Linux Arduino ports
+        ports.extend(glob.glob("/dev/ttyACM*"))
+        ports.extend(glob.glob("/dev/ttyUSB*"))
+
+    return sorted(set(ports))
+
+
+def initialize_arduino(port: str = None) -> bool:
+    """Initialize Arduino connection
+
+    Args:
+        port: Serial port path. If None or "auto", will attempt auto-detection.
+
+    Returns:
+        True if connected, False if not available (graceful degradation)
+    """
+    global arduino, arduino_port, arduino_available
+
+    # Auto-detect if no port specified or "auto"
+    if not port or port == "auto":
+        detected = detect_arduino_ports()
+        if detected:
+            port = detected[0]
+            print(f"Auto-detected Arduino on {port}", file=sys.stderr)
+        else:
+            print(f"No Arduino detected on {current_node}", file=sys.stderr)
+            arduino_available = False
+            return False
 
     if arduino and arduino_port == port:
         return True
@@ -35,11 +86,32 @@ def initialize_arduino(port: str) -> bool:
         arduino = ArduinoSurface(port)
         if arduino.connect():
             arduino_port = port
+            arduino_available = True
+            print(f"Arduino connected on {port} ({current_node})", file=sys.stderr)
             return True
+        print(f"Failed to connect to Arduino on {port}", file=sys.stderr)
+        arduino_available = False
         return False
     except Exception as e:
-        print(f"Error initializing Arduino: {e}", file=sys.stderr)
+        print(f"Error initializing Arduino on {port}: {e}", file=sys.stderr)
+        arduino_available = False
         return False
+
+
+def get_arduino_status_message() -> str:
+    """Get a helpful message about Arduino availability"""
+    if arduino_available:
+        return f"Arduino connected on {arduino_port} ({current_node})"
+
+    detected = detect_arduino_ports()
+    if detected:
+        return f"Arduino detected on {detected[0]} but not initialized. Try reconnecting."
+
+    # Check if we're on a Mac (where Arduino can be connected)
+    if platform.system() == "Darwin":
+        return f"No Arduino connected to {current_node}. The Arduino may be connected to another cluster node."
+    else:
+        return f"Arduino Surface only available on macOS nodes. Current node: {current_node} ({platform.system()})"
 
 
 def send_response(response: dict):
@@ -240,13 +312,42 @@ async def handle_list_tools(request_id: str):
 
 async def handle_call_tool(request_id: str, params: dict):
     """Execute Arduino tool"""
-    global arduino
-
-    if not arduino:
-        send_error(request_id, "Arduino not initialized")
-        return
+    global arduino, arduino_available
 
     tool_name = params.get("name")
+
+    # Handle status and connection tools even without Arduino
+    if tool_name == "surface.status":
+        # Status tool always works - reports availability
+        if arduino_available and arduino:
+            status = arduino.get_status()
+            if status:
+                result = f"Arduino Status ({current_node}):\n"
+                result += f"- Port: {arduino_port}\n"
+                result += f"- Potentiometer: {status.get('pot')}\n"
+                result += f"- Temperature: {status.get('temp_c')}C\n"
+                result += f"- Light: {status.get('light')}"
+            else:
+                result = f"Arduino connected on {arduino_port} but failed to read status"
+        else:
+            result = get_arduino_status_message()
+
+        send_result(request_id, {
+            "content": [{"type": "text", "text": result}]
+        })
+        return
+
+    # For all other tools, check if Arduino is available
+    if not arduino_available or not arduino:
+        status_msg = get_arduino_status_message()
+        send_result(request_id, {
+            "content": [{
+                "type": "text",
+                "text": f"Arduino unavailable: {status_msg}\n\nTool '{tool_name}' requires physical hardware connection."
+            }]
+        })
+        return
+
     arguments = params.get("arguments", {})
 
     try:
@@ -350,28 +451,7 @@ async def handle_call_tool(request_id: str, params: dict):
                 ]
             })
 
-        # surface.status
-        elif tool_name == "surface.status":
-            status = arduino.get_status()
-
-            if status:
-                result = f"Arduino Status:\n"
-                result += f"- Potentiometer: {status.get('pot')}\n"
-                result += f"- Temperature: {status.get('temp_c')}°C\n"
-                result += f"- Light: {status.get('light')}"
-            else:
-                result = "Failed to get status"
-
-            send_result(request_id, {
-                "content": [
-                    {
-                        "type": "text",
-                        "text": result
-                    }
-                ]
-            })
-
-        # surface.sensors
+        # surface.sensors (surface.status handled above)
         elif tool_name == "surface.sensors":
             status = arduino.get_status()
 
@@ -443,23 +523,24 @@ async def handle_request(request: dict):
 
 
 async def main():
-    """Main MCP server loop"""
-    global arduino
+    """Main MCP server loop
 
-    # Get Arduino port from command line
-    if len(sys.argv) < 2:
-        print("Usage: arduino_surface_mcp.py <serial_port>", file=sys.stderr)
-        print("Example: arduino_surface_mcp.py /dev/tty.usbmodem8344401", file=sys.stderr)
-        sys.exit(1)
+    Graceful Degradation:
+    - Server starts even without Arduino connected
+    - Tools return informative messages when hardware unavailable
+    - Can auto-detect Arduino port if 'auto' specified
+    """
+    global arduino, arduino_available
 
-    port = sys.argv[1]
+    # Get Arduino port from command line (optional - can auto-detect)
+    port = sys.argv[1] if len(sys.argv) >= 2 else "auto"
 
-    # Initialize Arduino
-    if not initialize_arduino(port):
-        print(f"Failed to connect to Arduino on {port}", file=sys.stderr)
-        sys.exit(1)
-
-    print(f"Arduino Surface MCP server started on {port}", file=sys.stderr)
+    # Try to initialize Arduino (won't fail if unavailable)
+    if initialize_arduino(port):
+        print(f"Arduino Surface MCP server started with hardware on {arduino_port}", file=sys.stderr)
+    else:
+        print(f"Arduino Surface MCP server started (hardware unavailable on {current_node})", file=sys.stderr)
+        print(f"Tools will report hardware status when called", file=sys.stderr)
 
     # Read JSON-RPC requests from stdin
     loop = asyncio.get_event_loop()

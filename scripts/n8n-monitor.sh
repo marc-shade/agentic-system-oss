@@ -2,9 +2,36 @@
 # n8n Monitoring Script for Autonomous System
 # Auto-restarts n8n if it becomes unhealthy
 
+
+# Platform-aware storage detection
+detect_storage_base() {
+    if [ -n "$AGENTIC_SYSTEM_PATH" ] && [ -d "$AGENTIC_SYSTEM_PATH" ]; then
+        echo "$AGENTIC_SYSTEM_PATH"
+        return
+    fi
+    case "$(uname -s)" in
+        Darwin)
+            if [ -d "/Volumes/SSDRAID0/agentic-system" ]; then
+                echo "/Volumes/SSDRAID0/agentic-system"
+            elif [ -d "/Volumes/FILES/agentic-system" ]; then
+                echo "/Volumes/FILES/agentic-system"
+            fi
+            ;;
+        Linux)
+            if [ -d "/home/marc/agentic-system" ]; then
+                echo "/home/marc/agentic-system"
+            elif [ -d "/mnt/agentic-system" ]; then
+                echo "/mnt/agentic-system"
+            fi
+            ;;
+    esac
+}
+
+STORAGE_BASE=$(detect_storage_base)
+
 N8N_PORT=5678
 PID_FILE="/tmp/n8n.pid"
-LOG_DIR="/mnt/agentic-system/logs"
+LOG_DIR="$STORAGE_BASE/logs"
 
 check_n8n() {
     # Check if n8n is responding
@@ -16,7 +43,7 @@ check_n8n() {
 
 start_n8n() {
     echo "$(date '+%Y-%m-%d %H:%M:%S') - Starting n8n..."
-    /mnt/agentic-system/scripts/start-n8n.sh &
+    $STORAGE_BASE/scripts/start-n8n.sh &
     N8N_PID=$!
     echo $N8N_PID > "$PID_FILE"
 

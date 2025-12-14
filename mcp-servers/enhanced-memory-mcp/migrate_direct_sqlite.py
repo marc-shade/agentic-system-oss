@@ -22,8 +22,8 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Database path from get_memory_status
-DB_PATH = "/Users/marc/.claude/enhanced_memories/memory.db"
+# Database path - uses home directory
+DB_PATH = str(Path.home() / ".claude/enhanced_memories/memory.db")
 
 
 async def main():

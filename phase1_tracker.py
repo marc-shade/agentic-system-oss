@@ -12,6 +12,8 @@ Usage:
     python3 phase1_tracker.py --export    # Export data for analysis
     python3 phase1_tracker.py --asi       # Update ASI score estimate
 """
+import os
+import platform
 
 import argparse
 import json
@@ -22,12 +24,35 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
+def _get_storage_base() -> Path:
+    """Detect storage base path based on platform."""
+    env_path = os.environ.get("AGENTIC_SYSTEM_PATH")
+    if env_path and Path(env_path).exists():
+        return Path(env_path)
+
+    system = platform.system()
+    if system == "Darwin":  # macOS
+        if Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+        elif Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+    elif system == "Linux":
+        if Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+        elif Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+    return Path(__file__).parent.parent
+
+
+_STORAGE_BASE = _get_storage_base()
+
+
 
 class Phase1Tracker:
     """Track Phase 1 progress and milestones."""
 
     def __init__(self):
-        self.root_dir = Path("/mnt/agentic-system")
+        self.root_dir = Path(str(_STORAGE_BASE))
         self.db_path = self.root_dir / "databases" / "phase1_tracking.db"
         self.config_path = self.root_dir / "agi_config.json"
 
@@ -597,7 +622,7 @@ def main():
         print(report)
 
         # Save to file
-        report_path = Path("/mnt/agentic-system/phase1_progress_report.txt")
+        report_path = Path(str(_STORAGE_BASE / "phase1_progress_report.txt"))
         with open(report_path, "w") as f:
             f.write(report)
         print(f"\n📄 Report saved to: {report_path}")

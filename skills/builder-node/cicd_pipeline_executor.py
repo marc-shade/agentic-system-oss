@@ -6,6 +6,9 @@ and deployment stages optimized for the Builder node.
 
 Builder Node Skill - Version 1.0
 """
+import os
+import platform
+from pathlib import Path
 
 def execute_cicd_pipeline(
     project_dir: str,
@@ -193,6 +196,29 @@ def _stage_security_scan(project_dir: str, config: dict) -> dict:
     import subprocess
     from pathlib import Path
 
+def _get_storage_base() -> Path:
+    """Detect storage base path based on platform."""
+    env_path = os.environ.get("AGENTIC_SYSTEM_PATH")
+    if env_path and Path(env_path).exists():
+        return Path(env_path)
+
+    system = platform.system()
+    if system == "Darwin":  # macOS
+        if Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+        elif Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+    elif system == "Linux":
+        if Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+        elif Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+    return Path(__file__).parent.parent
+
+
+_STORAGE_BASE = _get_storage_base()
+
+
     result = {"success": False, "vulnerabilities": {}}
 
     # Python dependency scanning
@@ -256,7 +282,7 @@ def _notify_failure(stage_name: str, stage_result: dict):
 # Example usage
 if __name__ == "__main__":
     result = execute_cicd_pipeline(
-        project_dir="/home/marc/agentic-system",
+        project_dir=str(_STORAGE_BASE),
         pipeline_config={
             "stages": [
                 {"name": "lint", "enabled": True},

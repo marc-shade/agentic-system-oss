@@ -1,9 +1,36 @@
 #!/bin/bash
 # Start Loki for Agentic System Log Aggregation
 
-LOKI_CONFIG="/mnt/agentic-system/monitoring/loki/config/loki.yml"
-LOKI_DATA="/mnt/agentic-system/monitoring/loki/data"
-LOG_FILE="/mnt/agentic-system/monitoring/loki/loki.log"
+
+# Platform-aware storage detection
+detect_storage_base() {
+    if [ -n "$AGENTIC_SYSTEM_PATH" ] && [ -d "$AGENTIC_SYSTEM_PATH" ]; then
+        echo "$AGENTIC_SYSTEM_PATH"
+        return
+    fi
+    case "$(uname -s)" in
+        Darwin)
+            if [ -d "/Volumes/SSDRAID0/agentic-system" ]; then
+                echo "/Volumes/SSDRAID0/agentic-system"
+            elif [ -d "/Volumes/FILES/agentic-system" ]; then
+                echo "/Volumes/FILES/agentic-system"
+            fi
+            ;;
+        Linux)
+            if [ -d "/home/marc/agentic-system" ]; then
+                echo "/home/marc/agentic-system"
+            elif [ -d "/mnt/agentic-system" ]; then
+                echo "/mnt/agentic-system"
+            fi
+            ;;
+    esac
+}
+
+STORAGE_BASE=$(detect_storage_base)
+
+LOKI_CONFIG="$STORAGE_BASE/monitoring/loki/config/loki.yml"
+LOKI_DATA="$STORAGE_BASE/monitoring/loki/data"
+LOG_FILE="$STORAGE_BASE/monitoring/loki/loki.log"
 
 # Ensure data directories exist
 mkdir -p "$LOKI_DATA"/{chunks,boltdb-shipper-active,boltdb-shipper-cache,boltdb-shipper-compactor,rules}

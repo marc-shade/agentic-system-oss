@@ -1,15 +1,86 @@
 global:
-  scrape_interval: 5s
-  evaluation_interval: 5s
+  scrape_interval: 15s
+  evaluation_interval: 15s
 
 scrape_configs:
+  # =============================================================
+  # CLUSTER NODES
+  # =============================================================
+
+  # macpro51 Builder Node (Linux - Fedora 43)
+  - job_name: 'macpro51-builder'
+    static_configs:
+      - targets: ['192.168.1.183:9000']
+        labels:
+          node: 'macpro51'
+          role: 'builder'
+          platform: 'linux'
+    metrics_path: '/api/v1/metrics'
+    scrape_interval: 10s
+    scrape_timeout: 5s
+
+  # completeu-server AI Inference Node
+  - job_name: 'completeu-ollama'
+    static_configs:
+      - targets: ['192.168.1.186:11434']
+        labels:
+          node: 'completeu-server'
+          role: 'inference'
+          platform: 'macos'
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+    scrape_timeout: 10s
+
+  # mac-studio Orchestrator (local)
+  - job_name: 'mac-studio-services'
+    static_configs:
+      - targets: ['localhost:8101']
+        labels:
+          node: 'mac-studio'
+          role: 'orchestrator'
+          service: 'enhanced-memory-mcp'
+      - targets: ['localhost:8102']
+        labels:
+          node: 'mac-studio'
+          role: 'orchestrator'
+          service: 'agent-runtime-mcp'
+    scrape_interval: 30s
+    scrape_timeout: 10s
+
+  # =============================================================
+  # INFRASTRUCTURE
+  # =============================================================
+
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9700']
+        labels:
+          service: 'prometheus'
+
+  # Loki log aggregation
+  - job_name: 'loki'
+    static_configs:
+      - targets: ['localhost:9900']
+        labels:
+          service: 'loki'
+
+  # Grafana dashboard
+  - job_name: 'grafana'
+    static_configs:
+      - targets: ['localhost:9500']
+        labels:
+          service: 'grafana'
+    metrics_path: '/metrics'
+
+  # =============================================================
+  # LEGACY (Claude Code metrics - if available)
+  # =============================================================
   - job_name: 'claude-code'
     static_configs:
       - targets: ['host.containers.internal:9464']
         labels:
           instance: 'macpro51'
           service: 'claude-code'
-
-    # Scrape more frequently for real-time statusline updates
     scrape_interval: 3s
     scrape_timeout: 2s

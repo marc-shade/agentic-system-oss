@@ -15,6 +15,8 @@ Success Criteria:
 Usage:
     python3 phase1_monitor.py
 """
+import os
+import platform
 
 import json
 import sqlite3
@@ -24,14 +26,37 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, List, Tuple
 
+def _get_storage_base() -> Path:
+    """Detect storage base path based on platform."""
+    env_path = os.environ.get("AGENTIC_SYSTEM_PATH")
+    if env_path and Path(env_path).exists():
+        return Path(env_path)
+
+    system = platform.system()
+    if system == "Darwin":  # macOS
+        if Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+        elif Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+    elif system == "Linux":
+        if Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+        elif Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+    return Path(__file__).parent.parent
+
+
+_STORAGE_BASE = _get_storage_base()
+
+
 
 class Phase1Monitor:
     """Monitor practice period and determine production readiness."""
 
     def __init__(self):
-        self.config_path = Path("/mnt/agentic-system/agi_config.json")
-        self.git_dir = Path("/mnt/agentic-system")
-        self.target_file = Path("/mnt/agentic-system/intelligent-agents/sample_module.py")
+        self.config_path = Path(str(_STORAGE_BASE / "agi_config.json"))
+        self.git_dir = Path(str(_STORAGE_BASE))
+        self.target_file = Path(str(_STORAGE_BASE / "intelligent-agents/sample_module.py"))
 
         # Load config
         with open(self.config_path) as f:
@@ -255,7 +280,7 @@ class Phase1Monitor:
 
     def save_report(self, report: str):
         """Save report to file."""
-        report_path = Path("/mnt/agentic-system/phase1_monitoring_report.txt")
+        report_path = Path(str(_STORAGE_BASE / "phase1_monitoring_report.txt"))
         with open(report_path, "w") as f:
             f.write(report)
             f.write(f"\n\nGenerated: {datetime.now().isoformat()}\n")

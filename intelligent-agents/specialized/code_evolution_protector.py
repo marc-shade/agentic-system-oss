@@ -10,6 +10,7 @@ Example: When migrating from dumb scripts to AI agents, traditional
 protection would see "new AI SDK imports" and revert them as "unexpected changes".
 This agent understands that's EVOLUTION, not a bug.
 """
+import platform
 
 import os
 import sys
@@ -202,11 +203,34 @@ class CodeEvolutionProtector(CLIAgent):
         try:
             # Use git to detect changes (last commit)
             import subprocess
+
+def _get_storage_base() -> Path:
+    """Detect storage base path based on platform."""
+    env_path = os.environ.get("AGENTIC_SYSTEM_PATH")
+    if env_path and Path(env_path).exists():
+        return Path(env_path)
+
+    system = platform.system()
+    if system == "Darwin":  # macOS
+        if Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+        elif Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+    elif system == "Linux":
+        if Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+        elif Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+    return Path(__file__).parent.parent
+
+
+_STORAGE_BASE = _get_storage_base()
+
             result = subprocess.run(
                 ['git', 'diff', '--name-status', 'HEAD~1', 'HEAD'],
                 capture_output=True,
                 text=True,
-                cwd="/mnt/agentic-system"
+                cwd=str(_STORAGE_BASE)
             )
 
             if result.returncode == 0:
@@ -407,7 +431,7 @@ def main():
     # NOTE: Codex CLI manages its own API keys, no OPENAI_API_KEY needed here
 
     # Evolution configuration
-    evolution_config = "/mnt/agentic-system/config/evolution_phases.json"
+    evolution_config = str(_STORAGE_BASE / "config/evolution_phases.json")
 
     # Create and start the protection agent
     protector = CodeEvolutionProtector(evolution_config)

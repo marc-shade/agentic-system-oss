@@ -16,6 +16,7 @@ Gates:
 Each gate can pass, warn, or fail. Critical failures (syntax, high-severity security)
 block deployment immediately. Other failures accumulate and influence overall decision.
 """
+import platform
 
 import ast
 import asyncio
@@ -101,11 +102,7 @@ class QualityGateSystem:
 
     def __init__(
         self,
-<<<<<<< HEAD
-        base_path: str = "/Volumes/SSDRAID0/agentic-system",
-=======
-        base_path: str = "/mnt/agentic-system",
->>>>>>> origin/main
+        base_path: str = str(_STORAGE_BASE),
         strict_mode: bool = True
     ):
         """
@@ -153,6 +150,29 @@ class QualityGateSystem:
 
         # Calculate code hash for tracking
         import hashlib
+
+def _get_storage_base() -> Path:
+    """Detect storage base path based on platform."""
+    env_path = os.environ.get("AGENTIC_SYSTEM_PATH")
+    if env_path and Path(env_path).exists():
+        return Path(env_path)
+
+    system = platform.system()
+    if system == "Darwin":  # macOS
+        if Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+        elif Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+    elif system == "Linux":
+        if Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+        elif Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+    return Path(__file__).parent.parent
+
+
+_STORAGE_BASE = _get_storage_base()
+
         code_hash = hashlib.md5(code.encode()).hexdigest()[:8]
 
         # Gate 1: Syntax Check (CRITICAL)

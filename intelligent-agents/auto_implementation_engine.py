@@ -29,6 +29,8 @@ from enum import Enum
 from pathlib import Path
 from typing import Dict, List, Optional, Any
 
+from storage_path_utils import STORAGE_BASE
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -101,13 +103,9 @@ class AutoImplementationEngine:
     5. Deploys or rolls back based on results
     """
 
-<<<<<<< HEAD
-    def __init__(self, base_path: str = "/Volumes/SSDRAID0/agentic-system"):
-=======
-    def __init__(self, base_path: str = "/mnt/agentic-system"):
->>>>>>> origin/main
+    def __init__(self, base_path: str = None):
         """Initialize auto-implementation engine."""
-        self.base_path = Path(base_path)
+        self.base_path = Path(base_path) if base_path else STORAGE_BASE
         self.implementations_dir = self.base_path / "implementations"
         self.implementations_dir.mkdir(exist_ok=True)
 

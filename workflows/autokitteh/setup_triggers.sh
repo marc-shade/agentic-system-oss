@@ -223,9 +223,5 @@ echo "Check sessions with:"
 echo "  $AK session list --project $PROJECT"
 echo ""
 echo "View logs:"
-<<<<<<< HEAD
-echo "  tail -f /Volumes/SSDRAID0/agentic-system/logs/autokitteh.log"
-=======
 echo "  tail -f /mnt/agentic-system/logs/autokitteh.log"
->>>>>>> origin/main
 echo ""

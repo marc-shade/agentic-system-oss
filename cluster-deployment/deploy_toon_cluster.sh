@@ -22,6 +22,33 @@
 set -e  # Exit on error
 
 # Color output
+
+# Platform-aware storage detection
+detect_storage_base() {
+    if [ -n "$AGENTIC_SYSTEM_PATH" ] && [ -d "$AGENTIC_SYSTEM_PATH" ]; then
+        echo "$AGENTIC_SYSTEM_PATH"
+        return
+    fi
+    case "$(uname -s)" in
+        Darwin)
+            if [ -d "/Volumes/SSDRAID0/agentic-system" ]; then
+                echo "/Volumes/SSDRAID0/agentic-system"
+            elif [ -d "/Volumes/FILES/agentic-system" ]; then
+                echo "/Volumes/FILES/agentic-system"
+            fi
+            ;;
+        Linux)
+            if [ -d "/home/marc/agentic-system" ]; then
+                echo "/home/marc/agentic-system"
+            elif [ -d "/mnt/agentic-system" ]; then
+                echo "/mnt/agentic-system"
+            fi
+            ;;
+    esac
+}
+
+STORAGE_BASE=$(detect_storage_base)
+
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -38,7 +65,7 @@ declare -A NODES=(
 
 # Deployment paths
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-TOON_CLI_PATH="/Volumes/SSDRAID0/agentic-system/mcp-servers/SHARED/node_modules/.bin/toon"
+TOON_CLI_PATH="$STORAGE_BASE/mcp-servers/SHARED/node_modules/.bin/toon"
 DEPLOYMENT_LOG="$SCRIPT_DIR/toon_deployment_$(date +%Y%m%d_%H%M%S).log"
 
 # Initialize log

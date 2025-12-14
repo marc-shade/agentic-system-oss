@@ -4,8 +4,10 @@ service:
   grpc_port: 6334
 
 storage:
-  # Hot tier storage on SSDRAID0 for maximum performance
-  storage_path: /mnt/agentic-system/databases/qdrant
+  # Storage path - OVERRIDDEN at runtime by start-qdrant.sh --storage argument
+  # This default is only used if qdrant is started directly without the script
+  # Platform paths: macOS=/Volumes/SSDRAID0, Linux=/home/marc/agentic-system
+  storage_path: databases/qdrant
 
   # Performance optimizations for SSD
   performance:

@@ -187,7 +187,7 @@ python3 submit_cluster_task.py \
 ### Start Daemon
 ```bash
 cd /Volumes/SSDRAID0/agentic-system/cluster-deployment
-export GITHUB_PERSONAL_ACCESS_TOKEN="***REMOVED***"
+export GITHUB_PERSONAL_ACCESS_TOKEN="$GITHUB_PAT"  # Set in environment, NEVER commit tokens
 ./start_daemon.sh
 ```
 

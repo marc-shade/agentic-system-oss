@@ -6,6 +6,9 @@ with intelligent load balancing and result aggregation.
 
 Builder Node Skill - Version 1.0
 """
+import os
+import platform
+from pathlib import Path
 
 def parallel_test_execution(
     project_dir: str,
@@ -181,6 +184,29 @@ def run_test_matrix(
     import concurrent.futures
     import subprocess
 
+def _get_storage_base() -> Path:
+    """Detect storage base path based on platform."""
+    env_path = os.environ.get("AGENTIC_SYSTEM_PATH")
+    if env_path and Path(env_path).exists():
+        return Path(env_path)
+
+    system = platform.system()
+    if system == "Darwin":  # macOS
+        if Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+        elif Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+    elif system == "Linux":
+        if Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+        elif Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+    return Path(__file__).parent.parent
+
+
+_STORAGE_BASE = _get_storage_base()
+
+
     results = {}
 
     def test_version(version):
@@ -221,7 +247,7 @@ def run_test_matrix(
 if __name__ == "__main__":
     # Run pytest with coverage and benchmarks
     result = parallel_test_execution(
-        project_dir="/home/marc/agentic-system",
+        project_dir=str(_STORAGE_BASE),
         test_framework="pytest",
         max_workers=24,
         coverage=True,

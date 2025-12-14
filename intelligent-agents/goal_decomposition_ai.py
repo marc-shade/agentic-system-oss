@@ -24,6 +24,8 @@ Integration:
 import asyncio
 import json
 import logging
+import os
+import platform
 import re
 import sqlite3
 from dataclasses import dataclass, asdict
@@ -40,8 +42,35 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+
+def _get_storage_base() -> Path:
+    """Detect storage base path based on platform."""
+    env_path = os.environ.get("AGENTIC_SYSTEM_PATH")
+    if env_path and Path(env_path).exists():
+        return Path(env_path)
+
+    system = platform.system()
+    if system == "Darwin":  # macOS
+        macos_primary = Path("/Volumes/SSDRAID0/agentic-system")
+        macos_fallback = Path("/Volumes/FILES/agentic-system")
+        if macos_primary.exists():
+            return macos_primary
+        elif macos_fallback.exists():
+            return macos_fallback
+    elif system == "Linux":
+        linux_primary = Path("/home/marc/agentic-system")
+        linux_fallback = Path("/mnt/agentic-system")
+        if linux_primary.exists():
+            return linux_primary
+        elif linux_fallback.exists():
+            return linux_fallback
+    return Path(__file__).parent.parent
+
+
+_STORAGE_BASE = _get_storage_base()
+
 # Database path
-DB_PATH = Path("/mnt/agentic-system/databases/goal_decomposition.db")
+DB_PATH = _STORAGE_BASE / "databases/goal_decomposition.db"
 
 
 class TaskType(Enum):

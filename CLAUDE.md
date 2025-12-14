@@ -4,32 +4,34 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a **24/7 autonomous agentic system** running on Mac hardware with distributed multi-node architecture. The system provides persistent AI capabilities through Temporal workflows, MCP (Model Context Protocol) servers, intelligent agents, and physical hardware integration via Arduino.
+A **24/7 autonomous agentic system** running on distributed Mac/Linux hardware. Provides persistent AI through Temporal workflows, MCP servers, intelligent agents, and physical hardware integration via Arduino.
 
-**Core Purpose**: Enable autonomous, self-improving AI agents with persistent memory, distributed computing, physical world interaction, and continuous optimization.
-
-## Quick Health Check
-
-**Verify system is operational**:
+## TL;DR - Essential Commands
 
 ```bash
-# Detect storage path and set $STORAGE_BASE
-source scripts/detect-storage.sh && echo "Storage: $STORAGE_BASE"
+# Storage path (ALWAYS source first)
+source scripts/detect-storage.sh && cd $STORAGE_BASE
 
-# Check node type
-cat ~/.claude/node-config.json 2>/dev/null || echo "Run /init-node to configure"
+# Health check
+python3 system_health_check.py
 
-# Check core services (Linux)
-systemctl --user status builder-node-api.service 2>/dev/null
+# Run AGI demo (~0.5s)
+python3 demo_agi_workflow.py
 
-# Check containers
-docker ps 2>/dev/null || podman ps | grep -E 'redis|qdrant|n8n'
+# Cluster status
+python3 cluster-deployment/distributed_task_router.py cluster-status
 
-# Test MCP connectivity
-python3 -c "import sys; sys.path.insert(0, 'mcp-servers/enhanced-memory-mcp'); from memory_manager import MemoryManager; print('✓ MCP working')" 2>/dev/null || echo "MCP needs setup"
+# Distributed execution (Python API)
+from cluster_offload import offload
+result = offload("make build")  # Auto-routes to optimal node
 
-# Check cluster memory
-sqlite3 databases/cluster/shared_memories.db "SELECT COUNT(*) FROM entities;" 2>/dev/null || echo "Cluster DB not initialized"
+# Distributed execution (MCP - preferred)
+mcp__cluster-execution-mcp__cluster_bash(command="make build")
+mcp__cluster-execution-mcp__offload_to(node_id="macpro51", command="docker build .")
+
+# AGI orchestrator (Python)
+from agi_orchestrator import AGIOrchestrator
+result = await AGIOrchestrator().execute_goal("Build a REST API")
 ```
 
 ## System Architecture
@@ -119,12 +121,39 @@ Each node has:
 - `voice-mode`: TTS/STT integration for voice communication
 - `arduino-surface` (port 8200): Physical hardware control interface
 - `ember-mcp`: Production-only policy enforcement and quality guardian
+- `cluster-execution-mcp`: Distributed task routing and parallel execution across cluster
+- `node-chat-mcp`: Inter-node agent communication and AGI coordination
+- `safla-mcp`: Hybrid memory with 1.75M+ ops/sec embeddings
+
+**MCP Servers** (Research & Knowledge):
+- `research-paper-mcp`: arXiv/Semantic Scholar paper search and analysis
+- `video-transcript-mcp`: YouTube transcript extraction and concept mining
 
 **Intelligent Agents** (replaces polling scripts):
 - Multi-provider support: Claude Code, OpenAI Codex, Gemini CLI
 - Autonomous reasoning and decision-making
 - Adaptive check intervals based on system state
 - Evolution-aware protection systems
+- Claude Code Skills for automatic AI routing (`codex-consultant`, `gemini-analyst`, `ai-orchestrator`)
+- Headless CLI execution: `await agent.run_headless_codex("task")` or `run_headless_gemini("task", image_path="...")`
+
+**AGI Orchestrator** (6-phase unified workflow):
+- Goal Decomposition → Context Synthesis → Multi-Agent Coordination → Meta-Learning → Skill Evolution → Darwin Gödel
+- Entry point: `from agi_orchestrator import AGIOrchestrator; await orchestrator.execute_goal("...")`
+- Demo: `python3 demo_agi_workflow.py` (~0.5s for full workflow)
+
+**Distributed Task Execution** (7/7 tests passing):
+- Automatic routing based on OS, architecture, capabilities
+- Aggressive offloading (100% offload rate)
+- Parallel execution across cluster
+- Simple API: `from cluster_offload import offload; result = offload("command")`
+- MCP API: `mcp__cluster-execution-mcp__cluster_bash(command="...")`
+
+**Inter-Node Communication** (via node-chat-mcp):
+- Agent-to-agent messaging across cluster nodes
+- Persona-aware conversations with context preservation
+- AGI coordination tools: goal decomposition, research pipelines, improvement cycles
+- Cluster awareness and relationship tracking
 
 **Monitoring Stack**:
 - **Prometheus** (port 9700): Metrics collection (30-day retention)
@@ -141,6 +170,30 @@ Each node has:
 - **Hardware Broadcast**: System metrics on port 8888
 - **Service Discovery**: Avahi/mDNS announcing `_agentic-builder._tcp`
 - **Port Management**: Automated port tracking and firewall configuration
+
+### Port Reference (All Services)
+
+| Service | Port | Protocol | Nodes |
+|---------|------|----------|-------|
+| Temporal gRPC | 7233 | gRPC | macOS |
+| Temporal UI | 8233 | HTTP | macOS |
+| AutoKitteh | 9980 | HTTP | All |
+| n8n | 5678 | HTTP | All |
+| Prometheus | 9700 | HTTP | All |
+| Loki | 9900, 9901 | HTTP/gRPC | All |
+| Grafana | 9500 | HTTP | All |
+| Qdrant REST | 6333 | HTTP | All |
+| Qdrant gRPC | 6334 | gRPC | All |
+| Redis | 6379 | TCP | All |
+| enhanced-memory-mcp | 8101 | HTTP | All |
+| agent-runtime-mcp | 8102 | HTTP | All |
+| arduino-surface | 8200 | HTTP | macOS |
+| cluster-execution-mcp | - | stdio | All |
+| node-chat-mcp | - | stdio | All |
+| safla-mcp | - | stdio | All |
+| Builder API | 9000 | HTTP | Linux |
+| Hardware Info | 8888 | HTTP | Linux |
+| Ollama | 11434 | HTTP | Linux |
 
 ## Development Workflows
 
@@ -236,43 +289,15 @@ systemctl --user start builder-node-api.service
 
 ### Container Management
 
-**Platform-specific runtime**:
-
 ```bash
-# Linux (Podman preferred)
-podman ps                    # List running containers
-podman logs -f redis         # View container logs
-podman restart qdrant        # Restart a container
-podman stop n8n              # Stop a container
+# Use podman (Linux) or docker (macOS) - commands are identical
+RUNTIME="podman"  # or "docker"
 
-# macOS (Docker or Apple Container)
-docker ps                    # List running containers
-container list               # Apple Container on macOS 26+
-docker logs -f redis         # View logs
-docker restart qdrant        # Restart container
-```
-
-**Common container operations**:
-
-```bash
-# Check all running containers
-podman ps  # or: docker ps
-
-# View real-time logs
-podman logs -f redis
-podman logs -f qdrant
-podman logs -f n8n
-
-# Restart containers
-podman restart redis
-podman restart qdrant
-
-# Check container resource usage
-podman stats
-
-# Remove and recreate container
-podman stop redis && podman rm redis
-# Then run start script to recreate
+$RUNTIME ps                      # List containers
+$RUNTIME logs -f redis           # View real-time logs
+$RUNTIME restart qdrant          # Restart container
+$RUNTIME stats                   # Resource usage
+$RUNTIME stop redis && $RUNTIME rm redis  # Remove container
 ```
 
 ### MCP Server Management
@@ -287,96 +312,66 @@ MCP servers are configured in:
 
 ### Running Tests
 
-**Test MCP servers**:
-
 ```bash
-# Enhanced Memory MCP
-cd $STORAGE_BASE/mcp-servers/enhanced-memory-mcp
-python3 comprehensive_test.py
-python3 test_rag_integration.py
+# Run a single test file
+python3 path/to/test_file.py
 
-# Agent Runtime MCP
-cd $STORAGE_BASE/mcp-servers/agent-runtime-mcp
-python3 test_agent_runtime.py
+# AGI system demo (~0.5s, full 6-phase workflow)
+python3 demo_agi_workflow.py
+
+# System health check
+python3 system_health_check.py
+
+# MCP servers
+cd $STORAGE_BASE/mcp-servers/enhanced-memory-mcp && python3 comprehensive_test.py
+cd $STORAGE_BASE/mcp-servers/agent-runtime-mcp && python3 test_agent_runtime.py
+
+# Cluster/distributed execution (7/7 tests)
+cd $STORAGE_BASE/cluster-deployment && python3 test_distributed_execution.py
+cd $STORAGE_BASE/cluster-deployment && python3 test_cluster_memory.py
+
+# Intelligent agents
+cd $STORAGE_BASE/intelligent-agents && python3 specialized/code_evolution_protector.py
+cd $STORAGE_BASE/intelligent-agents && python3 cluster_health_monitor.py
+cd $STORAGE_BASE/intelligent-agents && python3 agent_eval_framework.py
+
+# Arduino hardware (macOS only)
+cd $STORAGE_BASE/arduino-surface && python3 test_hardware.py /dev/tty.usbmodem*
+
+# Linux benchmarks
+cd $STORAGE_BASE/scripts && ./run-baseline-benchmarks.sh
+
+# Check RAG status
+python3 check_rag_status.py
+
+# Check learning progress
+python3 check_learning_progress.py
 ```
 
-**Test intelligent agents**:
+### Additional Entry Points
 
 ```bash
-cd $STORAGE_BASE/intelligent-agents
+# Autonomous recursive AGI loop (long-running)
+python3 autonomous_recursive_agi_loop.py
 
-# Test System Health Guardian (macOS only - requires Arduino)
-python3 specialized/system_health_guardian.py /dev/tty.usbmodem8344401
+# Cognitive runtime integration
+python3 cognitive_runtime_integration.py
 
-# Test Code Evolution Protector
-python3 specialized/code_evolution_protector.py
-```
+# Cluster health dashboard
+python3 cluster_health_dashboard.py
 
-**Test cluster deployment**:
-
-```bash
-cd $STORAGE_BASE/cluster-deployment
-python3 test_cluster_memory.py
-```
-
-**Test AGI system**:
-
-```bash
-cd $STORAGE_BASE
-python3 demo_agi_workflow.py          # Demo 6-phase AGI workflow
-python3 system_health_check.py        # Check system health
-```
-
-**Run benchmarks** (Linux nodes):
-
-```bash
-cd $STORAGE_BASE/scripts
-./run-baseline-benchmarks.sh
-```
-
-**Test Arduino hardware** (macOS nodes only):
-
-```bash
-cd $STORAGE_BASE/arduino-surface
-python3 test_hardware.py /dev/tty.usbmodem8344401
+# System status dashboard
+python3 system_status_dashboard.py
 ```
 
 ### Port Management (Linux Builder Node)
 
-**Quick port commands**:
-
 ```bash
 cd $STORAGE_BASE/scripts
-
-# List all listening ports
-python3 port-manager.py
-
-# Show only agentic services
-python3 port-manager.py --agentic
-
-# Check required ports are available
-python3 port-manager.py --check
-
-# Get firewall suggestions
-python3 port-manager.py --suggest
-
-# Export port map for orchestrator
-python3 port-manager.py export
-```
-
-**Manual port checks**:
-
-```bash
-# Check specific port
-sudo lsof -i :9000
-ss -tuln | grep 9000
-
-# Kill process on port
-sudo kill $(sudo lsof -t -i:9000)
-
-# Check firewall rules
-sudo firewall-cmd --list-all
-sudo firewall-cmd --list-ports
+python3 port-manager.py              # List all ports
+python3 port-manager.py --agentic    # Agentic services only
+python3 port-manager.py --check      # Verify required ports
+python3 port-manager.py --suggest    # Firewall suggestions
 ```
 
 ### Web Worker Orchestrator
@@ -446,6 +441,32 @@ temporal workflow start --type YourWorkflow --task-queue your-queue
 3. Implement `gather_observations()` and `execute_decision()`
 4. Test standalone before integrating with workflows
 
+```python
+from sdk_agents.claude_agent import ClaudeAgent, AgentPurpose
+
+purpose = AgentPurpose(
+    name="My Agent",
+    description="What it does",
+    primary_goal="Main objective",
+    decision_criteria=["When to act", "What to prioritize"],
+    tools_needed=["tool1", "tool2"]
+)
+
+class MyAgent(ClaudeAgent):
+    async def gather_observations(self) -> Dict[str, Any]:
+        return {"metric": get_metric()}  # AI decides what to do
+
+    async def execute_decision(self, decision) -> Dict[str, Any]:
+        if decision.tool_used == "alert":
+            send_alert(decision.decision)
+        return {"status": "executed"}
+
+agent = MyAgent(purpose)
+await agent.start(check_interval=60)  # Adapts based on observations
+```
+
+**Key difference from scripts**: Agents THINK (AI reasoning), scripts just RUN (fixed logic)
+
 ### Working with Cluster Memory
 
 ```python
@@ -489,9 +510,7 @@ The system includes a complete AGI orchestrator with 6-phase workflow execution:
 
 ```python
 from agi_orchestrator import AGIOrchestrator
-import asyncio
 
-# Initialize orchestrator
 orchestrator = AGIOrchestrator()
 
 # Execute a goal with full AGI workflow
@@ -507,10 +526,127 @@ summary = orchestrator.meta_learning.get_learning_summary()
 print(f"Success rate: {summary['overall_success_rate']:.1%}")
 ```
 
-**Quick test**:
+**6-Phase Workflow**:
+1. **Goal Decomposition** - Parse natural language into hierarchical tasks
+2. **Context Synthesis** - Gather relevant information from memory/codebase
+3. **Multi-Agent Coordination** - Execute tasks in parallel with specialized agents
+4. **Meta-Learning** - Record outcomes for continuous improvement
+5. **Skill Evolution** - Track successful patterns, run A/B tests
+6. **Darwin Gödel** - Self-improvement proposals based on performance
+
+**Quick usage**: `python3 demo_agi_workflow.py` runs the full workflow in ~0.5s
+
+### Distributed Task Execution
+
+```python
+from cluster_offload import offload, offload_many
+
+# Simple offload - automatic routing
+result = offload("echo 'Hello' && hostname")
+
+# Linux-specific task
+result = offload("make build", requires_os="linux")
+
+# Parallel execution across cluster
+results = offload_many([
+    "python3 test_1.py",
+    "python3 test_2.py",
+    "python3 test_3.py"
+])
+```
+
+**CLI**:
 ```bash
-cd $STORAGE_BASE
-python3 demo_agi_workflow.py  # Demo complete workflow in ~0.5 seconds
+cd $STORAGE_BASE/cluster-deployment
+python3 distributed_task_router.py submit "hostname"
+python3 distributed_task_router.py cluster-status
+```
+
+### Inter-Node Communication (node-chat-mcp)
+
+```python
+# Send message to another node's AI persona
+mcp__node-chat-mcp__send_message_to_node(to_node="builder", message="Start compilation")
+
+# Check for incoming messages
+mcp__node-chat-mcp__check_for_new_messages()
+
+# Get cluster awareness (all nodes, their capabilities, status)
+mcp__node-chat-mcp__get_cluster_awareness()
+
+# Prepare context before conversation (loads persona, history, relationship)
+mcp__node-chat-mcp__prepare_conversation_context(with_node="orchestrator")
+
+# AGI coordination tools
+mcp__node-chat-mcp__decompose_goal(goal="Optimize memory consolidation 10x")
+mcp__node-chat-mcp__initiate_research_pipeline(research_topic="efficient graph neural networks")
+mcp__node-chat-mcp__start_improvement_cycle(target_metric="task_routing_latency")
+```
+
+### Ember Policy Enforcement (ember-mcp)
+
+Ember is the production-only policy enforcer. Consult before risky operations:
+
+```python
+# Check if action violates production-only policy
+mcp__ember-mcp__ember_check_violation(
+    action="Write",
+    params={"file_path": "/path/to/file", "content": "..."},
+    context="implementing user authentication"
+)
+
+# Get quality feedback on recent work
+mcp__ember-mcp__ember_get_feedback(timeframe="session")
+
+# Consult Ember for decision guidance
+mcp__ember-mcp__ember_consult(
+    question="Should we use JWT or session-based auth?",
+    options=["JWT tokens", "Session cookies", "OAuth2"],
+    context="Building user authentication system"
+)
+
+# Report outcomes for Ember's learning
+mcp__ember-mcp__ember_learn_from_outcome(
+    action="implemented_jwt_auth",
+    success=True,
+    outcome="Authentication working, all tests passing"
+)
+```
+
+### SAFLA Hybrid Memory (safla-mcp)
+
+High-performance embeddings and hybrid memory:
+
+```python
+# Generate embeddings (1.75M+ ops/sec)
+mcp__safla-mcp__generate_embeddings(texts=["concept 1", "concept 2", "concept 3"])
+
+# Store in hybrid memory (episodic, semantic, or procedural)
+mcp__safla-mcp__store_memory(content="Learned optimization pattern", memory_type="semantic")
+
+# Retrieve from memory
+mcp__safla-mcp__retrieve_memories(query="optimization patterns", limit=5)
+
+# Get SAFLA performance metrics
+mcp__safla-mcp__get_performance()
+```
+
+### Research and Knowledge Tools
+
+```python
+# Search academic papers (arXiv, Semantic Scholar)
+mcp__research-paper-mcp__search_arxiv(query="recursive self-improvement AGI", max_results=10)
+mcp__research-paper-mcp__search_semantic_scholar(query="meta-learning", limit=10)
+
+# Analyze citations
+mcp__research-paper-mcp__analyze_citations(paper_id="arxiv:2301.xxxxx", depth=2)
+
+# Extract insights from papers
+mcp__research-paper-mcp__extract_insights(paper_text="...", focus_areas=["methodology", "results"])
+
+# YouTube transcript extraction
+mcp__video-transcript-mcp__fetch_youtube_transcript(url="https://youtube.com/watch?v=...")
+mcp__video-transcript-mcp__extract_concepts(transcript="...", focus_domains=["AI", "AGI"])
 ```
 
 ## Directory Structure
@@ -603,111 +739,21 @@ agentic-system/
 - Databases: ~500MB-2GB active working set
 - Backups: ~5-10GB (cold tier)
 
-**Service Ports**:
-- Temporal: 7233 (gRPC), 8233 (UI) - macOS only
-- AutoKitteh: 9980
-- n8n: 5678
-- Prometheus: 9700
-- Loki: 9900, 9901 (gRPC)
-- Grafana: 9500
-- Qdrant: 6333 (REST), 6334 (gRPC)
-- Redis: 6379
-- MCP servers: 8101, 8102, 8200, 8300
-- Builder API: 9000 - Linux only
-- Hardware Info: 8888 - Linux only
-- Ollama: 11434 - Linux only
+**Note**: See "Port Reference (All Services)" table in System Architecture section for complete port list.
 
 ## Troubleshooting
 
-**Temporal won't start**:
-```bash
-# Check if database is locked
-lsof $STORAGE_BASE/databases/temporal/temporal.db
-# Kill processes if needed, then restart
-```
-
-**MCP server not loading**:
-```bash
-# Verify config
-cat ~/.claude.json | jq '.mcpServers'
-# Check server can run standalone
-python3 $STORAGE_BASE/mcp-servers/{server}/server.py
-```
-
-**Arduino not detected**:
-```bash
-# Find current port
-ls /dev/tty.usbmodem*
-# Update port in configuration
-```
-
-**Monitoring stack issues**:
-```bash
-# Check all services
-ps aux | grep -E 'prometheus|loki|grafana' | grep -v grep
-# View logs
-tail -f $STORAGE_BASE/monitoring/{service}/logs/*.log
-```
-
-**Cluster memory sync issues**:
-```bash
-# Verify node configuration
-cat ~/.claude/node-config.json
-# Check shared database access
-sqlite3 $STORAGE_BASE/databases/cluster/shared_memories.db "SELECT COUNT(*) FROM entities;"
-# Test cluster connectivity
-cd $STORAGE_BASE/cluster-deployment
-python3 test_cluster_memory.py
-```
-
-**Port conflicts** (Linux nodes):
-```bash
-# Check what's using a port
-python3 scripts/port-manager.py
-sudo lsof -i :PORT_NUMBER
-# Kill process on port
-sudo kill $(sudo lsof -t -i:PORT_NUMBER)
-```
-
-**RAID status** (Linux nodes):
-```bash
-# Check RAID health
-cat /proc/mdstat
-mdadm --detail /dev/md0
-# Monitor rebuilds
-watch -n 1 cat /proc/mdstat
-```
-
-**Builder API not responding** (Linux nodes):
-```bash
-# Check service status
-systemctl --user status builder-node-api.service
-# View logs
-journalctl --user -u builder-node-api.service -f
-# Test API directly
-curl http://localhost:9000/api/v1/health
-```
-
-**Storage path issues**:
-```bash
-# Detect correct storage path
-source scripts/detect-storage.sh
-echo "Using: $STORAGE_BASE"
-
-# Verify path exists and is writable
-test -d "$STORAGE_BASE" && test -w "$STORAGE_BASE" && echo "✓ Storage OK" || echo "✗ Storage issue"
-```
-
-## Integration Points
-
-**Voice Mode** (macOS): Use for all user communication - supports TTS/STT, emotions, multilingual
-**Arduino Surface** (macOS): Human-in-the-loop approvals, ambient monitoring, physical feedback
-**Builder API** (Linux): HTTP endpoints for orchestrator control and status monitoring
-**Enhanced Memory**: Store learnings, patterns, project outcomes with compression
-**Agent Runtime**: Persistent tasks that survive across sessions
-**Sequential Thinking**: Deep reasoning for complex problems
-**Ember**: Quality guardian - enforces production-only standards
-**AGI Orchestrator**: Execute multi-phase AGI workflows with meta-learning
+| Issue | Quick Fix |
+|-------|-----------|
+| Temporal won't start | `lsof $STORAGE_BASE/databases/temporal/temporal.db` → kill locked processes |
+| MCP server not loading | `cat ~/.claude.json \| jq '.mcpServers'` → verify config, test standalone |
+| Arduino not detected | `ls /dev/tty.usbmodem*` → update port in config |
+| Monitoring issues | `ps aux \| grep -E 'prometheus\|loki\|grafana'` → check services running |
+| Cluster memory sync | `python3 cluster-deployment/test_cluster_memory.py` → test connectivity |
+| Port conflicts (Linux) | `python3 scripts/port-manager.py` → `sudo kill $(sudo lsof -t -i:PORT)` |
+| RAID status (Linux) | `cat /proc/mdstat` → `mdadm --detail /dev/md0` |
+| Builder API (Linux) | `systemctl --user status builder-node-api.service` → check logs with journalctl |
+| Storage paths | `source scripts/detect-storage.sh && echo $STORAGE_BASE` |
 
 ## Documentation References
 
@@ -722,12 +768,17 @@ test -d "$STORAGE_BASE" && test -w "$STORAGE_BASE" && echo "✓ Storage OK" || e
 - **Self-healing**: `intelligent-self-healing/AGENTIC_SELF_IMPROVEMENT_COMPLETE.md`
 - **Web orchestration**: `web-worker-orchestrator/README.md`
 
-## Node-Specific Quick References
+## Builder API Reference (Linux Node)
 
-**For Linux nodes (macpro51)**, see `SYSTEM-CATALOG.md` for:
-- Port management and firewall configuration
-- RAID10 status and management
-- Systemd service administration
-- Builder API endpoints and usage
-- Network discovery and mDNS setup
-- Docker/Podman container management
+**Endpoints** (Port 9000 on macpro51):
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/v1/health` | GET | Health check |
+| `/api/v1/status` | GET | Comprehensive status |
+| `/api/v1/builder` | GET | Builder info |
+| `/api/v1/capabilities` | GET | Node capabilities |
+| `/api/v1/control/execute` | POST | Execute commands |
+
+Quick test: `curl http://macpro51.local:9000/api/v1/health | jq .`
+
+**See `SYSTEM-CATALOG.md`** for complete Linux node documentation.

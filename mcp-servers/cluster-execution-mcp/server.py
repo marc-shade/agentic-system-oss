@@ -106,24 +106,46 @@ class ClusterExecutionServer:
                 continue
 
             try:
-                cmd = f"ssh -o ConnectTimeout=2 {node_info['ip']} 'python3 -c \"import psutil, os; print(psutil.cpu_percent()); print(psutil.virtual_memory().percent); print(os.getloadavg()[0])\"'"
-                result = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=5)
+                import shlex
+                # Properly quote the Python script for safe SSH transport
+                metrics_script = "import psutil, os; print(psutil.cpu_percent()); print(psutil.virtual_memory().percent); print(os.getloadavg()[0])"
+                remote_cmd = f"python3 -c {shlex.quote(metrics_script)}"
+
+                # Use list args for security instead of shell=True
+                result = subprocess.run(
+                    [
+                        "ssh",
+                        "-o", "ConnectTimeout=3",
+                        "-o", "StrictHostKeyChecking=accept-new",
+                        "-o", "BatchMode=yes",
+                        f"marc@{node_info['ip']}",
+                        remote_cmd
+                    ],
+                    capture_output=True,
+                    text=True,
+                    timeout=8
+                )
 
                 if result.returncode == 0:
                     lines = result.stdout.strip().split('\n')
-                    cpu = float(lines[0])
-                    memory = float(lines[1])
-                    load = float(lines[2])
+                    if len(lines) >= 3:
+                        cpu = float(lines[0])
+                        memory = float(lines[1])
+                        load = float(lines[2])
 
-                    status["nodes"][node_id] = {
-                        "cpu_percent": cpu,
-                        "memory_percent": memory,
-                        "load_1m": load,
-                        "status": "healthy" if cpu < 70 and memory < 80 else "overloaded",
-                        "reachable": True
-                    }
+                        status["nodes"][node_id] = {
+                            "cpu_percent": round(cpu, 1),
+                            "memory_percent": round(memory, 1),
+                            "load_1m": round(load, 2),
+                            "status": "healthy" if cpu < 70 and memory < 80 else "overloaded",
+                            "reachable": True
+                        }
+                    else:
+                        status["nodes"][node_id] = {"reachable": False, "error": "Unexpected output"}
                 else:
-                    status["nodes"][node_id] = {"reachable": False}
+                    status["nodes"][node_id] = {"reachable": False, "error": result.stderr[:100] if result.stderr else "SSH failed"}
+            except subprocess.TimeoutExpired:
+                status["nodes"][node_id] = {"reachable": False, "error": "Timeout"}
             except Exception as e:
                 status["nodes"][node_id] = {"reachable": False, "error": str(e)}
 
@@ -169,9 +191,9 @@ class ClusterExecutionServer:
             return {
                 "success": result["status"] == "completed",
                 "executed_on": result.get("assigned_to", "unknown"),
-                "stdout": result.get("result", {}).get("stdout", ""),
-                "stderr": result.get("result", {}).get("stderr", ""),
-                "return_code": result.get("result", {}).get("return_code", -1),
+                "stdout": result.get("result", "") or "",
+                "stderr": result.get("error", "") or "",
+                "return_code": 0 if result["status"] == "completed" else 1,
                 "auto_routed": True,
                 "task_id": task_id
             }
@@ -216,9 +238,9 @@ class ClusterExecutionServer:
         return {
             "success": result["status"] == "completed",
             "executed_on": result.get("assigned_to", node_id),
-            "stdout": result.get("result", {}).get("stdout", ""),
-            "stderr": result.get("result", {}).get("stderr", ""),
-            "return_code": result.get("result", {}).get("return_code", -1),
+            "stdout": result.get("result", "") or "",
+            "stderr": result.get("error", "") or "",
+            "return_code": 0 if result["status"] == "completed" else 1,
             "task_id": task_id
         }
 
@@ -243,8 +265,8 @@ class ClusterExecutionServer:
                 "command": cmd,
                 "success": result["status"] == "completed",
                 "executed_on": result.get("assigned_to", "unknown"),
-                "stdout": result.get("result", {}).get("stdout", ""),
-                "stderr": result.get("result", {}).get("stderr", ""),
+                "stdout": result.get("result", "") or "",
+                "stderr": result.get("error", "") or "",
                 "task_id": task_id
             })
 

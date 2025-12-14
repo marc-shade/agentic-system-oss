@@ -9,6 +9,33 @@
 
 set -e
 
+
+# Platform-aware storage detection
+detect_storage_base() {
+    if [ -n "$AGENTIC_SYSTEM_PATH" ] && [ -d "$AGENTIC_SYSTEM_PATH" ]; then
+        echo "$AGENTIC_SYSTEM_PATH"
+        return
+    fi
+    case "$(uname -s)" in
+        Darwin)
+            if [ -d "/Volumes/SSDRAID0/agentic-system" ]; then
+                echo "/Volumes/SSDRAID0/agentic-system"
+            elif [ -d "/Volumes/FILES/agentic-system" ]; then
+                echo "/Volumes/FILES/agentic-system"
+            fi
+            ;;
+        Linux)
+            if [ -d "/home/marc/agentic-system" ]; then
+                echo "/home/marc/agentic-system"
+            elif [ -d "/mnt/agentic-system" ]; then
+                echo "/mnt/agentic-system"
+            fi
+            ;;
+    esac
+}
+
+STORAGE_BASE=$(detect_storage_base)
+
 NODE_ID="macbook-air-m3"
 NODE_ROLE="researcher"
 NODE_IP="192.168.1.76"
@@ -31,8 +58,8 @@ echo ""
 
 # Step 2: Copy core hive mind module
 echo "Step 2: Installing hive mind integration..."
-if [ -f "/Volumes/SSDRAID0/agentic-system/cluster-deployment/orchestrator_hive_mind.py" ]; then
-    cp /Volumes/SSDRAID0/agentic-system/cluster-deployment/orchestrator_hive_mind.py \
+if [ -f "$STORAGE_BASE/cluster-deployment/orchestrator_hive_mind.py" ]; then
+    cp $STORAGE_BASE/cluster-deployment/orchestrator_hive_mind.py \
        ~/agentic-system/cluster-deployment/
     echo "✅ Hive mind module installed"
 else
@@ -44,8 +71,8 @@ echo ""
 # Step 3: Copy supporting modules
 echo "Step 3: Installing supporting modules..."
 for module in distributed_task_router.py orchestrator_remote_exec.py toon_serialization.py cluster_memory.py; do
-    if [ -f "/Volumes/SSDRAID0/agentic-system/cluster-deployment/$module" ]; then
-        cp "/Volumes/SSDRAID0/agentic-system/cluster-deployment/$module" \
+    if [ -f "$STORAGE_BASE/cluster-deployment/$module" ]; then
+        cp "$STORAGE_BASE/cluster-deployment/$module" \
            ~/agentic-system/cluster-deployment/
         echo "  ✅ $module"
     else
@@ -56,8 +83,8 @@ echo ""
 
 # Step 4: Copy cluster configuration
 echo "Step 4: Installing cluster configuration..."
-if [ -f "/Volumes/SSDRAID0/agentic-system/cluster-deployment/cluster-nodes.json" ]; then
-    cp /Volumes/SSDRAID0/agentic-system/cluster-deployment/cluster-nodes.json \
+if [ -f "$STORAGE_BASE/cluster-deployment/cluster-nodes.json" ]; then
+    cp $STORAGE_BASE/cluster-deployment/cluster-nodes.json \
        ~/agentic-system/cluster-deployment/
     echo "✅ Cluster nodes configuration installed"
 else
@@ -79,18 +106,18 @@ cat > ~/.claude/macbook-air-node-config.json <<'EOF'
     "lightweight-processing"
   ],
   "storage": {
-    "base": "/Volumes/SSDRAID0/agentic-system",
-    "databases": "/Volumes/SSDRAID0/agentic-system/databases",
-    "logs": "/Volumes/SSDRAID0/agentic-system/logs"
+    "base": "$STORAGE_BASE",
+    "databases": "$STORAGE_BASE/databases",
+    "logs": "$STORAGE_BASE/logs"
   },
   "cluster": {
     "orchestrator": {
       "node_id": "mac-studio",
       "ip": "192.168.1.16"
     },
-    "message_db": "/Volumes/SSDRAID0/agentic-system/databases/cluster/node_messages.db",
-    "registry_db": "/Volumes/SSDRAID0/agentic-system/databases/cluster/node_registry.db",
-    "shared_memory_db": "/Volumes/SSDRAID0/agentic-system/databases/cluster/shared_memories.db"
+    "message_db": "$STORAGE_BASE/databases/cluster/node_messages.db",
+    "registry_db": "$STORAGE_BASE/databases/cluster/node_registry.db",
+    "shared_memory_db": "$STORAGE_BASE/databases/cluster/shared_memories.db"
   }
 }
 EOF

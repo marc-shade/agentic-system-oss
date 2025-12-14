@@ -5,11 +5,36 @@ Relay Arduino commands through remote cluster nodes
 """
 
 import json
+import os
+import platform
 import subprocess
 import socket
 from typing import Optional, Dict
 from pathlib import Path
 from arduino_cluster_discovery import ArduinoLocation
+
+
+def _get_storage_base() -> Path:
+    """Detect storage base path based on platform."""
+    env_path = os.environ.get("AGENTIC_SYSTEM_PATH")
+    if env_path and Path(env_path).exists():
+        return Path(env_path)
+
+    system = platform.system()
+    if system == "Darwin":  # macOS
+        if Path("/Volumes/SSDRAID0/agentic-system").exists():
+            return Path("/Volumes/SSDRAID0/agentic-system")
+        elif Path("/Volumes/FILES/agentic-system").exists():
+            return Path("/Volumes/FILES/agentic-system")
+    elif system == "Linux":
+        if Path("/home/marc/agentic-system").exists():
+            return Path("/home/marc/agentic-system")
+        elif Path("/mnt/agentic-system").exists():
+            return Path("/mnt/agentic-system")
+    return Path(__file__).parent.parent.parent
+
+
+_STORAGE_BASE = _get_storage_base()
 
 
 class ArduinoClusterRelay:
@@ -164,11 +189,27 @@ except Exception as e:
         Returns:
             Parsed JSON response or None
         """
-        # Build remote Python command
+        # Build remote Python command with dynamic path detection
+        # The remote node will auto-detect its storage base
         python_cmd = f"""
 import sys
+import os
 import json
-sys.path.insert(0, '/Volumes/SSDRAID0/agentic-system/arduino-surface/bridge')
+from pathlib import Path
+
+# Dynamic storage detection for remote node
+def _detect_storage():
+    env_path = os.environ.get("AGENTIC_SYSTEM_PATH")
+    if env_path and Path(env_path).exists():
+        return Path(env_path)
+    for p in [Path("/Volumes/SSDRAID0/agentic-system"), Path("/Volumes/FILES/agentic-system"),
+              Path("/home/marc/agentic-system"), Path("/mnt/agentic-system")]:
+        if p.exists():
+            return p
+    return Path.home() / "agentic-system"
+
+_storage = _detect_storage()
+sys.path.insert(0, str(_storage / "arduino-surface" / "bridge"))
 
 from surface_bridge import ArduinoSurface
 

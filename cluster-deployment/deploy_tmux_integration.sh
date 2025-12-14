@@ -4,6 +4,33 @@
 
 set -e
 
+
+# Platform-aware storage detection
+detect_storage_base() {
+    if [ -n "$AGENTIC_SYSTEM_PATH" ] && [ -d "$AGENTIC_SYSTEM_PATH" ]; then
+        echo "$AGENTIC_SYSTEM_PATH"
+        return
+    fi
+    case "$(uname -s)" in
+        Darwin)
+            if [ -d "/Volumes/SSDRAID0/agentic-system" ]; then
+                echo "/Volumes/SSDRAID0/agentic-system"
+            elif [ -d "/Volumes/FILES/agentic-system" ]; then
+                echo "/Volumes/FILES/agentic-system"
+            fi
+            ;;
+        Linux)
+            if [ -d "/home/marc/agentic-system" ]; then
+                echo "/home/marc/agentic-system"
+            elif [ -d "/mnt/agentic-system" ]; then
+                echo "/mnt/agentic-system"
+            fi
+            ;;
+    esac
+}
+
+STORAGE_BASE=$(detect_storage_base)
+
 echo "🚀 Deploying Tmux-Cluster Integration"
 echo "======================================"
 echo ""
@@ -62,13 +89,13 @@ for node in "${NODES[@]}"; do
     # See FILE_LOCATION_POLICY.md - use SSDRAID0 on macOS, /mnt on Linux
     if [[ "$name" == "macpro51" ]]; then
         # Linux node uses /mnt
-        remote_path="/mnt/agentic-system/cluster-deployment"
+        remote_path="$STORAGE_BASE/cluster-deployment"
     elif [[ "$name" == "completeu-server" ]]; then
         # CompletU server - check what drive it has
-        remote_path="/Volumes/SSDRAID0/agentic-system/cluster-deployment"
+        remote_path="$STORAGE_BASE/cluster-deployment"
     else
         # macOS nodes use SSDRAID0
-        remote_path="/Volumes/SSDRAID0/agentic-system/cluster-deployment"
+        remote_path="$STORAGE_BASE/cluster-deployment"
     fi
 
     # Ensure directory exists
@@ -76,7 +103,7 @@ for node in "${NODES[@]}"; do
 
     # Copy updated router
     rsync -avz --timeout=10 \
-        /Volumes/SSDRAID0/agentic-system/cluster-deployment/distributed_task_router.py \
+        $STORAGE_BASE/cluster-deployment/distributed_task_router.py \
         marc@$ip:$remote_path/ 2>/dev/null || true
 
     # Verify deployment
@@ -127,12 +154,12 @@ for node in "${NODES[@]}"; do
 
     # Determine correct path (see FILE_LOCATION_POLICY.md)
     if [[ "$name" == "macpro51" ]]; then
-        session_dir="/mnt/agentic-system/databases/cluster/tmux-sessions"
+        session_dir="$STORAGE_BASE/databases/cluster/tmux-sessions"
     elif [[ "$name" == "completeu-server" ]]; then
-        session_dir="/Volumes/SSDRAID0/agentic-system/databases/cluster/tmux-sessions"
+        session_dir="$STORAGE_BASE/databases/cluster/tmux-sessions"
     else
         # macOS nodes use SSDRAID0
-        session_dir="/Volumes/SSDRAID0/agentic-system/databases/cluster/tmux-sessions"
+        session_dir="$STORAGE_BASE/databases/cluster/tmux-sessions"
     fi
 
     ssh marc@$ip "mkdir -p $session_dir" 2>/dev/null || true

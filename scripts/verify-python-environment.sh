@@ -4,6 +4,33 @@
 
 set -e
 
+
+# Platform-aware storage detection
+detect_storage_base() {
+    if [ -n "$AGENTIC_SYSTEM_PATH" ] && [ -d "$AGENTIC_SYSTEM_PATH" ]; then
+        echo "$AGENTIC_SYSTEM_PATH"
+        return
+    fi
+    case "$(uname -s)" in
+        Darwin)
+            if [ -d "/Volumes/SSDRAID0/agentic-system" ]; then
+                echo "/Volumes/SSDRAID0/agentic-system"
+            elif [ -d "/Volumes/FILES/agentic-system" ]; then
+                echo "/Volumes/FILES/agentic-system"
+            fi
+            ;;
+        Linux)
+            if [ -d "/home/marc/agentic-system" ]; then
+                echo "/home/marc/agentic-system"
+            elif [ -d "/mnt/agentic-system" ]; then
+                echo "/mnt/agentic-system"
+            fi
+            ;;
+    esac
+}
+
+STORAGE_BASE=$(detect_storage_base)
+
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -86,9 +113,9 @@ check_script() {
 }
 
 # Check startup scripts
-check_script "/mnt/agentic-system/scripts/start-temporal-workers.sh" "Temporal Workers"
-check_script "/mnt/agentic-system/scripts/start-autokitteh.sh" "AutoKitteh"
-check_script "/mnt/agentic-system/arduino-surface/scripts/start_agentic_stack.sh" "Arduino Surface"
+check_script "$STORAGE_BASE/scripts/start-temporal-workers.sh" "Temporal Workers"
+check_script "$STORAGE_BASE/scripts/start-autokitteh.sh" "AutoKitteh"
+check_script "$STORAGE_BASE/arduino-surface/scripts/start_agentic_stack.sh" "Arduino Surface"
 
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
@@ -123,7 +150,7 @@ echo "🔍 MCP SERVER PYTHON CHECK"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
 # Check MCP server directories
-MCP_DIR="/mnt/agentic-system/mcp-servers"
+MCP_DIR="$STORAGE_BASE/mcp-servers"
 if [ -d "$MCP_DIR" ]; then
     for server in "$MCP_DIR"/*; do
         if [ -d "$server" ]; then
@@ -173,7 +200,7 @@ echo "4. Never use system Python:"
 echo "   /usr/bin/python3  # AVOID - Python 3.9.6 is too old"
 echo ""
 echo "5. Check documentation:"
-echo "   /mnt/agentic-system/PYTHON_ENVIRONMENT_SUMMARY.md"
+echo "   $STORAGE_BASE/PYTHON_ENVIRONMENT_SUMMARY.md"
 echo ""
 
 echo "═══════════════════════════════════════════════════════════════════"

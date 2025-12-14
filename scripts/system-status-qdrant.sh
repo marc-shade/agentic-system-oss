@@ -3,6 +3,33 @@
 # Integrates with system monitoring dashboard
 
 # Colors for output
+
+# Platform-aware storage detection
+detect_storage_base() {
+    if [ -n "$AGENTIC_SYSTEM_PATH" ] && [ -d "$AGENTIC_SYSTEM_PATH" ]; then
+        echo "$AGENTIC_SYSTEM_PATH"
+        return
+    fi
+    case "$(uname -s)" in
+        Darwin)
+            if [ -d "/Volumes/SSDRAID0/agentic-system" ]; then
+                echo "/Volumes/SSDRAID0/agentic-system"
+            elif [ -d "/Volumes/FILES/agentic-system" ]; then
+                echo "/Volumes/FILES/agentic-system"
+            fi
+            ;;
+        Linux)
+            if [ -d "/home/marc/agentic-system" ]; then
+                echo "/home/marc/agentic-system"
+            elif [ -d "/mnt/agentic-system" ]; then
+                echo "/mnt/agentic-system"
+            fi
+            ;;
+    esac
+}
+
+STORAGE_BASE=$(detect_storage_base)
+
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 RED='\033[0;31m'
@@ -16,7 +43,7 @@ echo
 # Check if Qdrant is running
 if ! curl -sf http://localhost:6333/healthz > /dev/null 2>&1; then
     echo -e "${RED}❌ Qdrant is NOT running${NC}"
-    echo "   To start: /mnt/agentic-system/scripts/qdrant-monitor.sh start"
+    echo "   To start: $STORAGE_BASE/scripts/qdrant-monitor.sh start"
     exit 1
 fi
 
@@ -47,7 +74,7 @@ fi
 echo
 
 # Storage stats
-DB_PATH="/mnt/agentic-system/databases/qdrant"
+DB_PATH="$STORAGE_BASE/databases/qdrant"
 DB_SIZE=$(du -sh "$DB_PATH" 2>/dev/null | cut -f1 || echo "unknown")
 echo "💾 Storage"
 echo "   Database path: $DB_PATH"
@@ -55,7 +82,7 @@ echo "   Size: $DB_SIZE"
 echo
 
 # Log stats
-LOG_DIR="/mnt/agentic-system/logs"
+LOG_DIR="$STORAGE_BASE/logs"
 STDOUT_LOG="$LOG_DIR/qdrant-stdout.log"
 STDERR_LOG="$LOG_DIR/qdrant-stderr.log"
 

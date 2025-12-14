@@ -28,7 +28,10 @@ import { join } from 'path';
 // Configuration
 const PET_STATE_FILE = join(homedir(), '.claude', 'pets', 'claude-pet-state.json');
 const FEEDBACK_LOG = join(homedir(), '.claude', 'pets', 'ember-feedback.jsonl');
-const GROQ_API_KEY = process.env.GROQ_API_KEY || '***REMOVED***';
+const GROQ_API_KEY = process.env.GROQ_API_KEY || '';
+if (!GROQ_API_KEY) {
+  console.warn('Warning: GROQ_API_KEY not set. Ember intelligence features will be limited.');
+}
 const GROQ_MODEL = 'llama-3.3-70b-versatile';
 
 // Initialize Groq client

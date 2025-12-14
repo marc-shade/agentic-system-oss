@@ -40,6 +40,8 @@ from enum import Enum
 from pathlib import Path
 from typing import Dict, List, Optional, Any, Tuple
 
+from storage_path_utils import STORAGE_BASE
+
 
 # Configure logging
 logging.basicConfig(
@@ -115,11 +117,11 @@ class SandboxedTestingEnvironment:
 
     def __init__(
         self,
-        base_path: str = "/mnt/agentic-system",
+        base_path: str = None,
         enable_containers: bool = True
     ):
         """Initialize sandboxed testing environment."""
-        self.base_path = Path(base_path)
+        self.base_path = Path(base_path) if base_path else STORAGE_BASE
         self.sandbox_dir = self.base_path / "sandbox"
         self.sandbox_dir.mkdir(exist_ok=True)
 

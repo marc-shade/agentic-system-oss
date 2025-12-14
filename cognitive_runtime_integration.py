@@ -4,6 +4,8 @@ Cognitive Runtime Integration Layer
 Connects 24 cognitive runtimes to pre-tool-use orchestration and post-tool learning.
 Bridges between AGI orchestrator and advanced cognitive capabilities.
 """
+import os
+import platform
 
 import json
 import sys
@@ -13,7 +15,7 @@ from datetime import datetime
 from enum import Enum
 
 # Paths
-SYSTEM_ROOT = Path("/mnt/agentic-system")
+SYSTEM_ROOT = Path(str(_STORAGE_BASE))
 MEMORY_DIR = Path.home() / ".claude" / "memory"
 SEMANTIC_DIR = MEMORY_DIR / "semantic"
 
@@ -222,6 +224,29 @@ class PostToolCognitiveIntegration:
         Returns learning insights for memory consolidation.
         """
         import time
+
+def _get_storage_base() -> Path:
+    """Detect storage base path based on platform."""
+    env_path = os.environ.get("AGENTIC_SYSTEM_PATH")
+    if env_path and Path(env_path).exists():
+        return Path(env_path)
+
+    system = platform.system()
+    if system == "Darwin":  # macOS
+        if Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+        elif Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+    elif system == "Linux":
+        if Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+        elif Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+    return Path(__file__).parent.parent
+
+
+_STORAGE_BASE = _get_storage_base()
+
         start_time = time.time()
 
         # Create learning task context

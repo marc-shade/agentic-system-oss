@@ -6,19 +6,42 @@ import sys
 import json
 import subprocess
 import time
+import os
+import platform
+from pathlib import Path
+
+
+def _get_storage_base() -> Path:
+    """Get storage base path based on environment variable or platform detection."""
+    if env_path := os.environ.get("AGENTIC_SYSTEM_PATH"):
+        return Path(env_path)
+    if platform.system() == "Darwin":
+        for p in [Path("/Volumes/SSDRAID0/agentic-system"), Path("/Volumes/FILES/agentic-system")]:
+            if p.exists():
+                return p
+    else:
+        for p in [Path("/home/marc/agentic-system"), Path("/mnt/agentic-system")]:
+            if p.exists():
+                return p
+    return Path.home() / "agentic-system"
+
+
+_STORAGE_BASE = _get_storage_base()
 
 def test_server():
     """Test the server with MCP protocol messages"""
-    
+
     # Start the server
     print("Starting server...")
+    python_path = _STORAGE_BASE / "mcp" / ".unified_environments" / "base_mcp" / "venv" / "bin" / "python"
+    server_cwd = _STORAGE_BASE / "mcp-servers" / "enhanced-memory-mcp"
     proc = subprocess.Popen(
-        ["/Volumes/FILES/agentic-system/mcp/.unified_environments/base_mcp/venv/bin/python", "server.py"],
+        [str(python_path), "server.py"],
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True,
-        cwd="/Volumes/FILES/agentic-system/mcp/enhanced-memory-mcp"
+        cwd=str(server_cwd)
     )
     
     # Wait a moment for startup

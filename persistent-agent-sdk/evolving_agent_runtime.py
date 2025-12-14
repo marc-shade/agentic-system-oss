@@ -8,12 +8,37 @@ Phase 2: AGI 48.5% -> 65% (Learning 30% -> 60%)
 import os
 import json
 import asyncio
+import platform
 import random
+from pathlib import Path
 from typing import Dict, Any, List, Optional, Tuple
 from datetime import datetime
 from dataclasses import dataclass, asdict
 from memory_integrated_runtime import MemoryIntegratedRuntime
 from unified_agent_runtime import AgentTask, TaskType, AgentProvider
+
+
+def _get_storage_base() -> Path:
+    """Detect storage base path based on platform."""
+    env_path = os.environ.get("AGENTIC_SYSTEM_PATH")
+    if env_path and Path(env_path).exists():
+        return Path(env_path)
+
+    system = platform.system()
+    if system == "Darwin":  # macOS
+        if Path("/Volumes/SSDRAID0/agentic-system").exists():
+            return Path("/Volumes/SSDRAID0/agentic-system")
+        elif Path("/Volumes/FILES/agentic-system").exists():
+            return Path("/Volumes/FILES/agentic-system")
+    elif system == "Linux":
+        if Path("/home/marc/agentic-system").exists():
+            return Path("/home/marc/agentic-system")
+        elif Path("/mnt/agentic-system").exists():
+            return Path("/mnt/agentic-system")
+    return Path(__file__).parent.parent
+
+
+_STORAGE_BASE = _get_storage_base()
 
 @dataclass
 class PromptVariant:
@@ -420,7 +445,7 @@ async def main():
         task_type=TaskType.CODE_ANALYSIS,
         description="Analyze the memory_integrated_runtime.py for improvements",
         context={
-            "files": ["/Volumes/FILES/agentic-system/persistent-agent-sdk/memory_integrated_runtime.py"]
+            "files": [str(_STORAGE_BASE / "persistent-agent-sdk" / "memory_integrated_runtime.py")]
         }
     )
 

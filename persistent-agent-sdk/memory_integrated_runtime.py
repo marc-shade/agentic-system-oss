@@ -8,11 +8,36 @@ Phase 1 Final: Complete meta-cognitive system with persistent memory
 import os
 import json
 import asyncio
+import platform
 import subprocess
+from pathlib import Path
 from typing import Dict, Any, List, Optional
 from datetime import datetime
 from gap_aware_runtime import GapAwareRuntime, KnowledgeGap, GapFillAttempt
 from unified_agent_runtime import AgentTask, TaskType
+
+
+def _get_storage_base() -> Path:
+    """Detect storage base path based on platform."""
+    env_path = os.environ.get("AGENTIC_SYSTEM_PATH")
+    if env_path and Path(env_path).exists():
+        return Path(env_path)
+
+    system = platform.system()
+    if system == "Darwin":  # macOS
+        if Path("/Volumes/SSDRAID0/agentic-system").exists():
+            return Path("/Volumes/SSDRAID0/agentic-system")
+        elif Path("/Volumes/FILES/agentic-system").exists():
+            return Path("/Volumes/FILES/agentic-system")
+    elif system == "Linux":
+        if Path("/home/marc/agentic-system").exists():
+            return Path("/home/marc/agentic-system")
+        elif Path("/mnt/agentic-system").exists():
+            return Path("/mnt/agentic-system")
+    return Path(__file__).parent.parent
+
+
+_STORAGE_BASE = _get_storage_base()
 
 class MemoryIntegratedRuntime(GapAwareRuntime):
     """
@@ -309,7 +334,7 @@ async def main():
         task_type=TaskType.CODE_ANALYSIS,
         description="Analyze Python code for improvements",
         context={
-            "files": ["/Volumes/FILES/agentic-system/persistent-agent-sdk/unified_agent_runtime.py"]
+            "files": [str(_STORAGE_BASE / "persistent-agent-sdk" / "unified_agent_runtime.py")]
         }
     )
 

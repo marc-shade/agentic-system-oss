@@ -2,8 +2,35 @@
 # Start Self-Healing Monitor as a background daemon
 # Runs every 5 minutes to detect and fix errors autonomously
 
-LOG_DIR="/mnt/agentic-system/logs"
-SCRIPT="/mnt/agentic-system/workflows/self_healing_monitor.py"
+
+# Platform-aware storage detection
+detect_storage_base() {
+    if [ -n "$AGENTIC_SYSTEM_PATH" ] && [ -d "$AGENTIC_SYSTEM_PATH" ]; then
+        echo "$AGENTIC_SYSTEM_PATH"
+        return
+    fi
+    case "$(uname -s)" in
+        Darwin)
+            if [ -d "/Volumes/SSDRAID0/agentic-system" ]; then
+                echo "/Volumes/SSDRAID0/agentic-system"
+            elif [ -d "/Volumes/FILES/agentic-system" ]; then
+                echo "/Volumes/FILES/agentic-system"
+            fi
+            ;;
+        Linux)
+            if [ -d "/home/marc/agentic-system" ]; then
+                echo "/home/marc/agentic-system"
+            elif [ -d "/mnt/agentic-system" ]; then
+                echo "/mnt/agentic-system"
+            fi
+            ;;
+    esac
+}
+
+STORAGE_BASE=$(detect_storage_base)
+
+LOG_DIR="$STORAGE_BASE/logs"
+SCRIPT="$STORAGE_BASE/workflows/self_healing_monitor.py"
 PID_FILE="/tmp/self_healing_monitor.pid"
 
 mkdir -p "$LOG_DIR"

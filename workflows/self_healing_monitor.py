@@ -16,6 +16,8 @@ Part of the autonomous operation loop.
 import asyncio
 import json
 import logging
+import os
+import platform
 import re
 import sqlite3
 import subprocess
@@ -24,16 +26,35 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, List, Optional, Any, Tuple
 
+
+def _get_storage_base() -> Path:
+    """Detect storage base path based on platform."""
+    env_path = os.environ.get("AGENTIC_SYSTEM_PATH")
+    if env_path and Path(env_path).exists():
+        return Path(env_path)
+
+    system = platform.system()
+    if system == "Darwin":  # macOS
+        if Path("/Volumes/SSDRAID0/agentic-system").exists():
+            return Path("/Volumes/SSDRAID0/agentic-system")
+        elif Path("/Volumes/FILES/agentic-system").exists():
+            return Path("/Volumes/FILES/agentic-system")
+    elif system == "Linux":
+        if Path("/home/marc/agentic-system").exists():
+            return Path("/home/marc/agentic-system")
+        elif Path("/mnt/agentic-system").exists():
+            return Path("/mnt/agentic-system")
+    return Path(__file__).parent.parent
+
+
+_STORAGE_BASE = _get_storage_base()
+
 # Setup logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-<<<<<<< HEAD
-        logging.FileHandler('/Volumes/SSDRAID0/agentic-system/logs/self_healing.log'),
-=======
-        logging.FileHandler('/mnt/agentic-system/logs/self_healing.log'),
->>>>>>> origin/main
+        logging.FileHandler(str(_STORAGE_BASE / 'logs' / 'self_healing.log')),
         logging.StreamHandler()
     ]
 )
@@ -45,15 +66,9 @@ class ErrorDetector:
 
     def __init__(self):
         self.log_paths = [
-<<<<<<< HEAD
-            '/Volumes/SSDRAID0/agentic-system/arduino-surface/logs/display-agent.log',
-            '/Volumes/SSDRAID0/agentic-system/logs/system.log',
-            '/Volumes/SSDRAID0/agentic-system/intelligent-self-healing/intelligent_statusline.log',
-=======
-            '/mnt/agentic-system/arduino-surface/logs/display-agent.log',
-            '/mnt/agentic-system/logs/system.log',
-            '/mnt/agentic-system/intelligent-self-healing/intelligent_statusline.log',
->>>>>>> origin/main
+            str(_STORAGE_BASE / 'arduino-surface' / 'logs' / 'display-agent.log'),
+            str(_STORAGE_BASE / 'logs' / 'system.log'),
+            str(_STORAGE_BASE / 'intelligent-self-healing' / 'intelligent_statusline.log'),
         ]
         self.error_patterns = [
             (r'ERROR.*no such table: (\w+)', 'missing_table'),
@@ -122,23 +137,18 @@ class SelfHealingEngine:
                 logger.info(f"Initializing agent_runtime.db schema...")
 
                 # Initialize database
-                result = subprocess.run([
-                    'python3', '-c',
-                    '''
+                # Build the inline script with dynamic paths
+                init_script = f'''
 import sys
 from pathlib import Path
-<<<<<<< HEAD
-sys.path.insert(0, '/Volumes/SSDRAID0/agentic-system/mcp-servers/agent-runtime-mcp')
+sys.path.insert(0, '{_STORAGE_BASE / "mcp-servers" / "agent-runtime-mcp"}')
 import server
-server.DB_PATH = Path('/Volumes/SSDRAID0/agentic-system/databases/mcp/agent_runtime.db')
-=======
-sys.path.insert(0, '/mnt/agentic-system/mcp-servers/agent-runtime-mcp')
-import server
-server.DB_PATH = Path('/mnt/agentic-system/databases/mcp/agent_runtime.db')
->>>>>>> origin/main
+server.DB_PATH = Path('{_STORAGE_BASE / "databases" / "mcp" / "agent_runtime.db"}')
 db = server.AgentRuntimeDB(server.DB_PATH)
 print("Database initialized successfully")
 '''
+                result = subprocess.run([
+                    'python3', '-c', init_script
                 ], capture_output=True, text=True, timeout=30)
 
                 if result.returncode == 0:
@@ -160,11 +170,7 @@ print("Database initialized successfully")
 
                 # The code has already been modified to handle this gracefully
                 # Just verify the fix is in place
-<<<<<<< HEAD
-                display_agent_path = '/Volumes/SSDRAID0/agentic-system/arduino-surface/daemons/intelligent_display_agent.py'
-=======
-                display_agent_path = '/mnt/agentic-system/arduino-surface/daemons/intelligent_display_agent.py'
->>>>>>> origin/main
+                display_agent_path = str(_STORAGE_BASE / 'arduino-surface' / 'daemons' / 'intelligent_display_agent.py')
 
                 with open(display_agent_path, 'r') as f:
                     content = f.read()
@@ -222,13 +228,8 @@ print("Database initialized successfully")
 
         # Map log files to venv paths
         venv_map = {
-<<<<<<< HEAD
-            'display-agent': Path('/Volumes/SSDRAID0/agentic-system/arduino-surface/.venv'),
-            'enhanced-memory': Path('/Volumes/SSDRAID0/agentic-system/mcp-servers/enhanced-memory-mcp/.venv'),
-=======
-            'display-agent': Path('/mnt/agentic-system/arduino-surface/.venv'),
-            'enhanced-memory': Path('/mnt/agentic-system/mcp-servers/enhanced-memory-mcp/.venv'),
->>>>>>> origin/main
+            'display-agent': _STORAGE_BASE / 'arduino-surface' / '.venv',
+            'enhanced-memory': _STORAGE_BASE / 'mcp-servers' / 'enhanced-memory-mcp' / '.venv',
         }
 
         for key, venv in venv_map.items():
@@ -276,12 +277,7 @@ print("Database initialized successfully")
 
 def update_status(state: str, error_count: int = 0, healing_count: int = 0, fixed_count: int = 0, message: str = ""):
     """Update status file for statusline display."""
-<<<<<<< HEAD
-    # Store on SSDRAID0 (not /tmp - see FILE_LOCATION_POLICY.md)
-    status_file = Path('/Volumes/SSDRAID0/agentic-system/logs/self_healing/status.json')
-=======
     status_file = Path('/tmp/self_healing_status.json')
->>>>>>> origin/main
     status = {
         'state': state,  # idle, analyzing, healing, completed
         'error_count': error_count,
@@ -353,11 +349,7 @@ async def main():
         update_status('idle', error_count=len(results) - healed_count, message='Manual fix needed')
 
     # Save results to file for analysis
-<<<<<<< HEAD
-    results_file = Path('/Volumes/SSDRAID0/agentic-system/logs/self_healing_results.jsonl')
-=======
-    results_file = Path('/mnt/agentic-system/logs/self_healing_results.jsonl')
->>>>>>> origin/main
+    results_file = _STORAGE_BASE / 'logs' / 'self_healing_results.jsonl'
     with open(results_file, 'a') as f:
         for result in results:
             f.write(json.dumps(result) + '\n')

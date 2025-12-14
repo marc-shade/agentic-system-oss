@@ -2,8 +2,14 @@
 # Enhanced Memory System Status Check for Statusline
 # Returns: 🧠<icon><count> where icon indicates activity state
 
-# Check if enhanced memory database exists
-MEMORY_DB="/home/marc/.claude/enhanced_memories/memory.db"
+# Detect storage base based on platform
+if [[ "$(uname)" == "Darwin" ]]; then
+    # macOS
+    MEMORY_DB="/Volumes/SSDRAID0/agentic-system/databases/enhanced_memory/memory.db"
+else
+    # Linux
+    MEMORY_DB="/home/marc/agentic-system/databases/enhanced_memory/memory.db"
+fi
 
 if [ ! -f "$MEMORY_DB" ]; then
     echo "🧠❌"

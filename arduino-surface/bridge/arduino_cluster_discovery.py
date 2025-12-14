@@ -11,6 +11,7 @@ Features:
 """
 
 import os
+import platform
 import sys
 import json
 import sqlite3
@@ -19,6 +20,29 @@ import subprocess
 from pathlib import Path
 from typing import Optional, Dict, List
 from dataclasses import dataclass
+
+
+def _get_storage_base() -> Path:
+    """Detect storage base path based on platform."""
+    env_path = os.environ.get("AGENTIC_SYSTEM_PATH")
+    if env_path and Path(env_path).exists():
+        return Path(env_path)
+
+    system = platform.system()
+    if system == "Darwin":  # macOS
+        if Path("/Volumes/SSDRAID0/agentic-system").exists():
+            return Path("/Volumes/SSDRAID0/agentic-system")
+        elif Path("/Volumes/FILES/agentic-system").exists():
+            return Path("/Volumes/FILES/agentic-system")
+    elif system == "Linux":
+        if Path("/home/marc/agentic-system").exists():
+            return Path("/home/marc/agentic-system")
+        elif Path("/mnt/agentic-system").exists():
+            return Path("/mnt/agentic-system")
+    return Path(__file__).parent.parent.parent
+
+
+_STORAGE_BASE = _get_storage_base()
 
 
 @dataclass
@@ -35,7 +59,7 @@ class ArduinoClusterDiscovery:
     """Discover Arduino Surface across cluster nodes"""
 
     def __init__(self):
-        self.cluster_db = Path("/Volumes/SSDRAID0/agentic-system/databases/cluster/node_registry.db")
+        self.cluster_db = _STORAGE_BASE / "databases" / "cluster" / "node_registry.db"
         self.local_node_config = Path.home() / ".claude" / "node-config.json"
 
     def discover(self) -> Optional[ArduinoLocation]:

@@ -4,13 +4,37 @@ Comprehensive Health Check - Writes to health_history.json
 Monitors all critical services: Temporal, Qdrant, PM2, AutoKitteh, MCP Servers, Task Queue, System Resources
 """
 
+import os
+import platform
 import subprocess
 import json
 from datetime import datetime
 from pathlib import Path
 import sys
 
-HEALTH_HISTORY = Path("/Volumes/SSDRAID0/agentic-system/logs/health_history.json")
+
+def _get_storage_base() -> Path:
+    """Detect storage base path based on platform."""
+    env_path = os.environ.get("AGENTIC_SYSTEM_PATH")
+    if env_path and Path(env_path).exists():
+        return Path(env_path)
+
+    system = platform.system()
+    if system == "Darwin":  # macOS
+        if Path("/Volumes/SSDRAID0/agentic-system").exists():
+            return Path("/Volumes/SSDRAID0/agentic-system")
+        elif Path("/Volumes/FILES/agentic-system").exists():
+            return Path("/Volumes/FILES/agentic-system")
+    elif system == "Linux":
+        if Path("/home/marc/agentic-system").exists():
+            return Path("/home/marc/agentic-system")
+        elif Path("/mnt/agentic-system").exists():
+            return Path("/mnt/agentic-system")
+    return Path(__file__).parent.parent
+
+
+_STORAGE_BASE = _get_storage_base()
+HEALTH_HISTORY = _STORAGE_BASE / "logs" / "health_history.json"
 MAX_HISTORY = 1000  # Keep last 1000 entries
 
 def check_temporal():
@@ -134,7 +158,7 @@ def check_task_queue():
     try:
         # Check for agent-runtime database
         possible_paths = [
-            Path("/Volumes/SSDRAID0/agentic-system/databases/mcp/agent_runtime.db"),
+            _STORAGE_BASE / "databases" / "mcp" / "agent_runtime.db",
             Path(Path.home() / ".mcp" / "agent-runtime" / "agent_runtime.db"),
         ]
 

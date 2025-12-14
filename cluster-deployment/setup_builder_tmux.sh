@@ -1,6 +1,33 @@
 #!/bin/bash
 # Setup tmux with persistent cross-machine context for Builder node
 
+
+# Platform-aware storage detection
+detect_storage_base() {
+    if [ -n "$AGENTIC_SYSTEM_PATH" ] && [ -d "$AGENTIC_SYSTEM_PATH" ]; then
+        echo "$AGENTIC_SYSTEM_PATH"
+        return
+    fi
+    case "$(uname -s)" in
+        Darwin)
+            if [ -d "/Volumes/SSDRAID0/agentic-system" ]; then
+                echo "/Volumes/SSDRAID0/agentic-system"
+            elif [ -d "/Volumes/FILES/agentic-system" ]; then
+                echo "/Volumes/FILES/agentic-system"
+            fi
+            ;;
+        Linux)
+            if [ -d "/home/marc/agentic-system" ]; then
+                echo "/home/marc/agentic-system"
+            elif [ -d "/mnt/agentic-system" ]; then
+                echo "/mnt/agentic-system"
+            fi
+            ;;
+    esac
+}
+
+STORAGE_BASE=$(detect_storage_base)
+
 BUILDER_IP="192.168.1.183"
 BUILDER_USER="marc"
 
@@ -28,7 +55,7 @@ set -g @resurrect-strategy-python3 'session'
 set -g @resurrect-strategy-bash 'session'
 
 # Custom session directory for cluster coordination
-set -g @resurrect-dir '/mnt/agentic-system/databases/cluster/tmux-sessions'
+set -g @resurrect-dir '$STORAGE_BASE/databases/cluster/tmux-sessions'
 
 # Status bar configuration
 set -g status-bg colour235
@@ -70,7 +97,7 @@ cat > /tmp/tmux_session_manager.sh << 'EOF'
 # Tmux Session Manager for Builder Node
 # Manages persistent sessions with cross-machine context
 
-TMUX_SESSION_DIR="/mnt/agentic-system/databases/cluster/tmux-sessions"
+TMUX_SESSION_DIR="$STORAGE_BASE/databases/cluster/tmux-sessions"
 NODE_ID="macpro51"
 
 case "$1" in
@@ -107,7 +134,7 @@ scp /tmp/tmux_session_manager.sh ${BUILDER_USER}@${BUILDER_IP}:/tmp/tmux_session
 ssh ${BUILDER_USER}@${BUILDER_IP} "chmod +x /tmp/tmux_session_manager.sh && sudo mv /tmp/tmux_session_manager.sh /usr/local/bin/builder-session"
 
 # Create tmux session directory
-ssh ${BUILDER_USER}@${BUILDER_IP} "mkdir -p /mnt/agentic-system/databases/cluster/tmux-sessions"
+ssh ${BUILDER_USER}@${BUILDER_IP} "mkdir -p $STORAGE_BASE/databases/cluster/tmux-sessions"
 
 # Install tmux plugin manager if not present
 ssh ${BUILDER_USER}@${BUILDER_IP} "

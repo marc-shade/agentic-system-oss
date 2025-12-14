@@ -25,6 +25,8 @@ Integration with Darwin Gödel Machine:
 
 import asyncio
 import logging
+import os
+import platform
 import time
 import tracemalloc
 import statistics
@@ -41,6 +43,29 @@ import hashlib
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+
+def _get_storage_base() -> Path:
+    """Detect storage base path based on platform."""
+    env_path = os.environ.get("AGENTIC_SYSTEM_PATH")
+    if env_path and Path(env_path).exists():
+        return Path(env_path)
+
+    system = platform.system()
+    if system == "Darwin":  # macOS
+        if Path("/Volumes/SSDRAID0/agentic-system").exists():
+            return Path("/Volumes/SSDRAID0/agentic-system")
+        elif Path("/Volumes/FILES/agentic-system").exists():
+            return Path("/Volumes/FILES/agentic-system")
+    elif system == "Linux":
+        if Path("/home/marc/agentic-system").exists():
+            return Path("/home/marc/agentic-system")
+        elif Path("/mnt/agentic-system").exists():
+            return Path("/mnt/agentic-system")
+    return Path(__file__).parent.parent
+
+
+_STORAGE_BASE = _get_storage_base()
 
 
 class PerformanceMetric(Enum):
@@ -141,7 +166,7 @@ class PerformanceRegressionTracker:
 
     def __init__(
         self,
-        db_path: str = "/Volumes/SSDRAID0/agentic-system/databases/performance_history.db",
+        db_path: str = None,
         min_improvement_threshold: float = 0.05,  # 5% minimum improvement
         significance_level: float = 0.95  # 95% confidence
     ):
@@ -149,10 +174,12 @@ class PerformanceRegressionTracker:
         Initialize performance tracker.
 
         Args:
-            db_path: Path to performance history database
+            db_path: Path to performance history database (default: auto-detect)
             min_improvement_threshold: Minimum improvement % to consider significant
             significance_level: Statistical confidence level required
         """
+        if db_path is None:
+            db_path = str(_STORAGE_BASE / "databases" / "performance_history.db")
         self.db_path = Path(db_path)
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self.min_improvement_threshold = min_improvement_threshold

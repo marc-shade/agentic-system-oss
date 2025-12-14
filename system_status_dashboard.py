@@ -3,10 +3,35 @@
 Real-Time System Status Dashboard
 Displays the status of all autonomous AGI system components
 """
+import os
+import platform
 import subprocess
 import time
 from datetime import datetime
 from pathlib import Path
+
+def _get_storage_base() -> Path:
+    """Detect storage base path based on platform."""
+    env_path = os.environ.get("AGENTIC_SYSTEM_PATH")
+    if env_path and Path(env_path).exists():
+        return Path(env_path)
+
+    system = platform.system()
+    if system == "Darwin":  # macOS
+        if Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+        elif Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+    elif system == "Linux":
+        if Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+        elif Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+    return Path(__file__).parent.parent
+
+
+_STORAGE_BASE = _get_storage_base()
+
 
 
 def run_command(cmd):
@@ -141,11 +166,11 @@ def main():
     # Knowledge Acquisition MCPs
     print_section("6. KNOWLEDGE ACQUISITION")
 
-    research_mcp = Path("/mnt/agentic-system/mcp-servers/research-paper-mcp/server.py")
+    research_mcp = Path(str(_STORAGE_BASE / "mcp-servers/research-paper-mcp/server.py"))
     research_status = "🟢 Available" if research_mcp.exists() else "🔴 Missing"
     print_status("Research Paper MCP", research_status, "arXiv + Semantic Scholar")
 
-    video_mcp = Path("/mnt/agentic-system/mcp-servers/video-transcript-mcp/server.py")
+    video_mcp = Path(str(_STORAGE_BASE / "mcp-servers/video-transcript-mcp/server.py"))
     video_status = "🟢 Available" if video_mcp.exists() else "🔴 Missing"
     print_status("Video Transcript MCP", video_status, "YouTube transcripts")
 
@@ -161,7 +186,7 @@ def main():
         ("autonomous_recursive_agi_loop.py", "Autonomous Loop")
     ]
 
-    base_path = Path("/mnt/agentic-system")
+    base_path = Path(str(_STORAGE_BASE))
     for file_path, name in components:
         full_path = base_path / file_path
         status = "🟢 Ready" if full_path.exists() else "🔴 Missing"

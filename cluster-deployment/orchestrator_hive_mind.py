@@ -24,13 +24,38 @@ Usage in Claude Code:
     hive.store_shared_memory("optimization_pattern", "Use TOON format for 50% savings")
 """
 
+import os
 import sys
 import json
+import platform
 import sqlite3
 from pathlib import Path
 from datetime import datetime
 from typing import Dict, List, Optional, Any
 import uuid
+
+
+def _get_storage_base() -> Path:
+    """Detect storage base path based on platform."""
+    env_path = os.environ.get("AGENTIC_SYSTEM_PATH")
+    if env_path and Path(env_path).exists():
+        return Path(env_path)
+
+    system = platform.system()
+    if system == "Darwin":  # macOS
+        if Path("/Volumes/SSDRAID0/agentic-system").exists():
+            return Path("/Volumes/SSDRAID0/agentic-system")
+        elif Path("/Volumes/FILES/agentic-system").exists():
+            return Path("/Volumes/FILES/agentic-system")
+    elif system == "Linux":
+        if Path("/home/marc/agentic-system").exists():
+            return Path("/home/marc/agentic-system")
+        elif Path("/mnt/agentic-system").exists():
+            return Path("/mnt/agentic-system")
+    return Path(__file__).parent.parent
+
+
+_STORAGE_BASE = _get_storage_base()
 
 # Add to path for imports
 sys.path.insert(0, str(Path(__file__).parent))
@@ -47,7 +72,7 @@ class HiveMind:
         self.router = DistributedTaskRouter()
 
         # Database paths
-        self.db_base = Path("/Volumes/SSDRAID0/agentic-system/databases/cluster")
+        self.db_base = _STORAGE_BASE / "databases" / "cluster"
         self.messages_db = self.db_base / "node_messages.db"
         self.shared_memory_db = self.db_base / "shared_memories.db"
         self.registry_db = self.db_base / "node_registry.db"

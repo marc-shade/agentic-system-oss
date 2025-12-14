@@ -11,6 +11,8 @@ Enables bidirectional communication between cluster nodes:
 This daemon runs continuously on each node, monitoring for incoming
 messages and reacting appropriately without human intervention.
 """
+import os
+import platform
 
 import json
 import sqlite3
@@ -32,7 +34,7 @@ try:
     local_config = get_node_config(local_node_id)
     STORAGE_BASE = Path(local_config['storage_base'])
 except:
-    STORAGE_BASE = Path("/mnt/agentic-system")
+    STORAGE_BASE = Path(str(_STORAGE_BASE))
     local_node_id = "unknown"
 
 # Ensure directories exist
@@ -499,6 +501,29 @@ class NodeCommunicationDaemon:
 def main():
     """Main execution"""
     import argparse
+
+def _get_storage_base() -> Path:
+    """Detect storage base path based on platform."""
+    env_path = os.environ.get("AGENTIC_SYSTEM_PATH")
+    if env_path and Path(env_path).exists():
+        return Path(env_path)
+
+    system = platform.system()
+    if system == "Darwin":  # macOS
+        if Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+        elif Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+    elif system == "Linux":
+        if Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+        elif Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+    return Path(__file__).parent.parent
+
+
+_STORAGE_BASE = _get_storage_base()
+
 
     parser = argparse.ArgumentParser(description="Node Communication Daemon")
     parser.add_argument('--poll-interval', type=int, default=30,

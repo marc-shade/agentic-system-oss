@@ -6,25 +6,53 @@ Reads cluster node configuration from cluster-nodes.toon and provides
 helper functions for node discovery and management.
 """
 
+import os
+import platform
 import socket
 from pathlib import Path
 from typing import Dict, List, Optional
 from toon_config import load_config, save_config
 
+
+def _get_storage_base() -> Path:
+    """Detect storage base path based on platform."""
+    env_path = os.environ.get("AGENTIC_SYSTEM_PATH")
+    if env_path and Path(env_path).exists():
+        return Path(env_path)
+
+    system = platform.system()
+    if system == "Darwin":  # macOS
+        if Path("/Volumes/SSDRAID0/agentic-system").exists():
+            return Path("/Volumes/SSDRAID0/agentic-system")
+        elif Path("/Volumes/FILES/agentic-system").exists():
+            return Path("/Volumes/FILES/agentic-system")
+    elif system == "Linux":
+        if Path("/home/marc/agentic-system").exists():
+            return Path("/home/marc/agentic-system")
+        elif Path("/mnt/agentic-system").exists():
+            return Path("/mnt/agentic-system")
+    return Path(__file__).parent.parent
+
+
+_STORAGE_BASE = _get_storage_base()
+
+
 def get_cluster_config(config_path: Optional[str] = None) -> Dict:
     """Load cluster node configuration"""
     if config_path is None:
-        # Try multiple possible locations (SSDRAID0 first - see FILE_LOCATION_POLICY.md)
-        possible_paths = [
-            Path("/Volumes/SSDRAID0/agentic-system/cluster-deployment/cluster-nodes.toon"),
-            Path("/mnt/agentic-system/cluster-deployment/cluster-nodes.toon"),
-            Path.home() / "agentic-system" / "cluster-deployment" / "cluster-nodes.toon"
-        ]
-
-        for path in possible_paths:
-            if path.exists():
-                config_path = str(path)
-                break
+        # First try auto-detected storage base
+        primary_path = _STORAGE_BASE / "cluster-deployment" / "cluster-nodes.toon"
+        if primary_path.exists():
+            config_path = str(primary_path)
+        else:
+            # Fallback to other possible locations
+            possible_paths = [
+                Path.home() / "agentic-system" / "cluster-deployment" / "cluster-nodes.toon"
+            ]
+            for path in possible_paths:
+                if path.exists():
+                    config_path = str(path)
+                    break
 
     if config_path is None:
         raise FileNotFoundError("Could not find cluster-nodes.toon configuration")

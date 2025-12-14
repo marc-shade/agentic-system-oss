@@ -55,8 +55,8 @@ logger = logging.getLogger("research-paper-mcp")
 # Configuration
 ARXIV_BASE_URL = "http://export.arxiv.org/api/query"
 SEMANTIC_SCHOLAR_BASE_URL = "https://api.semanticscholar.org/graph/v1"
-PAPERS_DIR = Path("/mnt/agentic-system/research-papers")
-PAPERS_DIR.mkdir(exist_ok=True)
+PAPERS_DIR = Path(os.environ.get("AGENTIC_SYSTEM_PATH", Path.home() / "agentic-system")) / "research-papers"
+PAPERS_DIR.mkdir(parents=True, exist_ok=True)
 
 
 # Create MCP server

@@ -3,6 +3,33 @@
 
 set -e  # Exit on error
 
+
+# Platform-aware storage detection
+detect_storage_base() {
+    if [ -n "$AGENTIC_SYSTEM_PATH" ] && [ -d "$AGENTIC_SYSTEM_PATH" ]; then
+        echo "$AGENTIC_SYSTEM_PATH"
+        return
+    fi
+    case "$(uname -s)" in
+        Darwin)
+            if [ -d "/Volumes/SSDRAID0/agentic-system" ]; then
+                echo "/Volumes/SSDRAID0/agentic-system"
+            elif [ -d "/Volumes/FILES/agentic-system" ]; then
+                echo "/Volumes/FILES/agentic-system"
+            fi
+            ;;
+        Linux)
+            if [ -d "/home/marc/agentic-system" ]; then
+                echo "/home/marc/agentic-system"
+            elif [ -d "/mnt/agentic-system" ]; then
+                echo "/mnt/agentic-system"
+            fi
+            ;;
+    esac
+}
+
+STORAGE_BASE=$(detect_storage_base)
+
 echo "=========================================="
 echo "Intelligent AI Agent Framework Setup"
 echo "=========================================="
@@ -53,12 +80,12 @@ echo ""
 # Create necessary directories
 echo "Creating directories..."
 mkdir -p /tmp/agent-logs
-mkdir -p /mnt/agentic-system/config
+mkdir -p $STORAGE_BASE/config
 echo "✅ Directories created"
 echo ""
 
 # Verify evolution config exists
-EVOLUTION_CONFIG="/mnt/agentic-system/config/evolution_phases.json"
+EVOLUTION_CONFIG="$STORAGE_BASE/config/evolution_phases.json"
 if [ -f "$EVOLUTION_CONFIG" ]; then
     echo "✅ Evolution phases config found"
 else

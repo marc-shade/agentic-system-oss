@@ -10,6 +10,8 @@ Integrates with enhanced-memory for persistent metrics storage.
 import json
 import logging
 import hashlib
+import os
+import platform
 import sqlite3
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
@@ -20,7 +22,29 @@ import statistics
 
 logger = logging.getLogger(__name__)
 
-DB_PATH = Path("/Volumes/SSDRAID0/agentic-system/databases/dspy_optimizer.db")
+
+def _get_storage_base() -> Path:
+    """Detect storage base path based on platform."""
+    env_path = os.environ.get("AGENTIC_SYSTEM_PATH")
+    if env_path and Path(env_path).exists():
+        return Path(env_path)
+
+    system = platform.system()
+    if system == "Darwin":  # macOS
+        if Path("/Volumes/SSDRAID0/agentic-system").exists():
+            return Path("/Volumes/SSDRAID0/agentic-system")
+        elif Path("/Volumes/FILES/agentic-system").exists():
+            return Path("/Volumes/FILES/agentic-system")
+    elif system == "Linux":
+        if Path("/home/marc/agentic-system").exists():
+            return Path("/home/marc/agentic-system")
+        elif Path("/mnt/agentic-system").exists():
+            return Path("/mnt/agentic-system")
+    return Path(__file__).parent.parent.parent
+
+
+_STORAGE_BASE = _get_storage_base()
+DB_PATH = _STORAGE_BASE / "databases" / "dspy_optimizer.db"
 
 
 @dataclass

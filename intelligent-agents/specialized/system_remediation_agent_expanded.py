@@ -14,6 +14,7 @@ EXPANDED COVERAGE:
 - Original 4 services: temporal, autokitteh, pm2, qdrant
 - NEW: All 34 services from complete system monitoring
 """
+import platform
 
 import os
 import sys
@@ -34,6 +35,29 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "shared"))
 from cli_agent import CLIAgent, AgentPurpose
 from agent_memory import AgentMemory
 from secure_ipc import (
+
+def _get_storage_base() -> Path:
+    """Detect storage base path based on platform."""
+    env_path = os.environ.get("AGENTIC_SYSTEM_PATH")
+    if env_path and Path(env_path).exists():
+        return Path(env_path)
+
+    system = platform.system()
+    if system == "Darwin":  # macOS
+        if Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+        elif Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+    elif system == "Linux":
+        if Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+        elif Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+    return Path(__file__).parent.parent
+
+
+_STORAGE_BASE = _get_storage_base()
+
     read_recommendations,
     write_recommendations,
     save_crash_history,
@@ -56,11 +80,11 @@ SERVICE_CONFIGS = {
         "port": 9980,
         "start_cmd": ["nohup", "ak", "up", "--mode", "dev"],
         "log_file": "/tmp/autokitteh.log",
-        "cwd": "/mnt/agentic-system"
+        "cwd": str(_STORAGE_BASE)
     },
     "qdrant": {
         "port": 6333,
-        "start_cmd": ["/mnt/agentic-system/scripts/qdrant-monitor.sh", "start"],
+        "start_cmd": [str(_STORAGE_BASE / "scripts/qdrant-monitor.sh"), "start"],
         "log_file": None,
         "cwd": None
     },
@@ -114,37 +138,37 @@ SERVICE_CONFIGS = {
         "port": 2022,
         "start_cmd": ["python3", "-m", "whisper.server", "--port", "2022"],
         "log_file": "/tmp/whisper.log",
-        "cwd": "/mnt/agentic-system/voice-mode"
+        "cwd": str(_STORAGE_BASE / "voice-mode")
     },
     "kokoro": {
         "port": 8880,
         "start_cmd": ["python3", "kokoro_server.py"],
         "log_file": "/tmp/kokoro.log",
-        "cwd": "/mnt/agentic-system/voice-mode"
+        "cwd": str(_STORAGE_BASE / "voice-mode")
     },
     "voiceBrokerMain": {
         "port": 9091,
         "start_cmd": ["python3", "voice_broker.py", "--port", "9091"],
         "log_file": "/tmp/voice-broker-main.log",
-        "cwd": "/mnt/agentic-system/voice-mode"
+        "cwd": str(_STORAGE_BASE / "voice-mode")
     },
     "voiceBrokerAdmin": {
         "port": 9092,
         "start_cmd": ["python3", "voice_broker_admin.py", "--port", "9092"],
         "log_file": "/tmp/voice-broker-admin.log",
-        "cwd": "/mnt/agentic-system/voice-mode"
+        "cwd": str(_STORAGE_BASE / "voice-mode")
     },
     "voiceCache": {
         "port": 9093,
         "start_cmd": ["python3", "voice_cache.py", "--port", "9093"],
         "log_file": "/tmp/voice-cache.log",
-        "cwd": "/mnt/agentic-system/voice-mode"
+        "cwd": str(_STORAGE_BASE / "voice-mode")
     },
     "voiceFeedback": {
         "port": 9050,
         "start_cmd": ["python3", "voice_feedback.py", "--port", "9050"],
         "log_file": "/tmp/voice-feedback.log",
-        "cwd": "/mnt/agentic-system/voice-mode"
+        "cwd": str(_STORAGE_BASE / "voice-mode")
     },
     "livekit": {
         "port": 7880,
@@ -159,20 +183,20 @@ SERVICE_CONFIGS = {
         "process_name": "arduino_broker.py",
         "start_cmd": ["python3", "bridge/arduino_broker.py"],
         "log_file": "/tmp/arduino-broker.log",
-        "cwd": "/mnt/agentic-system/arduino-surface"
+        "cwd": str(_STORAGE_BASE / "arduino-surface")
     },
     "arduinoAgent": {
         "port": None,
         "process_name": "intelligent_display_agent.py",
         "start_cmd": ["python3", "daemons/intelligent_display_agent.py"],
         "log_file": "/tmp/arduino-smart-agent.log",
-        "cwd": "/mnt/agentic-system/arduino-surface"
+        "cwd": str(_STORAGE_BASE / "arduino-surface")
     },
     "arduinoMCP": {
         "port": 8765,
         "start_cmd": ["python3", "mcp-server/arduino_surface_mcp.py"],
         "log_file": "/tmp/arduino-mcp.log",
-        "cwd": "/mnt/agentic-system/arduino-surface"
+        "cwd": str(_STORAGE_BASE / "arduino-surface")
     },
 
     # Ember (3 services)
@@ -188,14 +212,14 @@ SERVICE_CONFIGS = {
         "process_name": "intelligent_statusline",
         "start_cmd": ["python3", "intelligent_statusline.py"],
         "log_file": "/tmp/ember-statusline.log",
-        "cwd": "/mnt/agentic-system/intelligent-self-healing"
+        "cwd": str(_STORAGE_BASE / "intelligent-self-healing")
     },
     "emberMCP": {
         "port": None,
         "process_name": "ember-mcp.*index.js",
         "start_cmd": ["node", "dist/index.js"],
         "log_file": "/tmp/ember-mcp.log",
-        "cwd": "/mnt/agentic-system/mcp-servers/ember-mcp"
+        "cwd": str(_STORAGE_BASE / "mcp-servers/ember-mcp")
     },
 
     # MCP Servers (5 services)
@@ -204,28 +228,28 @@ SERVICE_CONFIGS = {
         "process_name": "enhanced-memory.*server.py",
         "start_cmd": [".venv/bin/python", "server.py"],
         "log_file": "/tmp/enhanced-memory-mcp.log",
-        "cwd": "/mnt/agentic-system/mcp-servers/enhanced-memory-mcp"
+        "cwd": str(_STORAGE_BASE / "mcp-servers/enhanced-memory-mcp")
     },
     "agentRuntime": {
         "port": None,
         "process_name": "agent-runtime.*server.py",
         "start_cmd": [".venv/bin/python", "server.py"],
         "log_file": "/tmp/agent-runtime-mcp.log",
-        "cwd": "/mnt/agentic-system/mcp-servers/agent-runtime-mcp"
+        "cwd": str(_STORAGE_BASE / "mcp-servers/agent-runtime-mcp")
     },
     "sequentialThinking": {
         "port": None,
         "process_name": "sequential-thinking",
         "start_cmd": ["node", "dist/index.js"],
         "log_file": "/tmp/sequential-thinking-mcp.log",
-        "cwd": "/mnt/agentic-system/mcp-servers/sequential-thinking"
+        "cwd": str(_STORAGE_BASE / "mcp-servers/sequential-thinking")
     },
     "voiceMode": {
         "port": None,
         "process_name": "voice-mode",
         "start_cmd": ["python3", "server.py"],
         "log_file": "/tmp/voice-mode-mcp.log",
-        "cwd": "/mnt/agentic-system/mcp-servers/voice-mode-mcp",
+        "cwd": str(_STORAGE_BASE / "mcp-servers/voice-mode-mcp"),
         "on_demand": True
     },
     "chromeDevTools": {
@@ -233,7 +257,7 @@ SERVICE_CONFIGS = {
         "process_name": "chrome-devtools",
         "start_cmd": ["node", "dist/index.js"],
         "log_file": "/tmp/chrome-devtools-mcp.log",
-        "cwd": "/mnt/agentic-system/mcp-servers/chrome-devtools"
+        "cwd": str(_STORAGE_BASE / "mcp-servers/chrome-devtools")
     },
 
     # Database & API (2 services)

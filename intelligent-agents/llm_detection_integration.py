@@ -13,6 +13,8 @@ Usage in autonomous_recursive_agi_loop.py:
     # With:
     # modifications = await detect_improvements_with_llm(self, insights)
 """
+import os
+import platform
 
 import json
 import logging
@@ -47,11 +49,7 @@ async def detect_improvements_with_llm(loop_instance, insights: List) -> List:
         loop_instance.llm_detector = create_llm_detector(use_ollama=True)
 
     # Load configuration to get target files
-<<<<<<< HEAD
-    config_path = Path("/Volumes/SSDRAID0/agentic-system/agi_config.json")
-=======
-    config_path = Path("/mnt/agentic-system/agi_config.json")
->>>>>>> origin/main
+    config_path = Path(str(_STORAGE_BASE / "agi_config.json"))
     try:
         with open(config_path, 'r') as f:
             config = json.load(f)
@@ -78,11 +76,7 @@ async def detect_improvements_with_llm(loop_instance, insights: List) -> List:
 
     # Analyze each target file with LLM
     for target_file in target_files[:1]:  # Start with first file
-<<<<<<< HEAD
-        target_path = Path("/Volumes/SSDRAID0/agentic-system") / target_file
-=======
-        target_path = Path("/mnt/agentic-system") / target_file
->>>>>>> origin/main
+        target_path = Path(str(_STORAGE_BASE)) / target_file
 
         if not target_path.exists():
             logger.error(f"  Target file not found: {target_file}")
@@ -125,6 +119,29 @@ async def detect_improvements_with_llm(loop_instance, insights: List) -> List:
         except Exception as e:
             logger.error(f"  LLM detection failed: {e}")
             import traceback
+
+def _get_storage_base() -> Path:
+    """Detect storage base path based on platform."""
+    env_path = os.environ.get("AGENTIC_SYSTEM_PATH")
+    if env_path and Path(env_path).exists():
+        return Path(env_path)
+
+    system = platform.system()
+    if system == "Darwin":  # macOS
+        if Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+        elif Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+    elif system == "Linux":
+        if Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+        elif Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+    return Path(__file__).parent.parent
+
+
+_STORAGE_BASE = _get_storage_base()
+
             logger.error(traceback.format_exc())
             continue
 

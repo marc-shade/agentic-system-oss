@@ -22,11 +22,7 @@ logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-<<<<<<< HEAD
-        logging.FileHandler('/Volumes/SSDRAID0/agentic-system/logs/agent_selector.log'),
-=======
         logging.FileHandler('/mnt/agentic-system/logs/agent_selector.log'),
->>>>>>> origin/main
         logging.StreamHandler()
     ]
 )
@@ -72,11 +68,7 @@ class AgentAutoSelector:
     def __init__(self):
         self.agents = self._initialize_agent_catalog()
         self.selection_history = []
-<<<<<<< HEAD
-        self.history_file = Path('/Volumes/SSDRAID0/agentic-system/databases/agent_selection_history.json')
-=======
         self.history_file = Path('/mnt/agentic-system/databases/agent_selection_history.json')
->>>>>>> origin/main
 
     def _initialize_agent_catalog(self) -> Dict[str, AgentCapability]:
         """Initialize catalog of available agents with their capabilities"""

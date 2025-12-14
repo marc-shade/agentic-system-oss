@@ -17,6 +17,7 @@ the system prioritizes task offloading to cluster nodes as requested.
 import asyncio
 import logging
 from pathlib import Path
+from storage_path_utils import get_database_path, get_logs_path, STORAGE_BASE
 import sys
 
 # Configure logging
@@ -342,7 +343,7 @@ async def test_verified_executor():
         from verified_improvement_executor import VerifiedImprovementExecutor
 
         executor = VerifiedImprovementExecutor(
-            working_dir=Path("/Volumes/SSDRAID0/agentic-system"),
+            working_dir=STORAGE_BASE,
             enable_git_rollback=False,  # Don't actually modify git
             require_approval_threshold=0.95
         )

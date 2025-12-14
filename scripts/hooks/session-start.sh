@@ -1,38 +1,58 @@
 #!/bin/bash
-# Session Start Hook - Log session initialization to cluster memory
+# SessionStart Hook - Full AGI Integration
+# Initializes session with context restoration, memory loading, and AGI state
+#
+# Integrations: TPU, AGI Bridge, Memory, Activity Dashboard
+# Performance target: <200ms total
 
-NODE_ID="macpro51"
-TIMESTAMP=$(date -Iseconds)
-SESSION_DIR="${CLAUDE_SESSION_DIR:-unknown}"
-SESSION_ID="${CLAUDE_SESSION_ID:-unknown}"
+exec 2>/dev/null  # Suppress stderr for clean operation
 
-# Log to system
-echo "{\"event\": \"session_start\", \"node\": \"$NODE_ID\", \"timestamp\": \"$TIMESTAMP\", \"session_dir\": \"$SESSION_DIR\", \"session_id\": \"$SESSION_ID\"}" >> /home/marc/agentic-system/logs/claude-sessions.log 2>/dev/null || true
+# Source performance helpers
+source /home/marc/agentic-system/scripts/hooks/hook_performance.sh 2>/dev/null || true
 
-# Ensure memory status check script is available in /tmp
-if [ ! -L /tmp/memory-status-check.sh ]; then
-    ln -sf /home/marc/agentic-system/scripts/statusline/memory-status-check.sh /tmp/memory-status-check.sh 2>/dev/null || true
-fi
+# Read hook input
+INPUT=$(cat)
 
-# Create per-session timestamp file for statusline timer
-# Each session gets its own file to support multiple concurrent sessions
-if [ "$SESSION_ID" != "unknown" ]; then
-    SESSION_FILE="/tmp/claude_session_${SESSION_ID}.json"
-else
-    # Fallback to legacy single-session file if SESSION_ID not available
-    SESSION_FILE="/tmp/claude_session_start.json"
-fi
+# Extract session info
+SESSION_ID=$(echo "$INPUT" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('session_id', 'unknown'))" 2>/dev/null || echo "unknown")
+export CLAUDE_SESSION_ID="$SESSION_ID"
 
-# Always create/update the session file on session start
-echo "{\"start_time\": \"$TIMESTAMP\", \"session_id\": \"$SESSION_ID\"}" > "$SESSION_FILE" 2>/dev/null || true
+# Start time for metrics
+START_MS=$(get_timestamp_ms 2>/dev/null || date +%s000)
 
-# Create a symlink to track the "current" session for statusline fallback
-ln -sf "$SESSION_FILE" /tmp/claude_session_current.json 2>/dev/null || true
-
-# Load memory context for session (non-blocking)
+# Run unified integrations (with timeout)
 {
-    /mnt/agentic-system/scripts/hooks/memory-helper.py load_context "$SESSION_ID" > /tmp/claude_memory_context.json 2>/dev/null
+    python3 /home/marc/agentic-system/scripts/hooks/unified_hook_integrations.py \
+        session_start 2>/dev/null &
+    INTEGRATION_PID=$!
+
+    # Wait with timeout (300ms max)
+    sleep 0.3
+    kill -0 $INTEGRATION_PID 2>/dev/null && kill $INTEGRATION_PID 2>/dev/null
 } &
 
-# Return success (hooks should not block)
+# Log session start (non-blocking)
+{
+    echo "{\"event\":\"session_start\",\"session_id\":\"$SESSION_ID\",\"node\":\"$(hostname)\",\"ts\":\"$(date -Is)\"}" >> /home/marc/agentic-system/logs/sessions.log
+    # Reset context status - new session = fresh context
+    python3 -c "
+import json
+from pathlib import Path
+from datetime import datetime
+ctx_file = Path.home() / '.claude' / 'context_status.json'
+ctx_file.write_text(json.dumps({
+    'percent': 10,
+    'estimated': True,
+    'source': 'session_start_hook',
+    'updated_at': datetime.now().isoformat(),
+    'note': 'Fresh session started'
+}))
+" 2>/dev/null
+} &
+
+# Calculate and log performance
+END_MS=$(get_timestamp_ms 2>/dev/null || date +%s000)
+DURATION_MS=$((END_MS - START_MS))
+log_hook_metric "SessionStart" "session_start" "$DURATION_MS" "true" "false" "" 2>/dev/null &
+
 exit 0

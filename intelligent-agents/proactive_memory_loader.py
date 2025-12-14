@@ -27,11 +27,7 @@ logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-<<<<<<< HEAD
-        logging.FileHandler('/Volumes/SSDRAID0/agentic-system/logs/proactive_memory.log'),
-=======
         logging.FileHandler('/mnt/agentic-system/logs/proactive_memory.log'),
->>>>>>> origin/main
         logging.StreamHandler()
     ]
 )
@@ -41,12 +37,7 @@ class ProactiveMemoryLoader:
     """Proactively loads relevant context from enhanced-memory"""
 
     def __init__(self):
-<<<<<<< HEAD
-        # Store on SSDRAID0 (not home directory - see FILE_LOCATION_POLICY.md)
-        self.memory_db = Path("/Volumes/SSDRAID0/agentic-system/databases/enhanced_memory/memory.db")
-=======
         self.memory_db = Path.home() / ".claude" / "enhanced_memories" / "memory.db"
->>>>>>> origin/main
         self.min_relevance_score = 0.6
         self.max_context_items = 5
 

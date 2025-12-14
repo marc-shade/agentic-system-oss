@@ -4,10 +4,36 @@ Comprehensive System Health Check
 Verifies all components of the autonomous recursive AGI system
 """
 import asyncio
+import os
+import platform
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent / "intelligent-agents"))
+
+def _get_storage_base() -> Path:
+    """Detect storage base path based on platform."""
+    env_path = os.environ.get("AGENTIC_SYSTEM_PATH")
+    if env_path and Path(env_path).exists():
+        return Path(env_path)
+
+    system = platform.system()
+    if system == "Darwin":  # macOS
+        if Path("/Volumes/SSDRAID0/agentic-system").exists():
+            return Path("/Volumes/SSDRAID0/agentic-system")
+        elif Path("/Volumes/FILES/agentic-system").exists():
+            return Path("/Volumes/FILES/agentic-system")
+    elif system == "Linux":
+        if Path("/home/marc/agentic-system").exists():
+            return Path("/home/marc/agentic-system")
+        elif Path("/mnt/agentic-system").exists():
+            return Path("/mnt/agentic-system")
+    # Fallback to script location
+    return Path(__file__).parent
+
+
+STORAGE_BASE = _get_storage_base()
+
+sys.path.insert(0, str(STORAGE_BASE / "intelligent-agents"))
 
 from sandbox_testing_environment import SandboxedTestingEnvironment
 from darwin_godel_machine import DarwinGodelMachine
@@ -149,8 +175,8 @@ async def main():
 
     # Check 8: Research Paper & Video MCPs
     print_section("8. Knowledge Acquisition MCPs")
-    research_paper_mcp = Path("/mnt/agentic-system/mcp-servers/research-paper-mcp/server.py")
-    video_transcript_mcp = Path("/mnt/agentic-system/mcp-servers/video-transcript-mcp/server.py")
+    research_paper_mcp = STORAGE_BASE / "mcp-servers/research-paper-mcp/server.py"
+    video_transcript_mcp = STORAGE_BASE / "mcp-servers/video-transcript-mcp/server.py"
 
     print_check("Research Paper MCP", research_paper_mcp.exists(),
                "arXiv + Semantic Scholar integration")
@@ -171,7 +197,7 @@ async def main():
         ("autonomous_recursive_agi_loop.py", "Autonomous Loop"),
     ]
 
-    base_path = Path("/mnt/agentic-system")
+    base_path = STORAGE_BASE
     for file_path, description in critical_files:
         full_path = base_path / file_path
         exists = full_path.exists()

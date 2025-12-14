@@ -16,13 +16,38 @@ Usage:
     python3 retrain_darwin_godel_constrained.py
 """
 
+import os
+import platform
 import sys
 from pathlib import Path
 import numpy as np
 from datetime import datetime
 
+
+def _get_storage_base() -> Path:
+    """Detect storage base path based on platform."""
+    env_path = os.environ.get("AGENTIC_SYSTEM_PATH")
+    if env_path and Path(env_path).exists():
+        return Path(env_path)
+
+    system = platform.system()
+    if system == "Darwin":  # macOS
+        if Path("/Volumes/SSDRAID0/agentic-system").exists():
+            return Path("/Volumes/SSDRAID0/agentic-system")
+        elif Path("/Volumes/FILES/agentic-system").exists():
+            return Path("/Volumes/FILES/agentic-system")
+    elif system == "Linux":
+        if Path("/home/marc/agentic-system").exists():
+            return Path("/home/marc/agentic-system")
+        elif Path("/mnt/agentic-system").exists():
+            return Path("/mnt/agentic-system")
+    return Path(__file__).parent.parent
+
+
+_STORAGE_BASE = _get_storage_base()
+
 # Add parent directory to path
-sys.path.insert(0, str(Path(__file__).parent.parent / "intelligent-agents"))
+sys.path.insert(0, str(_STORAGE_BASE / "intelligent-agents"))
 
 from symbolic_regression_manager import SymbolicRegressionManager
 
@@ -256,7 +281,7 @@ def main():
         print("   3. Monitor performance for first 24 hours")
         print()
         print("To run A/B tests:")
-        print("   cd /Volumes/SSDRAID0/agentic-system/scripts")
+        print(f"   cd {_STORAGE_BASE / 'scripts'}")
         print("   python3 ab_test_pysr_equations.py --trials 100")
     else:
         print("⚠️  New equation needs review:")

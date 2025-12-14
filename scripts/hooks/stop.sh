@@ -1,42 +1,40 @@
 #!/bin/bash
-# Stop Hook - Post-response memory consolidation and learning
-# Fires after Claude completes a response (main agent only)
+# Stop Hook - Full AGI Integration
+# Saves context on stop, records session interrupt
+#
+# Integrations: Memory (context save), Activity Dashboard, Voice (notification)
+# Performance target: <150ms
 
-NODE_ID="macpro51"
-TIMESTAMP=$(date -Iseconds)
+exec 2>/dev/null  # Suppress stderr
+
+# Source performance helpers
+source /home/marc/agentic-system/scripts/hooks/hook_performance.sh 2>/dev/null || true
+
+# Read hook input
+INPUT=$(cat)
+
+SESSION_ID="${CLAUDE_SESSION_ID:-unknown}"
+
+# Start time for metrics
+START_MS=$(get_timestamp_ms 2>/dev/null || date +%s000)
+
+# Run unified integrations
+{
+    python3 /home/marc/agentic-system/scripts/hooks/unified_hook_integrations.py \
+        stop 2>/dev/null
+} &
+
+# NOTE: Activity Dashboard (port 4100) was aspirational - service never implemented
+# Events logged to sessions.log below for activity tracking
 
 # Log stop event
-echo "{\"event\": \"agent_stop\", \"node\": \"$NODE_ID\", \"timestamp\": \"$TIMESTAMP\"}" >> /home/marc/agentic-system/logs/claude-sessions.log 2>/dev/null || true
+{
+    echo "{\"event\":\"stop\",\"session\":\"$SESSION_ID\",\"node\":\"$(hostname)\",\"ts\":\"$(date -Is)\"}" >> /home/marc/agentic-system/logs/sessions.log
+} &
 
-# Trigger autonomous memory curation (non-blocking background task)
-# This consolidates working → episodic → semantic memory
-(
-    # Only run curation if enhanced memory is accessible
-    if [ -f ~/.claude/enhanced_memories/memory.db ]; then
-        # Check if enough time has passed since last curation (5+ minutes)
-        LAST_CURATION=$(stat -c %Y /tmp/last_memory_curation 2>/dev/null || echo 0)
-        NOW=$(date +%s)
-        TIME_DIFF=$((NOW - LAST_CURATION))
+# Calculate and log performance
+END_MS=$(get_timestamp_ms 2>/dev/null || date +%s000)
+DURATION_MS=$((END_MS - START_MS))
+log_hook_metric "Stop" "stop" "$DURATION_MS" "true" "false" "" 2>/dev/null &
 
-        if [ $TIME_DIFF -gt 300 ]; then
-            # Run memory curation in background
-            python3 -c "
-import sys
-sys.path.insert(0, '/mnt/agentic-system/mcp-servers/enhanced-memory-mcp')
-try:
-    from memory_manager import MemoryManager
-    manager = MemoryManager()
-    # Quick curation without heavy processing
-    manager.autonomous_memory_curation()
-except Exception as e:
-    pass
-" 2>/dev/null || true
-
-            # Update last curation timestamp
-            touch /tmp/last_memory_curation 2>/dev/null || true
-        fi
-    fi
-) &
-
-# Return success immediately (don't wait for background task)
 exit 0

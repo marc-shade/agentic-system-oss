@@ -21,6 +21,7 @@ Usage:
     # Task automatically routes to best node (likely macpro51 for Linux builds)
     result = router.wait_for_result(task_id)
 """
+import platform
 
 import json
 import os
@@ -36,7 +37,7 @@ import sqlite3
 # Cluster node registry
 CLUSTER_NODES = {
     "macpro51": {
-        "ip": "192.168.1.183",
+        "ip": "192.168.1.27",  # Fixed: was 192.168.1.183
         "hostname": "macpro51.local",
         "os": "linux",
         "arch": "x86_64",
@@ -46,8 +47,8 @@ CLUSTER_NODES = {
         "priority": 3  # Lower = higher priority for offloading
     },
     "mac-studio": {
-        "ip": "192.168.1.176",
-        "hostname": "Marcs-Mac-Studio.local",
+        "ip": "192.168.1.16",  # Auto-detected from current DHCP
+        "hostname": "mac-studio.local",  # Fixed: normalized hostname
         "os": "macos",
         "arch": "arm64",
         "capabilities": ["orchestration", "coordination", "temporal"],
@@ -56,8 +57,8 @@ CLUSTER_NODES = {
         "priority": 1  # Keep this free - orchestrator
     },
     "macbook-air": {
-        "ip": "192.168.1.76",
-        "hostname": "Mac.fios-router.home",
+        "ip": "192.168.1.76",  # Auto-detected from network scan
+        "hostname": "macbook-air.local",  # Fixed: normalized hostname
         "os": "macos",
         "arch": "arm64",
         "capabilities": ["research", "documentation", "analysis"],
@@ -123,7 +124,7 @@ class DistributedTaskRouter:
     def _get_db_path(self) -> Path:
         """Get path to task queue database"""
         if self.local_node_id == "macpro51":
-            base = Path("/home/marc/agentic-system")
+            base = Path(str(_STORAGE_BASE))
         else:
             base = Path.home() / "agentic-system"
 
@@ -192,7 +193,11 @@ class DistributedTaskRouter:
         )
 
         # Find best node for this task
-        target_node = self._route_task(task)
+        # Support force_node to override routing
+        if task_def.get("force_node") and task_def["force_node"] in CLUSTER_NODES:
+            target_node = task_def["force_node"]
+        else:
+            target_node = self._route_task(task)
 
         # Store in database
         conn = sqlite3.connect(self.db_path)
@@ -351,11 +356,20 @@ class DistributedTaskRouter:
 
     def _execute_remote(self, task: Task, target_node: str):
         """Execute task on remote node via SSH"""
+        import shlex
         node_info = CLUSTER_NODES[target_node]
 
-        # Build remote execution command
+        # Build remote execution command using list args for security
         if task.command:
-            remote_cmd = f"ssh -o ConnectTimeout=5 marc@{node_info['ip']} '{task.command}'"
+            ssh_args = [
+                "ssh",
+                "-o", "ConnectTimeout=5",
+                "-o", "StrictHostKeyChecking=accept-new",
+                "-o", "BatchMode=yes",
+                f"marc@{node_info['ip']}",
+                task.command  # SSH handles this as a single argument
+            ]
+            use_list_args = True
         elif task.script:
             # Transfer script and execute
             import tempfile
@@ -365,14 +379,29 @@ class DistributedTaskRouter:
 
             remote_script = f"/tmp/task_{task.task_id}.sh"
 
-            # SCP script to remote node
+            # SCP script to remote node using list args
             subprocess.run(
-                f"scp -o ConnectTimeout=5 {local_script} marc@{node_info['ip']}:{remote_script}",
-                shell=True,
-                capture_output=True
+                [
+                    "scp",
+                    "-o", "ConnectTimeout=5",
+                    "-o", "StrictHostKeyChecking=accept-new",
+                    "-o", "BatchMode=yes",
+                    local_script,
+                    f"marc@{node_info['ip']}:{remote_script}"
+                ],
+                capture_output=True,
+                timeout=30
             )
 
-            remote_cmd = f"ssh -o ConnectTimeout=5 marc@{node_info['ip']} 'chmod +x {remote_script} && {remote_script} && rm {remote_script}'"
+            ssh_args = [
+                "ssh",
+                "-o", "ConnectTimeout=5",
+                "-o", "StrictHostKeyChecking=accept-new",
+                "-o", "BatchMode=yes",
+                f"marc@{node_info['ip']}",
+                f"chmod +x {remote_script} && {remote_script} && rm {remote_script}"
+            ]
+            use_list_args = True
             os.unlink(local_script)
         else:
             # No command, mark as failed
@@ -388,13 +417,12 @@ class DistributedTaskRouter:
             return
 
         try:
-            # Execute remotely
+            # Execute remotely using list args (no shell=True for security)
             result = subprocess.run(
-                remote_cmd,
-                shell=True,
+                ssh_args,
                 capture_output=True,
                 text=True,
-                timeout=300
+                timeout=60  # Reduced from 300s - most commands should complete in 60s
             )
 
             output = result.stdout

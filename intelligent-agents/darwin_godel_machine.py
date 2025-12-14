@@ -43,6 +43,8 @@ import sqlite3
 import ast
 import sys
 
+from storage_path_utils import get_database_path
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -50,8 +52,8 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Database path
-DB_PATH = Path("/mnt/agentic-system/databases/darwin_godel.db")
+# Database path - uses platform-aware detection
+DB_PATH = get_database_path("darwin_godel.db")
 
 
 class ModificationType(Enum):

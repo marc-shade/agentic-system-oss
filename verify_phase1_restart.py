@@ -14,6 +14,7 @@ Exit Codes:
     1 - Some checks failed, needs attention
     2 - Critical failures, manual intervention required
 """
+import platform
 
 import json
 import os
@@ -24,12 +25,35 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Tuple
 
+def _get_storage_base() -> Path:
+    """Detect storage base path based on platform."""
+    env_path = os.environ.get("AGENTIC_SYSTEM_PATH")
+    if env_path and Path(env_path).exists():
+        return Path(env_path)
+
+    system = platform.system()
+    if system == "Darwin":  # macOS
+        if Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+        elif Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+    elif system == "Linux":
+        if Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+        elif Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+    return Path(__file__).parent.parent
+
+
+_STORAGE_BASE = _get_storage_base()
+
+
 
 class Phase1RestartVerifier:
     """Verify system state after restart."""
 
     def __init__(self):
-        self.root_dir = Path("/mnt/agentic-system")
+        self.root_dir = Path(str(_STORAGE_BASE))
         self.checks_passed = 0
         self.checks_failed = 0
         self.warnings = []

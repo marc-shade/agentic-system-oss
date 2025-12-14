@@ -8,17 +8,38 @@ STATUS: Production Ready
 """
 
 import json
+import os
+import platform
 import sys
 import argparse
 from pathlib import Path
 from datetime import datetime
 
+
+def _get_storage_base() -> Path:
+    """Detect storage base path based on platform."""
+    env_path = os.environ.get("AGENTIC_SYSTEM_PATH")
+    if env_path and Path(env_path).exists():
+        return Path(env_path)
+
+    system = platform.system()
+    if system == "Darwin":  # macOS
+        if Path("/Volumes/SSDRAID0/agentic-system").exists():
+            return Path("/Volumes/SSDRAID0/agentic-system")
+        elif Path("/Volumes/FILES/agentic-system").exists():
+            return Path("/Volumes/FILES/agentic-system")
+    elif system == "Linux":
+        if Path("/home/marc/agentic-system").exists():
+            return Path("/home/marc/agentic-system")
+        elif Path("/mnt/agentic-system").exists():
+            return Path("/mnt/agentic-system")
+    return Path(__file__).parent.parent
+
+
+_STORAGE_BASE = _get_storage_base()
+
 # Add intelligent healing system to path
-<<<<<<< HEAD
-sys.path.insert(0, '/Volumes/SSDRAID0/agentic-system/intelligent-self-healing')
-=======
-sys.path.insert(0, '/mnt/agentic-system/intelligent-self-healing')
->>>>>>> origin/main
+sys.path.insert(0, str(_STORAGE_BASE / "intelligent-self-healing"))
 from intelligent_config_agent import IntelligentConfigAgent
 
 
@@ -225,11 +246,7 @@ def optimize_settings(dry_run: bool = False) -> dict:
         print("🛡️  Verifying with intelligent watchdog...")
         import subprocess
         result = subprocess.run(
-<<<<<<< HEAD
-            ["python3", "/Volumes/SSDRAID0/agentic-system/intelligent-self-healing/intelligent_statusline_watchdog.py"],
-=======
-            ["python3", "/mnt/agentic-system/intelligent-self-healing/intelligent_statusline_watchdog.py"],
->>>>>>> origin/main
+            ["python3", str(_STORAGE_BASE / "intelligent-self-healing" / "intelligent_statusline_watchdog.py")],
             capture_output=True,
             text=True,
             timeout=30

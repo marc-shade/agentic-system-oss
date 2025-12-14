@@ -4,9 +4,36 @@
 
 set -e
 
-HOT_DB="/mnt/agentic-system/databases"
-COLD_DB="/Volumes/FILES/agentic-system"
-LOG_FILE="/mnt/agentic-system/migration.log"
+
+# Platform-aware storage detection
+detect_storage_base() {
+    if [ -n "$AGENTIC_SYSTEM_PATH" ] && [ -d "$AGENTIC_SYSTEM_PATH" ]; then
+        echo "$AGENTIC_SYSTEM_PATH"
+        return
+    fi
+    case "$(uname -s)" in
+        Darwin)
+            if [ -d "/Volumes/SSDRAID0/agentic-system" ]; then
+                echo "/Volumes/SSDRAID0/agentic-system"
+            elif [ -d "/Volumes/FILES/agentic-system" ]; then
+                echo "/Volumes/FILES/agentic-system"
+            fi
+            ;;
+        Linux)
+            if [ -d "/home/marc/agentic-system" ]; then
+                echo "/home/marc/agentic-system"
+            elif [ -d "/mnt/agentic-system" ]; then
+                echo "/mnt/agentic-system"
+            fi
+            ;;
+    esac
+}
+
+STORAGE_BASE=$(detect_storage_base)
+
+HOT_DB="$STORAGE_BASE/databases"
+COLD_DB="$STORAGE_BASE"
+LOG_FILE="$STORAGE_BASE/migration.log"
 
 echo "$(date): Starting database migration to SSDRAID0..." | tee -a "$LOG_FILE"
 

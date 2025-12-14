@@ -20,6 +20,8 @@ Integration:
 - SAFLA for vector similarity
 - Code execution for preprocessing
 """
+import os
+import platform
 
 import asyncio
 import json
@@ -31,6 +33,33 @@ from pathlib import Path
 from typing import Dict, List, Optional, Set, Tuple
 from collections import defaultdict
 import re
+
+def _get_storage_base() -> Path:
+    """Detect storage base path based on platform."""
+    env_path = os.environ.get("AGENTIC_SYSTEM_PATH")
+    if env_path and Path(env_path).exists():
+        return Path(env_path)
+
+    system = platform.system()
+    if system == "Darwin":  # macOS
+        macos_primary = Path("/Volumes/SSDRAID0/agentic-system")
+        macos_fallback = Path("/Volumes/FILES/agentic-system")
+        if macos_primary.exists():
+            return macos_primary
+        elif macos_fallback.exists():
+            return macos_fallback
+    elif system == "Linux":
+        linux_primary = Path("/home/marc/agentic-system")
+        linux_fallback = Path("/mnt/agentic-system")
+        if linux_primary.exists():
+            return linux_primary
+        elif linux_fallback.exists():
+            return linux_fallback
+    return Path(__file__).parent.parent
+
+
+_STORAGE_BASE = _get_storage_base()
+
 
 # Configure logging
 logging.basicConfig(
@@ -136,7 +165,7 @@ class ContextSynthesisEngine:
 
         # Example: Search for relevant files
         # In production, would use actual file search
-        base_path = Path("/mnt/agentic-system")
+        base_path = Path(str(_STORAGE_BASE))
 
         # Search for relevant files (simplified)
         for file_path in base_path.rglob("*.py"):

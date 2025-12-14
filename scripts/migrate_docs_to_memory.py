@@ -6,12 +6,36 @@ This script identifies documentation files, classifies them by type,
 stores them in appropriate memory tiers, and removes the .md files
 after successful migration.
 """
+import platform
 
 import sys
 import os
 from pathlib import Path
 import re
 from datetime import datetime
+
+def _get_storage_base() -> Path:
+    """Detect storage base path based on platform."""
+    env_path = os.environ.get("AGENTIC_SYSTEM_PATH")
+    if env_path and Path(env_path).exists():
+        return Path(env_path)
+
+    system = platform.system()
+    if system == "Darwin":  # macOS
+        if Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+        elif Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+    elif system == "Linux":
+        if Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+        elif Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+    return Path(__file__).parent.parent
+
+
+_STORAGE_BASE = _get_storage_base()
+
 
 # Add enhanced-memory to path
 sys.path.insert(0, str(Path.home() / ".claude" / "enhanced_memories"))
@@ -70,7 +94,7 @@ def should_exclude(file_path):
         return True
 
     # Exclude if not in main agentic-system directory
-    if not path_str.startswith("/mnt/agentic-system"):
+    if not path_str.startswith(str(_STORAGE_BASE)):
         return True
 
     return False
@@ -140,7 +164,7 @@ def extract_metadata(content, file_path):
 
 def get_migration_candidates():
     """Get list of .md files to migrate."""
-    base_path = Path("/mnt/agentic-system")
+    base_path = Path(str(_STORAGE_BASE))
     candidates = []
 
     for md_file in base_path.rglob("*.md"):

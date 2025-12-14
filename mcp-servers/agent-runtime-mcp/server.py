@@ -8,10 +8,12 @@ Provides:
 - AI-powered goal decomposition
 - Task scheduling and monitoring
 - Progress tracking and recovery
+- Relay Race Protocol for 48+ agent pipelines (God Agent integration)
 """
 
 import asyncio
 import json
+import logging
 import sqlite3
 import sys
 from datetime import datetime, timedelta
@@ -23,57 +25,16 @@ from mcp.server import Server
 from mcp.types import Tool, TextContent, ImageContent, EmbeddedResource
 import mcp.server.stdio
 
-<<<<<<< HEAD
-# TOON format utilities for 50% token savings
-sys.path.insert(0, str(Path(__file__).parent.parent / "SHARED"))
-try:
-    from toon_utils import encode_with_fallback
-    TOON_AVAILABLE = True
-except ImportError:
-    TOON_AVAILABLE = False
-    print("⚠️  TOON utilities not available - falling back to JSON", file=sys.stderr)
+# Setup logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-# Layer 4: Meta-Prompting Integration
-sys.path.insert(0, str(Path.home() / ".claude" / "hooks"))
-try:
-    from agent_runtime_meta_integration import meta_prompted_goal_decomposition
-    META_PROMPTING_AVAILABLE = True
-except ImportError:
-    META_PROMPTING_AVAILABLE = False
-    print("⚠️  Meta-prompting integration not available", file=sys.stderr)
-
-=======
->>>>>>> origin/main
 
 # Database path
 DB_PATH = Path.home() / ".claude" / "agent_runtime.db"
 DB_PATH.parent.mkdir(exist_ok=True)
 
 
-<<<<<<< HEAD
-def _encode_response(data: Any, pretty: bool = False) -> str:
-    """
-    Encode response data using TOON format when available.
-
-    Args:
-        data: Data to encode
-        pretty: Enable pretty-printing (default False for token optimization)
-
-    Returns:
-        TOON-encoded string or JSON fallback
-    """
-    if TOON_AVAILABLE:
-        return encode_with_fallback(data, pretty=pretty)
-    else:
-        # Fallback to compact JSON
-        if pretty:
-            return json.dumps(data, indent=2)
-        else:
-            return json.dumps(data, separators=(',', ':'))
-
-
-=======
->>>>>>> origin/main
 class AgentRuntimeDB:
     """Database manager for persistent task and goal storage."""
 
@@ -450,6 +411,30 @@ class GoalDecomposer:
 db = AgentRuntimeDB(DB_PATH)
 decomposer = GoalDecomposer()
 
+# Initialize Relay Protocol Manager (God Agent Phase 2)
+relay_protocol = None
+try:
+    from relay_protocol import RelayProtocolManager, STANDARD_AGENTS, AgentSpec
+    relay_protocol = RelayProtocolManager(DB_PATH)
+    logger.info("Relay Race Protocol initialized (God Agent Phase 2: 48-agent pipeline support)")
+except ImportError as e:
+    logger.warning(f"Relay Protocol not available: {e}")
+except Exception as e:
+    logger.warning(f"Relay Protocol initialization failed: {e}")
+
+# Initialize Circuit Breaker Registry (God Agent Phase 5)
+circuit_registry = None
+circuit_executor = None
+try:
+    from circuit_breaker import CircuitBreakerRegistry, FaultTolerantExecutor
+    circuit_registry = CircuitBreakerRegistry(str(DB_PATH))
+    circuit_executor = FaultTolerantExecutor(circuit_registry)
+    logger.info("Circuit Breaker initialized (God Agent Phase 5: Tiny Dancer fault tolerance)")
+except ImportError as e:
+    logger.warning(f"Circuit Breaker not available: {e}")
+except Exception as e:
+    logger.warning(f"Circuit Breaker initialization failed: {e}")
+
 
 # MCP Server
 app = Server("agent-runtime-mcp")
@@ -632,6 +617,269 @@ async def list_tools() -> List[Tool]:
                 },
                 "required": ["task_id"]
             }
+        ),
+        # ============================================================================
+        # RELAY RACE PROTOCOL TOOLS (God Agent Integration - Phase 2)
+        # ============================================================================
+        Tool(
+            name="create_relay_pipeline",
+            description="Create a 48-agent relay race pipeline for sequential execution with structured handoffs.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "Pipeline name"
+                    },
+                    "goal": {
+                        "type": "string",
+                        "description": "High-level goal description"
+                    },
+                    "agent_types": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "Agent types in execution order: researcher, analyzer, synthesizer, validator, formatter, domain_expert"
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "Optional detailed description"
+                    },
+                    "token_budget": {
+                        "type": "integer",
+                        "description": "Total token budget for pipeline",
+                        "default": 100000
+                    }
+                },
+                "required": ["name", "goal", "agent_types"]
+            }
+        ),
+        Tool(
+            name="get_relay_status",
+            description="Get current status of a relay pipeline including progress and quality scores.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "pipeline_id": {
+                        "type": "string",
+                        "description": "Pipeline ID"
+                    }
+                },
+                "required": ["pipeline_id"]
+            }
+        ),
+        Tool(
+            name="advance_relay",
+            description="Manually advance relay to next step after completing current step. Passes the baton.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "pipeline_id": {
+                        "type": "string",
+                        "description": "Pipeline ID"
+                    },
+                    "quality_score": {
+                        "type": "number",
+                        "description": "Quality score of completed step (0.0-1.0)"
+                    },
+                    "l_score": {
+                        "type": "number",
+                        "description": "L-Score of output (0.0-1.0)"
+                    },
+                    "output_entity_id": {
+                        "type": "integer",
+                        "description": "Entity ID where output was stored"
+                    },
+                    "tokens_used": {
+                        "type": "integer",
+                        "description": "Tokens consumed by step"
+                    },
+                    "output_summary": {
+                        "type": "string",
+                        "description": "Summary for next agent"
+                    }
+                },
+                "required": ["pipeline_id", "quality_score", "l_score", "output_entity_id", "tokens_used"]
+            }
+        ),
+        Tool(
+            name="retry_relay_step",
+            description="Retry a failed relay step without restarting entire pipeline (single-agent retry).",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "pipeline_id": {
+                        "type": "string",
+                        "description": "Pipeline ID"
+                    },
+                    "step_index": {
+                        "type": "integer",
+                        "description": "Step to retry (0-indexed)"
+                    }
+                },
+                "required": ["pipeline_id", "step_index"]
+            }
+        ),
+        Tool(
+            name="list_relay_pipelines",
+            description="List relay pipelines with optional status filter.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "enum": ["pending", "in_progress", "completed", "failed"],
+                        "description": "Filter by status"
+                    },
+                    "limit": {
+                        "type": "integer",
+                        "description": "Maximum results",
+                        "default": 50
+                    }
+                }
+            }
+        ),
+        Tool(
+            name="get_relay_baton",
+            description="Get current baton for a pipeline with all context needed for next agent.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "pipeline_id": {
+                        "type": "string",
+                        "description": "Pipeline ID"
+                    }
+                },
+                "required": ["pipeline_id"]
+            }
+        ),
+        # ============================================================================
+        # CIRCUIT BREAKER TOOLS (God Agent Integration - Phase 5: Tiny Dancer)
+        # ============================================================================
+        Tool(
+            name="circuit_breaker_status",
+            description="Get circuit breaker status for an agent (CLOSED/OPEN/HALF_OPEN).",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "agent_id": {
+                        "type": "string",
+                        "description": "Agent identifier"
+                    }
+                },
+                "required": ["agent_id"]
+            }
+        ),
+        Tool(
+            name="circuit_breaker_list",
+            description="List all circuit breakers with their states and open/degraded circuits.",
+            inputSchema={
+                "type": "object",
+                "properties": {}
+            }
+        ),
+        Tool(
+            name="circuit_breaker_trip",
+            description="Manually trip a circuit breaker to OPEN state.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "agent_id": {
+                        "type": "string",
+                        "description": "Agent to trip"
+                    },
+                    "reason": {
+                        "type": "string",
+                        "description": "Reason for manual trip",
+                        "default": "manual intervention"
+                    }
+                },
+                "required": ["agent_id"]
+            }
+        ),
+        Tool(
+            name="circuit_breaker_reset",
+            description="Reset circuit breaker to CLOSED state.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "agent_id": {
+                        "type": "string",
+                        "description": "Agent to reset"
+                    }
+                },
+                "required": ["agent_id"]
+            }
+        ),
+        Tool(
+            name="circuit_breaker_configure",
+            description="Configure circuit breaker thresholds for an agent.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "agent_id": {
+                        "type": "string",
+                        "description": "Agent to configure"
+                    },
+                    "failure_threshold": {
+                        "type": "integer",
+                        "description": "Failures before tripping",
+                        "default": 5
+                    },
+                    "window_seconds": {
+                        "type": "integer",
+                        "description": "Sliding window for failures",
+                        "default": 60
+                    },
+                    "cooldown_seconds": {
+                        "type": "integer",
+                        "description": "Cooldown before recovery trial",
+                        "default": 300
+                    },
+                    "fallback_agent": {
+                        "type": "string",
+                        "description": "Agent to use when circuit open",
+                        "default": "generalist"
+                    }
+                },
+                "required": ["agent_id"]
+            }
+        ),
+        Tool(
+            name="circuit_breaker_record_failure",
+            description="Record a failure for circuit breaker tracking.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "agent_id": {
+                        "type": "string",
+                        "description": "Agent that failed"
+                    },
+                    "failure_type": {
+                        "type": "string",
+                        "enum": ["timeout", "exception", "quality_failure", "resource_exhausted", "rate_limited", "invalid_output"],
+                        "description": "Type of failure"
+                    },
+                    "error_message": {
+                        "type": "string",
+                        "description": "Error description"
+                    }
+                },
+                "required": ["agent_id", "failure_type", "error_message"]
+            }
+        ),
+        Tool(
+            name="circuit_breaker_record_success",
+            description="Record a success (helps circuit recover from HALF_OPEN to CLOSED).",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "agent_id": {
+                        "type": "string",
+                        "description": "Agent that succeeded"
+                    }
+                },
+                "required": ["agent_id"]
+            }
         )
     ]
 
@@ -649,11 +897,7 @@ async def call_tool(name: str, arguments: Any) -> List[TextContent]:
         goal = db.get_goal(goal_id)
         return [TextContent(
             type="text",
-<<<<<<< HEAD
-            text=_encode_response(goal, use_tabular=False)
-=======
             text=json.dumps(goal, indent=2)
->>>>>>> origin/main
         )]
 
     elif name == "decompose_goal":
@@ -662,17 +906,7 @@ async def call_tool(name: str, arguments: Any) -> List[TextContent]:
             return [TextContent(type="text", text=f"Goal {arguments['goal_id']} not found")]
 
         strategy = arguments.get("strategy", "sequential")
-<<<<<<< HEAD
-
-        # Layer 4: Use meta-prompted decomposition if available
-        if META_PROMPTING_AVAILABLE:
-            tasks = await meta_prompted_goal_decomposition(goal, strategy)
-        else:
-            # Fallback to original decomposition
-            tasks = await decomposer.decompose_goal(goal, strategy)
-=======
         tasks = await decomposer.decompose_goal(goal, strategy)
->>>>>>> origin/main
 
         created_task_ids = []
         for i, task in enumerate(tasks):
@@ -686,32 +920,6 @@ async def call_tool(name: str, arguments: Any) -> List[TextContent]:
                 title=task["title"],
                 description=task["description"],
                 priority=task.get("priority", 5),
-<<<<<<< HEAD
-                dependencies=dependencies,
-                metadata=task.get("metadata")
-            )
-            created_task_ids.append(task_id)
-
-        # Get complexity score from first task metadata if available
-        complexity_score = None
-        if tasks and tasks[0].get("metadata"):
-            complexity_score = tasks[0]["metadata"].get("complexity_score")
-
-        result = {
-            "goal_id": goal["id"],
-            "strategy": strategy,
-            "tasks_created": created_task_ids,
-            "count": len(created_task_ids),
-            "meta_prompted": META_PROMPTING_AVAILABLE
-        }
-
-        if complexity_score is not None:
-            result["complexity_score"] = f"{complexity_score:.0%}"
-
-        return [TextContent(
-            type="text",
-            text=_encode_response(result, use_tabular=False)
-=======
                 dependencies=dependencies
             )
             created_task_ids.append(task_id)
@@ -724,7 +932,6 @@ async def call_tool(name: str, arguments: Any) -> List[TextContent]:
                 "tasks_created": created_task_ids,
                 "count": len(created_task_ids)
             }, indent=2)
->>>>>>> origin/main
         )]
 
     elif name == "create_task":
@@ -738,11 +945,7 @@ async def call_tool(name: str, arguments: Any) -> List[TextContent]:
         task = db.get_task(task_id)
         return [TextContent(
             type="text",
-<<<<<<< HEAD
-            text=_encode_response(task, pretty=False)
-=======
             text=json.dumps(task, indent=2)
->>>>>>> origin/main
         )]
 
     elif name == "get_next_task":
@@ -750,20 +953,12 @@ async def call_tool(name: str, arguments: Any) -> List[TextContent]:
         if task:
             return [TextContent(
                 type="text",
-<<<<<<< HEAD
-                text=_encode_response(task, pretty=False)
-=======
                 text=json.dumps(task, indent=2)
->>>>>>> origin/main
             )]
         else:
             return [TextContent(
                 type="text",
-<<<<<<< HEAD
-                text=_encode_response({"message": "No tasks available in queue"}, pretty=False)
-=======
                 text=json.dumps({"message": "No tasks available in queue"})
->>>>>>> origin/main
             )]
 
     elif name == "update_task_status":
@@ -776,25 +971,14 @@ async def call_tool(name: str, arguments: Any) -> List[TextContent]:
         task = db.get_task(arguments["task_id"])
         return [TextContent(
             type="text",
-<<<<<<< HEAD
-            text=_encode_response(task, pretty=False)
-=======
             text=json.dumps(task, indent=2)
->>>>>>> origin/main
         )]
 
     elif name == "list_goals":
         goals = db.list_goals(arguments.get("status"))
-<<<<<<< HEAD
-        # Lists benefit greatly from TOON's tabular format
-        return [TextContent(
-            type="text",
-            text=_encode_response(goals, pretty=False)
-=======
         return [TextContent(
             type="text",
             text=json.dumps(goals, indent=2)
->>>>>>> origin/main
         )]
 
     elif name == "list_tasks":
@@ -803,16 +987,9 @@ async def call_tool(name: str, arguments: Any) -> List[TextContent]:
             status=arguments.get("status"),
             limit=arguments.get("limit", 50)
         )
-<<<<<<< HEAD
-        # Task lists benefit greatly from TOON's tabular format (50-60% savings)
-        return [TextContent(
-            type="text",
-            text=_encode_response(tasks, pretty=False)
-=======
         return [TextContent(
             type="text",
             text=json.dumps(tasks, indent=2)
->>>>>>> origin/main
         )]
 
     elif name == "get_goal":
@@ -820,20 +997,12 @@ async def call_tool(name: str, arguments: Any) -> List[TextContent]:
         if goal:
             return [TextContent(
                 type="text",
-<<<<<<< HEAD
-                text=_encode_response(goal, pretty=False)
-=======
                 text=json.dumps(goal, indent=2)
->>>>>>> origin/main
             )]
         else:
             return [TextContent(
                 type="text",
-<<<<<<< HEAD
-                text=_encode_response({"error": f"Goal {arguments['goal_id']} not found"}, pretty=False)
-=======
                 text=json.dumps({"error": f"Goal {arguments['goal_id']} not found"})
->>>>>>> origin/main
             )]
 
     elif name == "get_task":
@@ -841,21 +1010,393 @@ async def call_tool(name: str, arguments: Any) -> List[TextContent]:
         if task:
             return [TextContent(
                 type="text",
-<<<<<<< HEAD
-                text=_encode_response(task, pretty=False)
-=======
                 text=json.dumps(task, indent=2)
->>>>>>> origin/main
             )]
         else:
             return [TextContent(
                 type="text",
-<<<<<<< HEAD
-                text=_encode_response({"error": f"Task {arguments['task_id']} not found"}, pretty=False)
-=======
                 text=json.dumps({"error": f"Task {arguments['task_id']} not found"})
->>>>>>> origin/main
             )]
+
+    # ============================================================================
+    # RELAY RACE PROTOCOL HANDLERS (God Agent Integration - Phase 2)
+    # ============================================================================
+
+    elif name == "create_relay_pipeline":
+        if not relay_protocol:
+            return [TextContent(
+                type="text",
+                text=json.dumps({"error": "Relay Protocol not available"})
+            )]
+
+        # Convert agent types to specs
+        agents = []
+        for agent_type in arguments["agent_types"]:
+            if agent_type in STANDARD_AGENTS:
+                agents.append(STANDARD_AGENTS[agent_type])
+            else:
+                # Create custom agent
+                agents.append(AgentSpec(
+                    agent_id=agent_type,
+                    agent_type=agent_type,
+                    task_template=f"Execute {agent_type} task based on input context.",
+                    expected_output_type="analysis",
+                    max_tokens=4000
+                ))
+
+        pipeline = relay_protocol.create_pipeline(
+            name=arguments["name"],
+            goal=arguments["goal"],
+            agents=agents,
+            description=arguments.get("description", ""),
+            token_budget=arguments.get("token_budget", 100000)
+        )
+
+        return [TextContent(
+            type="text",
+            text=json.dumps({
+                "success": True,
+                "pipeline_id": pipeline.pipeline_id,
+                "name": pipeline.name,
+                "goal": pipeline.goal,
+                "agent_count": len(agents),
+                "agents": [a.agent_type for a in agents],
+                "token_budget": arguments.get("token_budget", 100000)
+            }, indent=2)
+        )]
+
+    elif name == "get_relay_status":
+        if not relay_protocol:
+            return [TextContent(
+                type="text",
+                text=json.dumps({"error": "Relay Protocol not available"})
+            )]
+
+        pipeline = relay_protocol.get_pipeline(arguments["pipeline_id"])
+        if not pipeline:
+            return [TextContent(
+                type="text",
+                text=json.dumps({"success": False, "error": f"Pipeline {arguments['pipeline_id']} not found"})
+            )]
+
+        return [TextContent(
+            type="text",
+            text=json.dumps({"success": True, **pipeline}, indent=2)
+        )]
+
+    elif name == "advance_relay":
+        if not relay_protocol:
+            return [TextContent(
+                type="text",
+                text=json.dumps({"error": "Relay Protocol not available"})
+            )]
+
+        current_baton = relay_protocol.get_current_baton(arguments["pipeline_id"])
+        if not current_baton:
+            return [TextContent(
+                type="text",
+                text=json.dumps({"success": False, "error": "No active baton found for pipeline"})
+            )]
+
+        next_baton = relay_protocol.pass_baton(
+            baton_id=current_baton.baton_id,
+            quality_score=arguments["quality_score"],
+            l_score=arguments["l_score"],
+            output_entity_id=arguments["output_entity_id"],
+            tokens_used=arguments["tokens_used"],
+            output_summary=arguments.get("output_summary", "")
+        )
+
+        if next_baton is None:
+            # Check if completed or failed
+            pipeline = relay_protocol.get_pipeline(arguments["pipeline_id"])
+            if pipeline and pipeline.get("status") == "completed":
+                return [TextContent(
+                    type="text",
+                    text=json.dumps({
+                        "success": True,
+                        "status": "pipeline_completed",
+                        "message": "All steps completed successfully"
+                    }, indent=2)
+                )]
+            else:
+                return [TextContent(
+                    type="text",
+                    text=json.dumps({
+                        "success": False,
+                        "status": "quality_gate_failed",
+                        "quality_score": arguments["quality_score"],
+                        "l_score": arguments["l_score"]
+                    }, indent=2)
+                )]
+
+        return [TextContent(
+            type="text",
+            text=json.dumps({
+                "success": True,
+                "next_baton": next_baton.to_dict(),
+                "next_step": next_baton.sequence_position,
+                "total_steps": next_baton.total_agents
+            }, indent=2)
+        )]
+
+    elif name == "retry_relay_step":
+        if not relay_protocol:
+            return [TextContent(
+                type="text",
+                text=json.dumps({"error": "Relay Protocol not available"})
+            )]
+
+        new_baton = relay_protocol.retry_step(
+            arguments["pipeline_id"],
+            arguments["step_index"]
+        )
+
+        if not new_baton:
+            return [TextContent(
+                type="text",
+                text=json.dumps({
+                    "success": False,
+                    "error": f"Cannot retry step {arguments['step_index']}: max retries exceeded"
+                })
+            )]
+
+        return [TextContent(
+            type="text",
+            text=json.dumps({
+                "success": True,
+                "baton": new_baton.to_dict(),
+                "retry_count": new_baton.retry_count
+            }, indent=2)
+        )]
+
+    elif name == "list_relay_pipelines":
+        if not relay_protocol:
+            return [TextContent(
+                type="text",
+                text=json.dumps({"error": "Relay Protocol not available"})
+            )]
+
+        pipelines = relay_protocol.list_pipelines(
+            status=arguments.get("status"),
+            limit=arguments.get("limit", 50)
+        )
+
+        return [TextContent(
+            type="text",
+            text=json.dumps({
+                "success": True,
+                "count": len(pipelines),
+                "pipelines": pipelines
+            }, indent=2)
+        )]
+
+    elif name == "get_relay_baton":
+        if not relay_protocol:
+            return [TextContent(
+                type="text",
+                text=json.dumps({"error": "Relay Protocol not available"})
+            )]
+
+        baton = relay_protocol.get_current_baton(arguments["pipeline_id"])
+
+        if not baton:
+            return [TextContent(
+                type="text",
+                text=json.dumps({"success": False, "error": "No active baton found"})
+            )]
+
+        # Generate agent prompt for current step
+        from relay_protocol import generate_agent_prompt
+        prompt = generate_agent_prompt(
+            baton,
+            AgentSpec(
+                agent_id="current",
+                agent_type="agent",
+                task_template=baton.task_description,
+                expected_output_type=baton.expected_output_type
+            )
+        )
+
+        return [TextContent(
+            type="text",
+            text=json.dumps({
+                "success": True,
+                "baton": baton.to_dict(),
+                "prompt": prompt
+            }, indent=2)
+        )]
+
+    # ============================================================================
+    # CIRCUIT BREAKER HANDLERS (God Agent Phase 5: Tiny Dancer)
+    # ============================================================================
+
+    elif name == "circuit_breaker_status":
+        if not circuit_registry:
+            return [TextContent(
+                type="text",
+                text=json.dumps({"error": "Circuit Breaker not available"})
+            )]
+
+        breaker = circuit_registry.get_or_create(arguments["agent_id"])
+        return [TextContent(
+            type="text",
+            text=json.dumps(breaker.get_status(), indent=2, default=str)
+        )]
+
+    elif name == "circuit_breaker_list":
+        if not circuit_registry:
+            return [TextContent(
+                type="text",
+                text=json.dumps({"error": "Circuit Breaker not available"})
+            )]
+
+        status = circuit_registry.get_all_status()
+        summary = {
+            "total_breakers": len(status),
+            "open_circuits": circuit_registry.get_open_circuits(),
+            "half_open_circuits": circuit_registry.get_half_open_circuits(),
+            "breakers": status
+        }
+        return [TextContent(
+            type="text",
+            text=json.dumps(summary, indent=2, default=str)
+        )]
+
+    elif name == "circuit_breaker_trip":
+        if not circuit_registry:
+            return [TextContent(
+                type="text",
+                text=json.dumps({"error": "Circuit Breaker not available"})
+            )]
+
+        breaker = circuit_registry.get_or_create(arguments["agent_id"])
+        old_state = breaker.current_state.value
+        reason = arguments.get("reason", "manual intervention")
+        breaker.force_open(reason)
+        circuit_registry._persist_breaker(arguments["agent_id"])
+
+        return [TextContent(
+            type="text",
+            text=json.dumps({
+                "success": True,
+                "agent_id": arguments["agent_id"],
+                "action": "trip",
+                "old_state": old_state,
+                "new_state": "open",
+                "reason": reason,
+                "cooldown_until": breaker.state.cooldown_until.isoformat() if breaker.state.cooldown_until else None
+            }, indent=2)
+        )]
+
+    elif name == "circuit_breaker_reset":
+        if not circuit_registry:
+            return [TextContent(
+                type="text",
+                text=json.dumps({"error": "Circuit Breaker not available"})
+            )]
+
+        breaker = circuit_registry.get_or_create(arguments["agent_id"])
+        old_state = breaker.current_state.value
+        breaker.force_close()
+        circuit_registry._persist_breaker(arguments["agent_id"])
+
+        return [TextContent(
+            type="text",
+            text=json.dumps({
+                "success": True,
+                "agent_id": arguments["agent_id"],
+                "action": "reset",
+                "old_state": old_state,
+                "new_state": "closed"
+            }, indent=2)
+        )]
+
+    elif name == "circuit_breaker_configure":
+        if not circuit_registry:
+            return [TextContent(
+                type="text",
+                text=json.dumps({"error": "Circuit Breaker not available"})
+            )]
+
+        config = {
+            "failure_threshold": arguments.get("failure_threshold", 5),
+            "window_seconds": arguments.get("window_seconds", 60),
+            "cooldown_seconds": arguments.get("cooldown_seconds", 300),
+            "fallback_agent": arguments.get("fallback_agent", "generalist"),
+            "half_open_max_calls": 3,
+            "success_threshold": 2
+        }
+
+        breaker = circuit_registry.get_or_create(arguments["agent_id"], config)
+        breaker.state.config.update(config)
+        circuit_registry._persist_breaker(arguments["agent_id"])
+
+        return [TextContent(
+            type="text",
+            text=json.dumps({
+                "success": True,
+                "agent_id": arguments["agent_id"],
+                "config": config
+            }, indent=2)
+        )]
+
+    elif name == "circuit_breaker_record_failure":
+        if not circuit_registry:
+            return [TextContent(
+                type="text",
+                text=json.dumps({"error": "Circuit Breaker not available"})
+            )]
+
+        from circuit_breaker import FailureType
+        breaker = circuit_registry.get_or_create(arguments["agent_id"])
+
+        try:
+            ftype = FailureType(arguments["failure_type"])
+        except ValueError:
+            ftype = FailureType.EXCEPTION
+
+        old_state = breaker.current_state.value
+        breaker.record_failure(ftype, arguments["error_message"])
+        circuit_registry._persist_breaker(arguments["agent_id"])
+        new_state = breaker.current_state.value
+
+        return [TextContent(
+            type="text",
+            text=json.dumps({
+                "success": True,
+                "agent_id": arguments["agent_id"],
+                "failure_recorded": True,
+                "old_state": old_state,
+                "new_state": new_state,
+                "tripped": old_state != new_state
+            }, indent=2, default=str)
+        )]
+
+    elif name == "circuit_breaker_record_success":
+        if not circuit_registry:
+            return [TextContent(
+                type="text",
+                text=json.dumps({"error": "Circuit Breaker not available"})
+            )]
+
+        breaker = circuit_registry.get_or_create(arguments["agent_id"])
+        old_state = breaker.current_state.value
+        breaker.record_success()
+        circuit_registry._persist_breaker(arguments["agent_id"])
+        new_state = breaker.current_state.value
+
+        return [TextContent(
+            type="text",
+            text=json.dumps({
+                "success": True,
+                "agent_id": arguments["agent_id"],
+                "success_recorded": True,
+                "old_state": old_state,
+                "new_state": new_state,
+                "recovered": old_state == "half_open" and new_state == "closed"
+            }, indent=2, default=str)
+        )]
 
     return [TextContent(type="text", text=f"Unknown tool: {name}")]
 

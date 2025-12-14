@@ -12,6 +12,8 @@ Operations:
 
 STATUS: Production Ready
 """
+import os
+import platform
 
 import asyncio
 import logging
@@ -37,7 +39,7 @@ async def collect_performance_metrics() -> dict:
         memory = psutil.virtual_memory()
         cpu_percent = psutil.cpu_percent(interval=2)
         load_avg = psutil.getloadavg()
-        disk = psutil.disk_usage('/home/marc/agentic-system')
+        disk = psutil.disk_usage(str(_STORAGE_BASE))
         
         metrics = {
             "timestamp": datetime.now().isoformat(),
@@ -166,6 +168,29 @@ async def record_optimization_outcome(optimization: dict, metrics_before: dict, 
     try:
         # Store outcome in memory system for future learning
         from server import create_entities
+
+def _get_storage_base() -> Path:
+    """Detect storage base path based on platform."""
+    env_path = os.environ.get("AGENTIC_SYSTEM_PATH")
+    if env_path and Path(env_path).exists():
+        return Path(env_path)
+
+    system = platform.system()
+    if system == "Darwin":  # macOS
+        if Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+        elif Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+    elif system == "Linux":
+        if Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+        elif Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+    return Path(__file__).parent.parent
+
+
+_STORAGE_BASE = _get_storage_base()
+
         
         memory_improvement = metrics_before["memory"]["percent"] - metrics_after["memory"]["percent"]
         cpu_improvement = metrics_before["cpu"]["percent"] - metrics_after["cpu"]["percent"]

@@ -1,5 +1,7 @@
 """SQLite-based state persistence for LangGraph workflows."""
 import json
+import os
+import platform
 import sqlite3
 import aiosqlite
 from datetime import datetime
@@ -7,7 +9,29 @@ from pathlib import Path
 from typing import Any, Optional
 from dataclasses import dataclass, asdict
 
-DB_PATH = Path("/Volumes/SSDRAID0/agentic-system/databases/langgraph/state.db")
+
+def _get_storage_base() -> Path:
+    """Detect storage base path based on platform."""
+    env_path = os.environ.get("AGENTIC_SYSTEM_PATH")
+    if env_path and Path(env_path).exists():
+        return Path(env_path)
+
+    system = platform.system()
+    if system == "Darwin":  # macOS
+        if Path("/Volumes/SSDRAID0/agentic-system").exists():
+            return Path("/Volumes/SSDRAID0/agentic-system")
+        elif Path("/Volumes/FILES/agentic-system").exists():
+            return Path("/Volumes/FILES/agentic-system")
+    elif system == "Linux":
+        if Path("/home/marc/agentic-system").exists():
+            return Path("/home/marc/agentic-system")
+        elif Path("/mnt/agentic-system").exists():
+            return Path("/mnt/agentic-system")
+    return Path(__file__).parent.parent.parent
+
+
+_STORAGE_BASE = _get_storage_base()
+DB_PATH = _STORAGE_BASE / "databases" / "langgraph" / "state.db"
 
 @dataclass
 class GraphState:

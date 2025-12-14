@@ -7,24 +7,52 @@ without TOON dependencies for maximum compatibility across nodes.
 """
 
 import json
+import os
+import platform
 import socket
 from pathlib import Path
 from typing import Dict, List, Optional
 
+
+def _get_storage_base() -> Path:
+    """Detect storage base path based on platform."""
+    env_path = os.environ.get("AGENTIC_SYSTEM_PATH")
+    if env_path and Path(env_path).exists():
+        return Path(env_path)
+
+    system = platform.system()
+    if system == "Darwin":  # macOS
+        if Path("/Volumes/SSDRAID0/agentic-system").exists():
+            return Path("/Volumes/SSDRAID0/agentic-system")
+        elif Path("/Volumes/FILES/agentic-system").exists():
+            return Path("/Volumes/FILES/agentic-system")
+    elif system == "Linux":
+        if Path("/home/marc/agentic-system").exists():
+            return Path("/home/marc/agentic-system")
+        elif Path("/mnt/agentic-system").exists():
+            return Path("/mnt/agentic-system")
+    return Path(__file__).parent.parent
+
+
+_STORAGE_BASE = _get_storage_base()
+
+
 def get_cluster_config(config_path: Optional[str] = None) -> Dict:
     """Load cluster node configuration from JSON"""
     if config_path is None:
-        # Try multiple possible locations (SSDRAID0 first - see FILE_LOCATION_POLICY.md)
-        possible_paths = [
-            Path("/Volumes/SSDRAID0/agentic-system/cluster-deployment/cluster-nodes.json"),
-            Path("/mnt/agentic-system/cluster-deployment/cluster-nodes.json"),
-            Path.home() / "agentic-system" / "cluster-deployment" / "cluster-nodes.json"
-        ]
-
-        for path in possible_paths:
-            if path.exists():
-                config_path = str(path)
-                break
+        # First try auto-detected storage base
+        primary_path = _STORAGE_BASE / "cluster-deployment" / "cluster-nodes.json"
+        if primary_path.exists():
+            config_path = str(primary_path)
+        else:
+            # Fallback to other possible locations
+            possible_paths = [
+                Path.home() / "agentic-system" / "cluster-deployment" / "cluster-nodes.json"
+            ]
+            for path in possible_paths:
+                if path.exists():
+                    config_path = str(path)
+                    break
 
     if config_path is None:
         raise FileNotFoundError("Could not find cluster-nodes.json configuration")
@@ -43,8 +71,6 @@ def get_local_node_id() -> str:
         return "mac-studio"
     elif "macbook-air" in hostname or "macbook" in hostname:
         return "macbook-air-m3"
-    elif "completeu" in hostname:
-        return "completeu-server"
     else:
         # Fallback to IP detection
         import subprocess
@@ -58,8 +84,6 @@ def get_local_node_id() -> str:
                 return "mac-studio"
             elif ip.startswith("192.168.1.76"):
                 return "macbook-air-m3"
-            elif ip.startswith("192.168.1.186"):
-                return "completeu-server"
         except:
             pass
 

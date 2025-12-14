@@ -16,6 +16,7 @@ Benefits:
 - Testability: Can test fix logic independently
 - Audit trail: Clear distinction between detection and action
 """
+import platform
 
 import os
 import sys
@@ -36,6 +37,29 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "shared"))
 from cli_agent import CLIAgent, AgentPurpose
 from agent_memory import AgentMemory
 from secure_ipc import (
+
+def _get_storage_base() -> Path:
+    """Detect storage base path based on platform."""
+    env_path = os.environ.get("AGENTIC_SYSTEM_PATH")
+    if env_path and Path(env_path).exists():
+        return Path(env_path)
+
+    system = platform.system()
+    if system == "Darwin":  # macOS
+        if Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+        elif Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+    elif system == "Linux":
+        if Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+        elif Path(str(_STORAGE_BASE)).exists():
+            return Path(str(_STORAGE_BASE))
+    return Path(__file__).parent.parent
+
+
+_STORAGE_BASE = _get_storage_base()
+
     read_recommendations,
     write_recommendations,
     save_crash_history,
@@ -260,13 +284,13 @@ class SystemRemediationAgent(CLIAgent):
                     ["nohup", "ak", "up", "--mode", "dev"],
                     stdout=open("/tmp/autokitteh.log", "w"),
                     stderr=subprocess.STDOUT,
-                    cwd="/mnt/agentic-system"
+                    cwd=str(_STORAGE_BASE)
                 )
                 port = 9980  # AutoKitteh port
 
             elif service_name == "qdrant":
                 result = subprocess.run(
-                    ["/mnt/agentic-system/scripts/qdrant-monitor.sh", "start"],
+                    [str(_STORAGE_BASE / "scripts/qdrant-monitor.sh"), "start"],
                     capture_output=True,
                     text=True,
                     timeout=10
@@ -312,7 +336,7 @@ class SystemRemediationAgent(CLIAgent):
         log_paths = {
             "temporal": "/tmp/temporal_server.log",
             "autokitteh": "/tmp/autokitteh.log",
-            "qdrant": "/mnt/agentic-system/logs/qdrant-error.log"
+            "qdrant": str(_STORAGE_BASE / "logs/qdrant-error.log")
         }
 
         log_path = log_paths.get(service_name)
