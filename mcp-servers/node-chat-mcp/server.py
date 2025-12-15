@@ -993,7 +993,7 @@ async def handle_call_tool(
                     "capabilities": node_config.get('capabilities', []),
                     "os": node_config['os'],
                     "arch": node_config['arch'],
-                    "ip": node_config['ip'],
+                    "address": node_config.get('hostname') or node_config.get('ip', 'localhost'),
                     "storage_base": node_config['storage_base']
                 }
 
@@ -1001,7 +1001,7 @@ async def handle_call_tool(
                 if node_id != persona.node_id:
                     try:
                         result = subprocess.run(
-                            ['ping', '-c', '1', '-W', '1', node_config['ip']],
+                            ['ping', '-c', '1', '-W', '1', node_config.get('hostname') or node_config.get('ip', 'localhost')],
                             capture_output=True, timeout=2
                         )
                         cluster_info["nodes"][node_id]["status"] = "online" if result.returncode == 0 else "offline"
@@ -1047,7 +1047,7 @@ async def handle_call_tool(
             try:
                 import subprocess
                 result = subprocess.run(
-                    ['ping', '-c', '1', '-W', '1', node_config['ip']],
+                    ['ping', '-c', '1', '-W', '1', node_config.get('hostname') or node_config.get('ip', 'localhost')],
                     capture_output=True, timeout=2
                 )
                 node_status["reachable"] = result.returncode == 0
@@ -1059,7 +1059,8 @@ async def handle_call_tool(
             # Try to get remote status via HTTP API if available
             if node_status["reachable"]:
                 try:
-                    response = requests.get(f"http://{node_config['ip']}:5200/api/chat/status", timeout=3)
+                    node_addr = node_config.get('hostname') or node_config.get('ip', 'localhost')
+                    response = requests.get(f"http://{node_addr}:5200/api/chat/status", timeout=3)
                     if response.status_code == 200:
                         node_status["remote_status"] = response.json()
                 except:
