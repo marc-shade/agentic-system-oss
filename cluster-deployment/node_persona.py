@@ -192,14 +192,14 @@ class NodePersona:
                 # Try to ping node
                 try:
                     result = subprocess.run(
-                        ['ping', '-c', '1', '-W', '1', node_config['ip']],
+                        ['ping', '-c', '1', '-W', '1', node_config.get('hostname') or node_config.get('ip', 'localhost')],
                         capture_output=True, timeout=2
                     )
                     online = result.returncode == 0
                     nodes[node_id] = {
                         "status": "online" if online else "offline",
                         "role": node_config['role'],
-                        "ip": node_config['ip']
+                        "address": node_config.get('hostname') or node_config.get('ip', 'localhost')
                     }
                 except:
                     nodes[node_id] = {"status": "unknown", "role": node_config['role']}
