@@ -46,7 +46,18 @@ class NodeChatClient:
         """Load cluster node configuration"""
         config_path = self.storage_base / "cluster-deployment" / "cluster-nodes.json"
         with open(config_path) as f:
-            return json.load(f)["nodes"]
+            data = json.load(f)
+            self._discovery_config = data.get("discovery", {})
+            return data["nodes"]
+
+    def _get_node_address(self, node_config: Dict) -> str:
+        """Get the network address for a node (hostname preferred, ip fallback)."""
+        # Prefer hostname (mDNS) over hardcoded IP
+        return node_config.get('hostname') or node_config.get('ip', 'localhost')
+
+    def _get_ssh_user(self) -> str:
+        """Get SSH user from discovery config."""
+        return self._discovery_config.get('ssh_user', 'marc')
 
     def send_message(self, to_node: str, content: str, conversation_id: Optional[str] = None) -> Dict:
         """
@@ -112,7 +123,8 @@ class NodeChatClient:
         """Deliver via HTTP REST API"""
         try:
             node_config = self.cluster_nodes[to_node]
-            url = f"http://{node_config['ip']}:5200/api/chat/receive"
+            address = self._get_node_address(node_config)
+            url = f"http://{address}:5200/api/chat/receive"
 
             response = requests.post(url, json=message, timeout=3)
             if response.status_code == 200:
@@ -145,8 +157,10 @@ class NodeChatClient:
             """
 
             # Execute via SSH
+            address = self._get_node_address(node_config)
+            ssh_user = self._get_ssh_user()
             result = subprocess.run([
-                'ssh', f"{node_config['ip']}",
+                'ssh', f"{ssh_user}@{address}",
                 f'sqlite3 {remote_db} "{sql}"'
             ], capture_output=True, text=True, timeout=10)
 
@@ -169,9 +183,11 @@ class NodeChatClient:
                 json.dump(message, f, indent=2)
 
             # SCP to remote inbox
+            address = self._get_node_address(node_config)
+            ssh_user = self._get_ssh_user()
             result = subprocess.run([
                 'scp', str(local_temp),
-                f"{node_config['ip']}:{remote_inbox}/{message['message_id']}.json"
+                f"{ssh_user}@{address}:{remote_inbox}/{message['message_id']}.json"
             ], capture_output=True, text=True, timeout=10)
 
             # Cleanup
