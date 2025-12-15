@@ -50,27 +50,79 @@ with open(node_config_path) as f:
 
 # Load available cluster node IDs from config or environment
 # Set CLUSTER_NODE_IDS as JSON array: ["node1", "node2", "node3"]
+import os
+
+def _load_cluster_config() -> dict:
+    """Load cluster configuration and create role mapping."""
+    # Try multiple locations for cluster config
+    config_locations = [
+        Path(NODE_CONFIG['storage']['base']) / "cluster-deployment" / "cluster-nodes.json",
+        Path.home() / ".claude" / "cluster-nodes.json",
+    ]
+
+    for config_path in config_locations:
+        if config_path.exists():
+            try:
+                with open(config_path) as f:
+                    data = json.load(f)
+                    return data.get("nodes", data) if "nodes" in data else data
+            except (json.JSONDecodeError, IOError) as e:
+                logger.warning(f"Failed to load {config_path}: {e}")
+                continue
+    return {}
+
+def _build_role_to_node_map(nodes_config: dict) -> dict:
+    """Build bidirectional mapping between roles and node names."""
+    role_to_node = {}
+    for node_name, node_info in nodes_config.items():
+        role = node_info.get("role") or node_info.get("node_id")
+        if role:
+            role_to_node[role] = node_name
+            # Also allow node_id as an alias
+            node_id = node_info.get("node_id")
+            if node_id and node_id != role:
+                role_to_node[node_id] = node_name
+    return role_to_node
+
+# Load cluster config and build mappings
+CLUSTER_CONFIG = _load_cluster_config()
+ROLE_TO_NODE_MAP = _build_role_to_node_map(CLUSTER_CONFIG)
+logger.info(f"Role-to-node mapping: {ROLE_TO_NODE_MAP}")
+
 def _get_cluster_node_ids() -> list:
-    """Get list of valid cluster node IDs."""
+    """Get list of valid cluster node IDs (role names for user-friendly display)."""
     env_nodes = os.environ.get("CLUSTER_NODE_IDS")
     if env_nodes:
         try:
             return json.loads(env_nodes)
         except json.JSONDecodeError:
             pass
-    # Fall back to cluster config file
-    cluster_config_path = Path.home() / ".claude" / "cluster-nodes.json"
-    if cluster_config_path.exists():
-        try:
-            with open(cluster_config_path) as f:
-                config = json.load(f)
-                return list(config.keys()) if isinstance(config, dict) else config
-        except (json.JSONDecodeError, IOError):
-            pass
+
+    # Return role names from the mapping (user-friendly)
+    if ROLE_TO_NODE_MAP:
+        return list(ROLE_TO_NODE_MAP.keys())
+
     # Default to generic node names
     return ["orchestrator", "builder", "researcher", "inference"]
 
-import os
+def resolve_node_name(node_or_role: str) -> str:
+    """Resolve a role name or node alias to the actual node name.
+
+    Accepts: 'builder', 'researcher', 'orchestrator', 'macpro51', etc.
+    Returns: The actual node name used in cluster_nodes (e.g., 'macpro51', 'mac-studio')
+    """
+    # If it's already a valid node name in cluster config, use it directly
+    if node_or_role in CLUSTER_CONFIG:
+        return node_or_role
+
+    # Otherwise try to resolve from role mapping
+    resolved = ROLE_TO_NODE_MAP.get(node_or_role)
+    if resolved:
+        return resolved
+
+    # Fallback: return as-is (will fail later with proper error)
+    return node_or_role
+
 CLUSTER_NODE_IDS = _get_cluster_node_ids()
 
 # Initialize chat client and persona
@@ -697,8 +749,12 @@ async def handle_call_tool(
 
     try:
         if name == "send_message_to_node":
-            to_node = arguments["to_node"]
+            to_node_input = arguments["to_node"]
             message = arguments["message"]
+
+            # Resolve role name to actual node name
+            to_node = resolve_node_name(to_node_input)
+            logger.info(f"Resolved '{to_node_input}' -> '{to_node}'")
 
             # Send message via multi-channel client
             result = chat_client.send_message(to_node, message)
@@ -750,7 +806,7 @@ async def handle_call_tool(
             )]
 
         elif name == "get_conversation_history":
-            with_node = arguments["with_node"]
+            with_node = resolve_node_name(arguments["with_node"])
             limit = arguments.get("limit", 50)
 
             history = chat_client.get_conversation_history(with_node, limit)
@@ -960,7 +1016,7 @@ async def handle_call_tool(
             )]
 
         elif name == "get_node_status":
-            target_node = arguments["node_id"]
+            target_node = resolve_node_name(arguments["node_id"])
 
             if target_node == persona.node_id:
                 # Return self-awareness
@@ -1181,6 +1237,8 @@ Legend: → outgoing, ← incoming, ↔ between other nodes
             query = arguments["query"]
             limit = arguments.get("limit", 10)
             from_node = arguments.get("from_node")
+            if from_node:
+                from_node = resolve_node_name(from_node)
 
             if not ENHANCED_MEMORY_ENABLED:
                 return [types.TextContent(
@@ -1218,7 +1276,7 @@ Legend: → outgoing, ← incoming, ↔ between other nodes
         # ===== NEW CONVERSATION CONTEXT TOOLS =====
 
         elif name == "prepare_conversation_context":
-            with_node = arguments["with_node"]
+            with_node = resolve_node_name(arguments["with_node"])
             include_history = arguments.get("include_history", True)
             max_history = arguments.get("max_history", 20)
 
@@ -1240,7 +1298,7 @@ Legend: → outgoing, ← incoming, ↔ between other nodes
             )]
 
         elif name == "start_conversation_with_context":
-            to_node = arguments["to_node"]
+            to_node = resolve_node_name(arguments["to_node"])
             message = arguments["message"]
             topic = arguments.get("topic", "general")
 
@@ -1305,7 +1363,7 @@ Legend: → outgoing, ← incoming, ↔ between other nodes
             )]
 
         elif name == "remember_fact_about_node":
-            about_node = arguments["about_node"]
+            about_node = resolve_node_name(arguments["about_node"])
             fact_type = arguments["fact_type"]
             content = arguments["content"]
             confidence = arguments.get("confidence", 0.8)
@@ -1332,7 +1390,7 @@ Legend: → outgoing, ← incoming, ↔ between other nodes
             )]
 
         elif name == "get_relationship_summary":
-            with_node = arguments["with_node"]
+            with_node = resolve_node_name(arguments["with_node"])
 
             # Get relationship and facts
             relationship = context_manager._get_relationship(with_node)
@@ -1388,7 +1446,7 @@ RELATIONSHIP SUMMARY: {NODE_CONFIG['node_id']} <-> {with_node}
             )]
 
         elif name == "summarize_conversation":
-            with_node = arguments["with_node"]
+            with_node = resolve_node_name(arguments["with_node"])
             key_topics = arguments.get("key_topics", [])
             key_decisions = arguments.get("key_decisions", [])
             summary = arguments.get("summary", "")
