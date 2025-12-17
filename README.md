@@ -8,7 +8,7 @@ A **24/7 autonomous agentic AI system** with persistent memory, multi-agent coor
 
 This repository contains **fully functional MCP servers** and the **verification kit** for independent researchers to install, configure, and verify the system on their own machines.
 
-## What This Repository Contains
+**What This Repository Contains**
 
 | Component | Description |
 |-----------|-------------|
