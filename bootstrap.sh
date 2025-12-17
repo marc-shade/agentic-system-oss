@@ -238,39 +238,37 @@ echo -e "\n  ${CYAN}Creating directory structure...${NC}"
 mkdir -p "$INSTALL_DIR"/{databases/{mcp,qdrant,temporal,cluster},logs,mcp-servers,workflows,scripts}
 echo "    ✓ Directory structure created"
 
-# Clone MCP servers
+# Copy MCP servers from OSS repo
 echo -e "\n  ${CYAN}Installing MCP servers...${NC}"
 
-cd "$INSTALL_DIR/mcp-servers"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Enhanced Memory MCP
-if [ ! -d "enhanced-memory-mcp" ]; then
-    echo "    Cloning enhanced-memory-mcp..."
-    git clone --depth 1 https://github.com/marc-shade/enhanced-memory-mcp.git 2>/dev/null || {
-        echo "    Creating enhanced-memory-mcp from template..."
-        mkdir -p enhanced-memory-mcp
-        cat > enhanced-memory-mcp/requirements.txt << 'REQS'
-fastmcp>=0.1.0
-qdrant-client>=1.7.0
-sentence-transformers>=2.2.0
-numpy>=1.24.0
-pydantic>=2.0.0
-REQS
-    }
-fi
+echo "    Installing enhanced-memory-mcp..."
+mkdir -p "$INSTALL_DIR/mcp-servers/enhanced-memory-mcp"
+cp -r "$SCRIPT_DIR/mcp-servers/enhanced-memory-mcp/"* "$INSTALL_DIR/mcp-servers/enhanced-memory-mcp/"
+echo "    ✓ enhanced-memory-mcp installed"
 
 # Agent Runtime MCP
-if [ ! -d "agent-runtime-mcp" ]; then
-    echo "    Cloning agent-runtime-mcp..."
-    git clone --depth 1 https://github.com/marc-shade/agent-runtime-mcp.git 2>/dev/null || {
-        echo "    Creating agent-runtime-mcp from template..."
-        mkdir -p agent-runtime-mcp
-        cat > agent-runtime-mcp/requirements.txt << 'REQS'
-fastmcp>=0.1.0
-aiosqlite>=0.19.0
-pydantic>=2.0.0
-REQS
-    }
+echo "    Installing agent-runtime-mcp..."
+mkdir -p "$INSTALL_DIR/mcp-servers/agent-runtime-mcp"
+cp -r "$SCRIPT_DIR/mcp-servers/agent-runtime-mcp/"* "$INSTALL_DIR/mcp-servers/agent-runtime-mcp/"
+echo "    ✓ agent-runtime-mcp installed"
+
+# Install MCP server dependencies
+echo -e "\n  ${CYAN}Installing MCP server dependencies...${NC}"
+cd "$INSTALL_DIR/mcp-servers/enhanced-memory-mcp"
+if [[ "$PKG_MANAGER" == "uv" ]]; then
+    uv pip install -r requirements.txt
+else
+    pip3 install -r requirements.txt
+fi
+
+cd "$INSTALL_DIR/mcp-servers/agent-runtime-mcp"
+if [[ "$PKG_MANAGER" == "uv" ]]; then
+    uv pip install -r requirements.txt
+else
+    pip3 install -r requirements.txt
 fi
 
 echo "    ✓ MCP servers installed"
@@ -280,36 +278,12 @@ echo -e "\n  ${CYAN}Installing Python dependencies...${NC}"
 cd "$INSTALL_DIR"
 
 cat > requirements.txt << 'REQS'
-# Core MCP Framework
+# Core MCP Framework (required)
 fastmcp>=0.1.0
-mcp>=0.1.0
 
-# Vector Database
-qdrant-client>=1.7.0
-
-# Embeddings
-sentence-transformers>=2.2.0
-
-# AI SDKs (user provides API keys)
-anthropic>=0.18.0
-openai>=1.0.0
-
-# Data Processing
-numpy>=1.24.0
-pandas>=2.0.0
-pydantic>=2.0.0
-
-# Database
-aiosqlite>=0.19.0
-redis>=4.5.0
-
-# Workflow Engines (optional)
-temporalio>=1.0.0
-
-# Utilities
-python-dotenv>=1.0.0
-httpx>=0.24.0
-aiofiles>=23.0.0
+# Optional: AI SDKs (user provides API keys)
+# anthropic>=0.18.0
+# openai>=1.0.0
 REQS
 
 if [[ "$PKG_MANAGER" == "uv" ]]; then
@@ -319,26 +293,19 @@ else
 fi
 echo "    ✓ Python dependencies installed"
 
-# Start required services
-echo -e "\n  ${CYAN}Starting container services...${NC}"
+# Initialize databases
+echo -e "\n  ${CYAN}Initializing databases...${NC}"
 
-# Qdrant vector database
-echo "    Starting Qdrant..."
-$CONTAINER_RUNTIME run -d \
-    --name qdrant \
-    -p 6333:6333 \
-    -p 6334:6334 \
-    -v "$INSTALL_DIR/databases/qdrant:/qdrant/storage:z" \
-    qdrant/qdrant:latest 2>/dev/null || echo "    Qdrant already running or failed"
+# Run database setup script
+bash "$SCRIPT_DIR/scripts/setup-databases.sh"
 
-# Redis cache
-echo "    Starting Redis..."
-$CONTAINER_RUNTIME run -d \
-    --name redis \
-    -p 6379:6379 \
-    redis:alpine 2>/dev/null || echo "    Redis already running or failed"
+echo "    ✓ Databases initialized"
 
-echo "    ✓ Container services started"
+# Optional: Start container services
+echo ""
+echo -e "  ${YELLOW}Optional: Vector search with Qdrant${NC}"
+echo "  The system works with SQLite by default. For vector search, run:"
+echo "    $CONTAINER_RUNTIME run -d --name qdrant -p 6333:6333 qdrant/qdrant:latest"
 
 #─────────────────────────────────────────────────────────────────────────────
 # PHASE 3: Claude Code CLI Configuration
@@ -366,22 +333,15 @@ cat > /tmp/agentic_mcp_config.json << MCPCONF
   "mcpServers": {
     "enhanced-memory": {
       "command": "python3",
-      "args": ["-m", "enhanced_memory_mcp"],
-      "env": {
-        "QDRANT_URL": "http://localhost:6333",
-        "DATABASE_PATH": "$INSTALL_DIR/databases/mcp/memory.db"
-      }
+      "args": ["$INSTALL_DIR/mcp-servers/enhanced-memory-mcp/server.py"]
     },
-    "agent-runtime-mcp": {
+    "agent-runtime": {
       "command": "python3",
-      "args": ["-m", "agent_runtime_mcp"],
-      "env": {
-        "DATABASE_PATH": "$INSTALL_DIR/databases/mcp/runtime.db"
-      }
+      "args": ["$INSTALL_DIR/mcp-servers/agent-runtime-mcp/server.py"]
     },
     "sequential-thinking": {
       "command": "npx",
-      "args": ["-y", "@anthropic/sequential-thinking-mcp"]
+      "args": ["-y", "@anthropics/mcp-server-sequential-thinking"]
     }
   }
 }
@@ -488,32 +448,61 @@ cat > "$INSTALL_DIR/scripts/health_check.py" << 'HEALTHPY'
 #!/usr/bin/env python3
 """Agentic System Health Check"""
 
-import subprocess
 import sys
-import socket
+from pathlib import Path
 
-def check_port(port, name):
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    result = sock.connect_ex(('localhost', port))
-    sock.close()
-    status = "✓" if result == 0 else "✗"
-    color = "\033[92m" if result == 0 else "\033[91m"
-    print(f"  {color}{status}\033[0m {name} (port {port})")
-    return result == 0
+def check_file(path, name):
+    exists = Path(path).expanduser().exists()
+    status = "✓" if exists else "✗"
+    color = "\033[92m" if exists else "\033[91m"
+    print(f"  {color}{status}\033[0m {name}")
+    return exists
 
-print("\n🔍 Agentic System Health Check\n")
-print("Services:")
+def check_import(module, name):
+    try:
+        __import__(module)
+        print(f"  \033[92m✓\033[0m {name}")
+        return True
+    except ImportError:
+        print(f"  \033[91m✗\033[0m {name}")
+        return False
 
+print("\n=== Agentic System Health Check ===\n")
+
+print("Python Environment:")
+check_import("fastmcp", "fastmcp installed")
+
+print("\nDatabases:")
 all_ok = True
-all_ok &= check_port(6333, "Qdrant REST API")
-all_ok &= check_port(6334, "Qdrant gRPC")
-all_ok &= check_port(6379, "Redis")
+all_ok &= check_file("~/.claude/enhanced_memory_oss/memory.db", "Memory database")
+all_ok &= check_file("~/.claude/agent_runtime_oss/runtime.db", "Runtime database")
+
+print("\nClaude Code Config:")
+config_path = Path.home() / ".claude.json"
+if config_path.exists():
+    import json
+    with open(config_path) as f:
+        config = json.load(f)
+    servers = config.get("mcpServers", {})
+    if "enhanced-memory" in servers:
+        print("  \033[92m✓\033[0m enhanced-memory configured")
+    else:
+        print("  \033[91m✗\033[0m enhanced-memory not configured")
+        all_ok = False
+    if "agent-runtime" in servers:
+        print("  \033[92m✓\033[0m agent-runtime configured")
+    else:
+        print("  \033[91m✗\033[0m agent-runtime not configured")
+        all_ok = False
+else:
+    print("  \033[91m✗\033[0m ~/.claude.json not found")
+    all_ok = False
 
 print()
 if all_ok:
-    print("\033[92m✓ All services healthy\033[0m")
+    print("\033[92m✓ System healthy - restart Claude Code to use\033[0m")
 else:
-    print("\033[91m✗ Some services not running\033[0m")
+    print("\033[91m✗ Some checks failed\033[0m")
     sys.exit(1)
 HEALTHPY
 chmod +x "$INSTALL_DIR/scripts/health_check.py"

@@ -1,0 +1,12 @@
+# Enhanced Memory MCP Server - OSS Edition
+# Core dependencies for the 4-tier memory system
+
+# MCP Protocol
+fastmcp>=0.1.0
+
+# Database
+# SQLite is built-in to Python
+
+# Optional: Vector search (for advanced RAG)
+# qdrant-client>=1.7.0
+# sentence-transformers>=2.2.0

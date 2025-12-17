@@ -1,4 +1,4 @@
-# Agentic System - Open Source Verification Kit
+# Agentic System - Open Source Edition
 
 [![AVIR Verified](https://img.shields.io/badge/AVIR-VERIFIED-brightgreen)](docs/AVIR.md)
 [![Open for Verification](https://img.shields.io/badge/Verification-Open-blue)](VERIFICATION.md)
@@ -6,16 +6,21 @@
 
 A **24/7 autonomous agentic AI system** with persistent memory, multi-agent coordination, and self-improvement capabilities.
 
-This repository contains the **verification kit** for independent researchers to replicate and verify the system's capabilities.
+This repository contains **fully functional MCP servers** and the **verification kit** for independent researchers to install, configure, and verify the system on their own machines.
 
 ## What This Repository Contains
 
 | Component | Description |
 |-----------|-------------|
-| `bootstrap.sh` | One-command installation script |
+| `mcp-servers/` | **Installable MCP servers** for Claude Code CLI |
+| `├─ enhanced-memory-mcp/` | 4-tier persistent memory with auto-curation |
+| `├─ agent-runtime-mcp/` | Task management, relay pipelines, circuit breakers |
+| `└─ sequential-thinking/` | Reference to deep reasoning MCP |
+| `scripts/` | Setup and health check utilities |
 | `avir/` | AI-Verified Independent Replication protocol |
 | `benchmarks/` | Standardized benchmark specifications |
 | `docs/` | Architecture documentation |
+| `bootstrap.sh` | One-command installation script |
 
 ## Quick Start
 
@@ -35,11 +40,40 @@ cd agentic-system-oss
 
 ### Requirements
 
-- **OS**: macOS 14+ or Linux (Ubuntu 22.04+, Fedora 38+)
-- **RAM**: 16GB minimum (32GB recommended)
-- **Storage**: 50GB free space
-- **Container Runtime**: Docker, Podman, or Apple Container
-- **Python**: 3.11+
+- **Claude Code CLI**: [claude.ai/code](https://claude.ai/code)
+- **Python**: 3.10+ (3.11+ recommended)
+- **OS**: macOS 12+ or Linux (Ubuntu 20.04+, Fedora 38+)
+- **RAM**: 8GB minimum (16GB recommended)
+- **Storage**: 1GB free space
+
+### Manual Installation (Alternative)
+
+If you prefer manual setup:
+
+```bash
+# Install MCP server dependencies
+pip3 install fastmcp
+
+# Add to ~/.claude.json:
+{
+  "mcpServers": {
+    "enhanced-memory": {
+      "command": "python3",
+      "args": ["/path/to/mcp-servers/enhanced-memory-mcp/server.py"]
+    },
+    "agent-runtime": {
+      "command": "python3",
+      "args": ["/path/to/mcp-servers/agent-runtime-mcp/server.py"]
+    },
+    "sequential-thinking": {
+      "command": "npx",
+      "args": ["-y", "@anthropics/mcp-server-sequential-thinking"]
+    }
+  }
+}
+
+# Restart Claude Code CLI
+```
 
 ## System Architecture
 

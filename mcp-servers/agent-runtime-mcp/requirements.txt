@@ -1,0 +1,8 @@
+# Agent Runtime MCP Server - OSS Edition
+# Core dependencies for task management and relay pipelines
+
+# MCP Protocol
+fastmcp>=0.1.0
+
+# Database
+# SQLite is built-in to Python
