@@ -1,0 +1,67 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Project
+databases/
+logs/
+*.log
+*.db
+*.sqlite
+
+# Secrets (should never be committed)
+.env.local
+*.key
+*.pem
+secrets.json
+credentials.json
+
+# Results (regenerated)
+avir/results/
+benchmark_results.json
+
+# Temporary
+tmp/
+temp/
+*.tmp

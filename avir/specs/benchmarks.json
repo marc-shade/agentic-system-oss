@@ -1,0 +1,68 @@
+{
+  "version": "1.0",
+  "description": "Agentic System Benchmark Specifications",
+  "benchmarks": {
+    "memory_entity_creation": {
+      "description": "Create memory entities with automatic versioning and compression",
+      "methodology": "Create 1000 entities with varying sizes, measure throughput",
+      "target": 435,
+      "unit": "ops/s",
+      "tolerance": 0.20,
+      "requirements": [
+        "Qdrant vector database running",
+        "enhanced-memory-mcp server active"
+      ]
+    },
+    "semantic_search": {
+      "description": "Search memories using semantic similarity with BM25 hybrid",
+      "methodology": "Execute 100 semantic queries against 10K entity corpus",
+      "target": 81,
+      "unit": "ops/s",
+      "tolerance": 0.20,
+      "requirements": [
+        "Pre-populated memory corpus",
+        "Embedding model loaded"
+      ]
+    },
+    "memory_promotion": {
+      "description": "Promote memories between tiers (working → episodic → semantic)",
+      "methodology": "Trigger promotion of 100 memories with varying access patterns",
+      "target": 6.4,
+      "unit": "ops/s",
+      "tolerance": 0.20,
+      "requirements": [
+        "4-tier memory system configured",
+        "Access pattern history available"
+      ]
+    },
+    "task_decomposition": {
+      "description": "Decompose natural language goal into hierarchical tasks",
+      "methodology": "Submit 10 goals of varying complexity, measure average latency",
+      "target": 1200,
+      "unit": "ms",
+      "tolerance": 0.25,
+      "lower_is_better": true,
+      "requirements": [
+        "agent-runtime-mcp server active",
+        "LLM provider configured"
+      ]
+    },
+    "baton_handoff": {
+      "description": "Hand off execution context between agents in relay pipeline",
+      "methodology": "Execute 48-agent relay, measure inter-agent handoff latency",
+      "target": 89,
+      "unit": "ms",
+      "tolerance": 0.50,
+      "lower_is_better": true,
+      "requirements": [
+        "Relay pipeline configured",
+        "Multiple agent instances available"
+      ]
+    }
+  },
+  "verification_criteria": {
+    "VERIFIED": "All 5 benchmarks pass within tolerance",
+    "PARTIAL": "3-4 benchmarks pass",
+    "FAILED": "Fewer than 3 benchmarks pass"
+  }
+}
