@@ -320,7 +320,7 @@ Claims about AI system capabilities are often difficult to verify. AVIR (AI-Veri
 
 ### 7.1 Benchmark Performance
 
-Testing was conducted on Apple M2 Ultra (Mac Studio) with 192GB RAM:
+Testing was conducted on Apple M2 Max (Mac Studio) with 32GB RAM:
 
 | Benchmark | Result | Target | Status |
 |-----------|--------|--------|--------|
