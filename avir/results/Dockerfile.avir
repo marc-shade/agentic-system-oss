@@ -1,0 +1,24 @@
+
+FROM python:3.11-slim
+
+# No external network access will be set at runtime
+LABEL org.opencontainers.image.title="AVIR Isolated Build"
+LABEL org.opencontainers.image.description="Isolated environment for AVIR verification"
+
+# Install dependencies
+RUN pip install --no-cache-dir \
+    anthropic \
+    openai \
+    httpx \
+    aiohttp \
+    pydantic \
+    sqlalchemy \
+    sentence-transformers
+
+# Create non-root user
+RUN useradd -m builder
+USER builder
+WORKDIR /home/builder
+
+# Will receive spec file at runtime
+CMD ["python3", "build_from_spec.py"]

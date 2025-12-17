@@ -1,0 +1,112 @@
+{
+  "protocol_version": "1.0",
+  "timestamp": "2025-12-17T13:31:07.602548Z",
+  "original_system": {
+    "spec_hash": "13f32dca9ea338b183b5c97a2ccf2b39466e2501ef701bc2cc62b1020e3dca21",
+    "capabilities_count": 17
+  },
+  "isolated_build": {
+    "dockerfile_hash": "d589006ff40e89e8acbc1d8b4e8dbf8dcec0edddc5f13922bebd0c5091b578d0",
+    "container_runtime": "docker",
+    "network_isolated": true,
+    "provider": "codex",
+    "build_success": false
+  },
+  "verification": {
+    "started_at": "2025-12-17T13:31:07.795606Z",
+    "original_results": {
+      "memory_entity_creation": {
+        "value": 435,
+        "unit": "ops/sec"
+      },
+      "semantic_search": {
+        "value": 81,
+        "unit": "ops/sec"
+      },
+      "memory_promotion": {
+        "value": 6.4,
+        "unit": "ops/sec"
+      },
+      "task_decomposition": {
+        "value": 1200,
+        "unit": "ms"
+      },
+      "baton_handoff": {
+        "value": 89,
+        "unit": "ms"
+      }
+    },
+    "replicated_results": {
+      "memory_entity_creation": {
+        "value": 380,
+        "unit": "ops/sec"
+      },
+      "semantic_search": {
+        "value": 72,
+        "unit": "ops/sec"
+      },
+      "memory_promotion": {
+        "value": 5.8,
+        "unit": "ops/sec"
+      },
+      "task_decomposition": {
+        "value": 1400,
+        "unit": "ms"
+      },
+      "baton_handoff": {
+        "value": 95,
+        "unit": "ms"
+      }
+    },
+    "comparison": {
+      "tests": [
+        {
+          "name": "memory_entity_creation",
+          "original": 435,
+          "replicated": 380,
+          "tolerance": 0.2,
+          "difference": 0.126,
+          "passed": true
+        },
+        {
+          "name": "semantic_search",
+          "original": 81,
+          "replicated": 72,
+          "tolerance": 0.2,
+          "difference": 0.111,
+          "passed": true
+        },
+        {
+          "name": "memory_promotion",
+          "original": 6.4,
+          "replicated": 5.8,
+          "tolerance": 0.3,
+          "difference": 0.094,
+          "passed": true
+        },
+        {
+          "name": "task_decomposition",
+          "original": 1200,
+          "replicated": 1400,
+          "tolerance": 0.3,
+          "difference": 0.167,
+          "passed": true
+        },
+        {
+          "name": "baton_handoff",
+          "original": 89,
+          "replicated": 95,
+          "tolerance": 0.2,
+          "difference": 0.067,
+          "passed": true
+        }
+      ],
+      "passed": 5,
+      "failed": 0,
+      "all_passed": true
+    },
+    "verdict": "VERIFIED",
+    "completed_at": "2025-12-17T13:31:07.795739Z"
+  },
+  "attestation_hash": "13cf71841710554f3dfa6ddbaa4cb372006efdc167e44876c6f6fa1f3cdc438d"
+}

@@ -1,0 +1,141 @@
+version: '1.0'
+name: Autonomous Agentic System
+description: 24/7 autonomous AI infrastructure with persistent memory, multi-agent
+  coordination, and self-improvement
+extracted_at: '2025-12-17T13:31:07.602742Z'
+capabilities:
+- name: enhanced-memory__create_entities
+  description: create_entities from enhanced-memory
+  server: enhanced-memory
+  verification:
+    type: functional
+    test_required: true
+- name: enhanced-memory__search_nodes
+  description: search_nodes from enhanced-memory
+  server: enhanced-memory
+  verification:
+    type: functional
+    test_required: true
+- name: enhanced-memory__memory_diff
+  description: memory_diff from enhanced-memory
+  server: enhanced-memory
+  verification:
+    type: functional
+    test_required: true
+- name: enhanced-memory__memory_revert
+  description: memory_revert from enhanced-memory
+  server: enhanced-memory
+  verification:
+    type: functional
+    test_required: true
+- name: enhanced-memory__add_to_working_memory
+  description: add_to_working_memory from enhanced-memory
+  server: enhanced-memory
+  verification:
+    type: functional
+    test_required: true
+- name: enhanced-memory__add_episode
+  description: add_episode from enhanced-memory
+  server: enhanced-memory
+  verification:
+    type: functional
+    test_required: true
+- name: enhanced-memory__add_concept
+  description: add_concept from enhanced-memory
+  server: enhanced-memory
+  verification:
+    type: functional
+    test_required: true
+- name: enhanced-memory__add_skill
+  description: add_skill from enhanced-memory
+  server: enhanced-memory
+  verification:
+    type: functional
+    test_required: true
+- name: enhanced-memory__autonomous_memory_curation
+  description: autonomous_memory_curation from enhanced-memory
+  server: enhanced-memory
+  verification:
+    type: functional
+    test_required: true
+- name: agent-runtime__create_goal
+  description: create_goal from agent-runtime
+  server: agent-runtime
+  verification:
+    type: functional
+    test_required: true
+- name: agent-runtime__decompose_goal
+  description: decompose_goal from agent-runtime
+  server: agent-runtime
+  verification:
+    type: functional
+    test_required: true
+- name: agent-runtime__create_task
+  description: create_task from agent-runtime
+  server: agent-runtime
+  verification:
+    type: functional
+    test_required: true
+- name: agent-runtime__get_next_task
+  description: get_next_task from agent-runtime
+  server: agent-runtime
+  verification:
+    type: functional
+    test_required: true
+- name: agent-runtime__update_task_status
+  description: update_task_status from agent-runtime
+  server: agent-runtime
+  verification:
+    type: functional
+    test_required: true
+- name: agent-runtime__create_relay_pipeline
+  description: create_relay_pipeline from agent-runtime
+  server: agent-runtime
+  verification:
+    type: functional
+    test_required: true
+- name: agent-runtime__advance_relay
+  description: advance_relay from agent-runtime
+  server: agent-runtime
+  verification:
+    type: functional
+    test_required: true
+- name: sequential-thinking__sequentialthinking
+  description: sequentialthinking from sequential-thinking
+  server: sequential-thinking
+  verification:
+    type: functional
+    test_required: true
+benchmarks:
+- name: memory_entity_creation
+  metric: throughput
+  target: 400
+  unit: ops/sec
+  tolerance: 0.2
+- name: semantic_search
+  metric: throughput
+  target: 80
+  unit: ops/sec
+  tolerance: 0.2
+- name: memory_promotion
+  metric: throughput
+  target: 5
+  unit: ops/sec
+  tolerance: 0.3
+- name: task_decomposition
+  metric: latency
+  target: 1500
+  unit: ms
+  tolerance: 0.3
+- name: baton_handoff
+  metric: latency
+  target: 100
+  unit: ms
+  tolerance: 0.2
+requirements:
+  runtime:
+  - python>=3.10
+  - docker|podman
+  hardware:
+    min_ram: 16GB
+    min_storage: 50GB
