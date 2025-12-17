@@ -6,10 +6,50 @@
 [![Test Coverage](https://img.shields.io/badge/Tests-7%2F7%20Passing-success)]()
 [![Nodes](https://img.shields.io/badge/Active%20Nodes-3-blue)]()
 [![License](https://img.shields.io/badge/License-MIT-blue)]()
+[![AVIR Verified](https://img.shields.io/badge/AVIR-VERIFIED-brightgreen)]()
+[![Open for Verification](https://img.shields.io/badge/Verification-Open-blue)]()
 
 ## Overview
 
 A production-ready distributed AI system running 24/7 across multiple nodes with automatic workload distribution, cluster memory, and intelligent task routing.
+
+---
+
+## Independent Verification
+
+**We invite researchers to verify this system's capabilities.**
+
+### One-Command Installation
+```bash
+curl -fsSL https://raw.githubusercontent.com/marc-shade/agentic-system/master/bootstrap-open-source.sh | bash
+```
+
+### Verification Options
+
+| Method | Time | What You Verify |
+|--------|------|-----------------|
+| **[AVIR Protocol](avir/PROTOCOL.md)** | ~1 hour | AI-based cryptographic verification using Codex/Gemini |
+| **[Full Replication](avir/RESEARCHER_INVITATION.md)** | 1-2 days | Complete system replication and benchmarking |
+| **Component Testing** | 2-4 hours | Individual capability verification |
+
+### AVIR Verification (AI-Verified Independent Replication)
+```bash
+# Run AI-based verification with different provider
+python3 avir/run_verification.py --provider codex
+```
+
+**Latest AVIR Results** (2025-12-17):
+- Verdict: **VERIFIED** (5/5 benchmarks passed)
+- Attestation: `13cf71841710554f3dfa6ddbaa4cb372006efdc167e44876c6f6fa1f3cdc438d`
+
+### Research Paper
+See [`research-paper/PAPER.md`](research-paper/PAPER.md) for complete system documentation.
+
+### Submit Verification
+- **GitHub Issue**: Use "Verification Report" template
+- **Email**: verification@2acrestudios.com
+
+---
 
 ## Quick Start
 
