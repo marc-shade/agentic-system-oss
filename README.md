@@ -165,10 +165,24 @@ After verification, submit your results:
 ## Documentation
 
 - [Architecture Overview](docs/ARCHITECTURE.md)
-- [MCP Server Guide](docs/MCP_SERVERS.md)
+- [**MCP Ecosystem (26+ servers)**](docs/MCP_ECOSYSTEM.md) - Complete catalog of all MCP servers
 - [Services Configuration](docs/SERVICES.md)
-- [Workflow Configuration](docs/WORKFLOWS.md)
 - [Troubleshooting](docs/TROUBLESHOOTING.md)
+
+## MCP Ecosystem
+
+This system is built on **26+ MCP servers** organized by function:
+
+| Category | Servers | Highlights |
+|----------|---------|------------|
+| **Core AGI** | 4 | enhanced-memory, agent-runtime, agi-mcp, safla-mcp |
+| **Cluster Coordination** | 4 | cluster-execution, node-chat, claude-flow, code-execution |
+| **Knowledge Acquisition** | 3 | research-paper, video-transcript, llm-council |
+| **Security & Defense** | 8 | security-scanner, threat-intel, network-scanner, hids, and more |
+| **Creative & Media** | 2 | image-gen, voice-agi |
+| **Development** | 5 | ember, file-analyzer, crypto-tools, synthetic-data, claude-code-control |
+
+See [docs/MCP_ECOSYSTEM.md](docs/MCP_ECOSYSTEM.md) for the complete server catalog with installation instructions.
 
 ## Research Paper
 
