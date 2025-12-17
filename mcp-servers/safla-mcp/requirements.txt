@@ -1,0 +1,12 @@
+# SAFLA MCP Server - OSS Edition
+# High-performance hybrid memory system
+
+# MCP Protocol
+mcp>=1.0.0
+
+# HTTP client (for remote SAFLA)
+aiohttp>=3.9.0
+
+# Optional: Local embeddings (recommended for full functionality)
+# sentence-transformers>=2.2.0
+# numpy>=1.24.0

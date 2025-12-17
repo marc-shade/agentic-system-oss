@@ -1,0 +1,8 @@
+# Video Transcript MCP Server - OSS Edition
+# YouTube transcript extraction and analysis
+
+# MCP Protocol
+mcp>=1.0.0
+
+# System dependency (install separately):
+# yt-dlp (brew install yt-dlp or pip install yt-dlp)

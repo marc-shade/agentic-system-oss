@@ -1,0 +1,10 @@
+# LLM Council MCP Server - OSS Edition
+# Multi-provider LLM deliberation system
+
+# MCP Protocol
+mcp>=1.0.0
+
+# CLI tools required (install separately):
+# - claude (claude.ai/code)
+# - codex (openai.com/codex)
+# - gemini (cloud.google.com/gemini)

@@ -198,6 +198,24 @@ else
     PREREQ_PASS=false
 fi
 
+# Check Node.js (for TypeScript MCP servers)
+echo -n "  Node.js.................... "
+if command -v node &>/dev/null; then
+    NODE_VERSION=$(node --version)
+    echo -e "${GREEN}$NODE_VERSION${NC}"
+else
+    echo -e "${YELLOW}Not found (optional, for ember-mcp)${NC}"
+fi
+
+# Check npm
+echo -n "  npm........................ "
+if command -v npm &>/dev/null; then
+    NPM_VERSION=$(npm --version)
+    echo -e "${GREEN}$NPM_VERSION${NC}"
+else
+    echo -e "${YELLOW}Not found (optional, for ember-mcp)${NC}"
+fi
+
 echo ""
 
 if [[ "$CHECK_ONLY" == "true" ]]; then
@@ -255,23 +273,60 @@ mkdir -p "$INSTALL_DIR/mcp-servers/agent-runtime-mcp"
 cp -r "$SCRIPT_DIR/mcp-servers/agent-runtime-mcp/"* "$INSTALL_DIR/mcp-servers/agent-runtime-mcp/"
 echo "    ✓ agent-runtime-mcp installed"
 
+# SAFLA MCP (Hybrid Memory)
+echo "    Installing safla-mcp..."
+mkdir -p "$INSTALL_DIR/mcp-servers/safla-mcp"
+cp -r "$SCRIPT_DIR/mcp-servers/safla-mcp/"* "$INSTALL_DIR/mcp-servers/safla-mcp/"
+echo "    ✓ safla-mcp installed"
+
+# Research Paper MCP
+echo "    Installing research-paper-mcp..."
+mkdir -p "$INSTALL_DIR/mcp-servers/research-paper-mcp"
+cp -r "$SCRIPT_DIR/mcp-servers/research-paper-mcp/"* "$INSTALL_DIR/mcp-servers/research-paper-mcp/"
+echo "    ✓ research-paper-mcp installed"
+
+# Video Transcript MCP
+echo "    Installing video-transcript-mcp..."
+mkdir -p "$INSTALL_DIR/mcp-servers/video-transcript-mcp"
+cp -r "$SCRIPT_DIR/mcp-servers/video-transcript-mcp/"* "$INSTALL_DIR/mcp-servers/video-transcript-mcp/"
+echo "    ✓ video-transcript-mcp installed"
+
+# LLM Council MCP
+echo "    Installing llm-council-mcp..."
+mkdir -p "$INSTALL_DIR/mcp-servers/llm-council-mcp"
+cp -r "$SCRIPT_DIR/mcp-servers/llm-council-mcp/"* "$INSTALL_DIR/mcp-servers/llm-council-mcp/"
+echo "    ✓ llm-council-mcp installed"
+
+# Ember MCP (TypeScript - requires Node.js)
+if command -v npm &>/dev/null; then
+    echo "    Installing ember-mcp..."
+    mkdir -p "$INSTALL_DIR/mcp-servers/ember-mcp"
+    cp -r "$SCRIPT_DIR/mcp-servers/ember-mcp/"* "$INSTALL_DIR/mcp-servers/ember-mcp/"
+    cd "$INSTALL_DIR/mcp-servers/ember-mcp"
+    npm install --quiet 2>/dev/null || echo "    (npm install will complete on first use)"
+    npm run build --quiet 2>/dev/null || echo "    (build will complete on first use)"
+    echo "    ✓ ember-mcp installed"
+else
+    echo "    ⊘ Skipping ember-mcp (Node.js not found)"
+fi
+
 # Install MCP server dependencies
 echo -e "\n  ${CYAN}Installing MCP server dependencies...${NC}"
-cd "$INSTALL_DIR/mcp-servers/enhanced-memory-mcp"
-if [[ "$PKG_MANAGER" == "uv" ]]; then
-    uv pip install -r requirements.txt
-else
-    pip3 install -r requirements.txt
-fi
 
-cd "$INSTALL_DIR/mcp-servers/agent-runtime-mcp"
-if [[ "$PKG_MANAGER" == "uv" ]]; then
-    uv pip install -r requirements.txt
-else
-    pip3 install -r requirements.txt
-fi
+# Python MCP servers with requirements.txt
+for server in enhanced-memory-mcp agent-runtime-mcp safla-mcp research-paper-mcp video-transcript-mcp llm-council-mcp; do
+    if [ -f "$INSTALL_DIR/mcp-servers/$server/requirements.txt" ]; then
+        echo "    Installing $server dependencies..."
+        cd "$INSTALL_DIR/mcp-servers/$server"
+        if [[ "$PKG_MANAGER" == "uv" ]]; then
+            uv pip install -r requirements.txt --quiet 2>/dev/null || pip3 install -r requirements.txt -q
+        else
+            pip3 install -r requirements.txt -q
+        fi
+    fi
+done
 
-echo "    ✓ MCP servers installed"
+echo "    ✓ MCP server dependencies installed"
 
 # Install Python dependencies
 echo -e "\n  ${CYAN}Installing Python dependencies...${NC}"
@@ -339,6 +394,22 @@ cat > /tmp/agentic_mcp_config.json << MCPCONF
       "command": "python3",
       "args": ["$INSTALL_DIR/mcp-servers/agent-runtime-mcp/server.py"]
     },
+    "safla-mcp": {
+      "command": "python3",
+      "args": ["$INSTALL_DIR/mcp-servers/safla-mcp/server.py"]
+    },
+    "research-paper-mcp": {
+      "command": "python3",
+      "args": ["$INSTALL_DIR/mcp-servers/research-paper-mcp/server.py"]
+    },
+    "video-transcript-mcp": {
+      "command": "python3",
+      "args": ["$INSTALL_DIR/mcp-servers/video-transcript-mcp/server.py"]
+    },
+    "llm-council": {
+      "command": "python3",
+      "args": ["$INSTALL_DIR/mcp-servers/llm-council-mcp/server.py"]
+    },
     "sequential-thinking": {
       "command": "npx",
       "args": ["-y", "@anthropics/mcp-server-sequential-thinking"]
@@ -346,6 +417,21 @@ cat > /tmp/agentic_mcp_config.json << MCPCONF
   }
 }
 MCPCONF
+
+# Add ember-mcp if Node.js is available
+if command -v node &>/dev/null && [ -d "$INSTALL_DIR/mcp-servers/ember-mcp" ]; then
+    python3 << EMBER
+import json
+with open("/tmp/agentic_mcp_config.json", 'r') as f:
+    config = json.load(f)
+config["mcpServers"]["ember-mcp"] = {
+    "command": "node",
+    "args": ["$INSTALL_DIR/mcp-servers/ember-mcp/dist/index.js"]
+}
+with open("/tmp/agentic_mcp_config.json", 'w') as f:
+    json.dump(config, f, indent=2)
+EMBER
+fi
 
 # Merge with existing config
 if [ -f "$CLAUDE_CONFIG" ]; then
@@ -443,6 +529,44 @@ CLAUDEMD
 
 echo "    ✓ CLAUDE.md created"
 
+# Install Claude Code customizations
+echo -e "\n  ${CYAN}Installing Claude Code customizations...${NC}"
+
+CLAUDE_DIR="$HOME/.claude"
+mkdir -p "$CLAUDE_DIR"/{agents,commands,skills,hooks}
+
+# Copy agents
+if [ -d "$SCRIPT_DIR/claude-config/agents" ]; then
+    echo "    Installing agents..."
+    cp -r "$SCRIPT_DIR/claude-config/agents/"* "$CLAUDE_DIR/agents/" 2>/dev/null || true
+    echo "    ✓ Agents installed"
+fi
+
+# Copy commands (slash commands)
+if [ -d "$SCRIPT_DIR/claude-config/commands" ]; then
+    echo "    Installing slash commands..."
+    cp -r "$SCRIPT_DIR/claude-config/commands/"* "$CLAUDE_DIR/commands/" 2>/dev/null || true
+    echo "    ✓ Slash commands installed"
+fi
+
+# Copy skills
+if [ -d "$SCRIPT_DIR/claude-config/skills" ]; then
+    echo "    Installing skills..."
+    cp -r "$SCRIPT_DIR/claude-config/skills/"* "$CLAUDE_DIR/skills/" 2>/dev/null || true
+    echo "    ✓ Skills installed"
+fi
+
+# Copy hooks
+if [ -d "$SCRIPT_DIR/claude-config/hooks" ]; then
+    echo "    Installing hooks..."
+    cp -r "$SCRIPT_DIR/claude-config/hooks/"* "$CLAUDE_DIR/hooks/" 2>/dev/null || true
+    chmod +x "$CLAUDE_DIR/hooks/"*.py 2>/dev/null || true
+    chmod +x "$CLAUDE_DIR/hooks/"*.sh 2>/dev/null || true
+    echo "    ✓ Hooks installed"
+fi
+
+echo "    ✓ Claude Code customizations installed"
+
 # Create health check script
 cat > "$INSTALL_DIR/scripts/health_check.py" << 'HEALTHPY'
 #!/usr/bin/env python3
@@ -451,31 +575,65 @@ cat > "$INSTALL_DIR/scripts/health_check.py" << 'HEALTHPY'
 import sys
 from pathlib import Path
 
+GREEN = "\033[92m"
+RED = "\033[91m"
+YELLOW = "\033[93m"
+CYAN = "\033[96m"
+NC = "\033[0m"
+
 def check_file(path, name):
     exists = Path(path).expanduser().exists()
     status = "✓" if exists else "✗"
-    color = "\033[92m" if exists else "\033[91m"
-    print(f"  {color}{status}\033[0m {name}")
+    color = GREEN if exists else RED
+    print(f"  {color}{status}{NC} {name}")
     return exists
 
 def check_import(module, name):
     try:
         __import__(module)
-        print(f"  \033[92m✓\033[0m {name}")
+        print(f"  {GREEN}✓{NC} {name}")
         return True
     except ImportError:
-        print(f"  \033[91m✗\033[0m {name}")
+        print(f"  {RED}✗{NC} {name}")
         return False
 
-print("\n=== Agentic System Health Check ===\n")
+def check_mcp_server(servers, name, display_name):
+    if name in servers:
+        print(f"  {GREEN}✓{NC} {display_name}")
+        return True
+    else:
+        print(f"  {RED}✗{NC} {display_name}")
+        return False
+
+print(f"\n{CYAN}═══════════════════════════════════════════════════════════════{NC}")
+print(f"{CYAN}  Agentic System Health Check{NC}")
+print(f"{CYAN}═══════════════════════════════════════════════════════════════{NC}\n")
+
+all_ok = True
 
 print("Python Environment:")
-check_import("fastmcp", "fastmcp installed")
+all_ok &= check_import("fastmcp", "fastmcp installed")
 
-print("\nDatabases:")
-all_ok = True
-all_ok &= check_file("~/.claude/enhanced_memory_oss/memory.db", "Memory database")
-all_ok &= check_file("~/.claude/agent_runtime_oss/runtime.db", "Runtime database")
+print("\nMCP Server Files:")
+servers_dir = Path.home() / "agentic-system" / "mcp-servers"
+required_servers = [
+    ("enhanced-memory-mcp", "Enhanced Memory MCP"),
+    ("agent-runtime-mcp", "Agent Runtime MCP"),
+    ("safla-mcp", "SAFLA MCP"),
+    ("research-paper-mcp", "Research Paper MCP"),
+    ("video-transcript-mcp", "Video Transcript MCP"),
+    ("llm-council-mcp", "LLM Council MCP"),
+]
+for server_dir, name in required_servers:
+    path = servers_dir / server_dir / "server.py"
+    all_ok &= check_file(str(path), name)
+
+# Check ember-mcp (TypeScript)
+ember_path = servers_dir / "ember-mcp" / "dist" / "index.js"
+if ember_path.exists():
+    print(f"  {GREEN}✓{NC} Ember MCP (TypeScript)")
+else:
+    print(f"  {YELLOW}⊘{NC} Ember MCP (optional, requires Node.js)")
 
 print("\nClaude Code Config:")
 config_path = Path.home() / ".claude.json"
@@ -484,25 +642,50 @@ if config_path.exists():
     with open(config_path) as f:
         config = json.load(f)
     servers = config.get("mcpServers", {})
-    if "enhanced-memory" in servers:
-        print("  \033[92m✓\033[0m enhanced-memory configured")
+
+    expected_servers = [
+        ("enhanced-memory", "enhanced-memory"),
+        ("agent-runtime", "agent-runtime"),
+        ("safla-mcp", "safla-mcp"),
+        ("research-paper-mcp", "research-paper-mcp"),
+        ("video-transcript-mcp", "video-transcript-mcp"),
+        ("llm-council", "llm-council"),
+        ("sequential-thinking", "sequential-thinking"),
+    ]
+    for server_name, display in expected_servers:
+        all_ok &= check_mcp_server(servers, server_name, display)
+
+    # Optional: ember-mcp
+    if "ember-mcp" in servers:
+        print(f"  {GREEN}✓{NC} ember-mcp")
     else:
-        print("  \033[91m✗\033[0m enhanced-memory not configured")
-        all_ok = False
-    if "agent-runtime" in servers:
-        print("  \033[92m✓\033[0m agent-runtime configured")
-    else:
-        print("  \033[91m✗\033[0m agent-runtime not configured")
-        all_ok = False
+        print(f"  {YELLOW}⊘{NC} ember-mcp (optional)")
 else:
-    print("  \033[91m✗\033[0m ~/.claude.json not found")
+    print(f"  {RED}✗{NC} ~/.claude.json not found")
     all_ok = False
+
+print("\nClaude Code Customizations:")
+claude_dir = Path.home() / ".claude"
+customization_dirs = [
+    ("agents", "Agents directory"),
+    ("commands", "Commands directory"),
+    ("skills", "Skills directory"),
+    ("hooks", "Hooks directory"),
+]
+for dir_name, display in customization_dirs:
+    path = claude_dir / dir_name
+    exists = path.exists() and any(path.iterdir())
+    if exists:
+        count = len(list(path.glob("*")))
+        print(f"  {GREEN}✓{NC} {display} ({count} items)")
+    else:
+        print(f"  {YELLOW}⊘{NC} {display} (empty)")
 
 print()
 if all_ok:
-    print("\033[92m✓ System healthy - restart Claude Code to use\033[0m")
+    print(f"{GREEN}✓ System healthy - restart Claude Code to use{NC}")
 else:
-    print("\033[91m✗ Some checks failed\033[0m")
+    print(f"{RED}✗ Some checks failed{NC}")
     sys.exit(1)
 HEALTHPY
 chmod +x "$INSTALL_DIR/scripts/health_check.py"
@@ -545,6 +728,24 @@ echo -e "${GREEN}═════════════════════
 echo ""
 echo -e "  ${CYAN}Installation Directory:${NC} $INSTALL_DIR"
 echo ""
+echo -e "  ${CYAN}MCP Servers Installed:${NC}"
+echo "    • enhanced-memory     - 4-tier persistent memory with RAG"
+echo "    • agent-runtime       - Task management and orchestration"
+echo "    • safla-mcp           - High-performance hybrid memory"
+echo "    • research-paper-mcp  - arXiv/Semantic Scholar integration"
+echo "    • video-transcript-mcp- YouTube transcript extraction"
+echo "    • llm-council         - Multi-LLM deliberation system"
+echo "    • sequential-thinking - Deep reasoning chains (npx)"
+if command -v npm &>/dev/null && [ -d "$INSTALL_DIR/mcp-servers/ember-mcp" ]; then
+echo "    • ember-mcp           - Production quality enforcement"
+fi
+echo ""
+echo -e "  ${CYAN}Claude Code Customizations:${NC}"
+echo "    • Agents: code-reviewer, debugger, explorer"
+echo "    • Commands: memory-save, memory-search, check-todos, add-to-todos, quick-review"
+echo "    • Skills: mcp-builder, skill-creator"
+echo "    • Hooks: pre-tool-use, post-tool-use"
+echo ""
 echo -e "  ${YELLOW}Next Steps:${NC}"
 echo ""
 echo "  1. Add your API keys:"
@@ -557,8 +758,9 @@ echo ""
 echo "  3. Verify installation:"
 echo "     cd $INSTALL_DIR && python3 scripts/health_check.py"
 echo ""
-echo "  4. Run AVIR verification (optional):"
-echo "     ./bootstrap.sh --verify"
+echo "  4. Try a slash command:"
+echo "     /memory-save     # Save to knowledge graph"
+echo "     /quick-review    # Code review"
 echo ""
 echo -e "  ${GREEN}The agentic system is ready!${NC}"
 echo ""

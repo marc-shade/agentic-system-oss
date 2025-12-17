@@ -12,11 +12,21 @@ This repository contains **fully functional MCP servers** and the **verification
 
 | Component | Description |
 |-----------|-------------|
-| `mcp-servers/` | **Installable MCP servers** for Claude Code CLI |
+| `mcp-servers/` | **8 Installable MCP servers** for Claude Code CLI |
 | `├─ enhanced-memory-mcp/` | 4-tier persistent memory with auto-curation |
 | `├─ agent-runtime-mcp/` | Task management, relay pipelines, circuit breakers |
+| `├─ safla-mcp/` | High-performance embeddings (1.75M+ ops/sec) |
+| `├─ research-paper-mcp/` | arXiv/Semantic Scholar paper search |
+| `├─ video-transcript-mcp/` | YouTube transcript extraction |
+| `├─ llm-council-mcp/` | Multi-provider LLM deliberation |
+| `├─ ember-mcp/` | Quality enforcement and policy guardian |
 | `└─ sequential-thinking/` | Reference to deep reasoning MCP |
-| `scripts/` | Setup and health check utilities |
+| `claude-config/` | **Claude Code customizations** |
+| `├─ agents/` | Specialized sub-agents (7 agents) |
+| `├─ commands/` | Slash commands (10 commands) |
+| `├─ skills/` | Compositional skills (5 skills) |
+| `└─ hooks/` | Pre/post tool execution hooks |
+| `scripts/` | Setup and service utilities |
 | `avir/` | AI-Verified Independent Replication protocol |
 | `benchmarks/` | Standardized benchmark specifications |
 | `docs/` | Architecture documentation |
@@ -42,9 +52,24 @@ cd agentic-system-oss
 
 - **Claude Code CLI**: [claude.ai/code](https://claude.ai/code)
 - **Python**: 3.10+ (3.11+ recommended)
+- **Node.js**: 18+ (optional, for ember-mcp TypeScript server)
 - **OS**: macOS 12+ or Linux (Ubuntu 20.04+, Fedora 38+)
 - **RAM**: 8GB minimum (16GB recommended)
 - **Storage**: 1GB free space
+
+### Optional Services
+
+For enhanced functionality, you can run optional background services:
+
+```bash
+# Start optional services (Qdrant vector DB, Redis cache)
+./scripts/start-services.sh start all
+
+# Check service status
+./scripts/start-services.sh status
+```
+
+See [docs/SERVICES.md](docs/SERVICES.md) for detailed service configuration.
 
 ### Manual Installation (Alternative)
 
@@ -141,6 +166,7 @@ After verification, submit your results:
 
 - [Architecture Overview](docs/ARCHITECTURE.md)
 - [MCP Server Guide](docs/MCP_SERVERS.md)
+- [Services Configuration](docs/SERVICES.md)
 - [Workflow Configuration](docs/WORKFLOWS.md)
 - [Troubleshooting](docs/TROUBLESHOOTING.md)
 
