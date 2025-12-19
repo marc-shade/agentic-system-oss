@@ -12,6 +12,7 @@ import re
 import time
 import hashlib
 import pickle
+import os
 import requests
 from pathlib import Path
 from typing import Dict, List, Any, Optional
@@ -326,7 +327,7 @@ class BulletproofYouTubeTranscriptServer:
         """Method 4: Use YouTube's InnerTube API."""
         try:
             url = "https://www.youtube.com/youtubei/v1/player"
-            api_key = "***REMOVED***"
+            api_key = os.getenv("YOUTUBE_INNERTUBE_API_KEY", "")
             
             headers = {
                 'Content-Type': 'application/json',

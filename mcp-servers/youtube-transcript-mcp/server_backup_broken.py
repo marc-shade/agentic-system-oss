@@ -12,6 +12,7 @@ import re
 import time
 import hashlib
 import pickle
+import os
 import requests
 from pathlib import Path
 from typing import Dict, List, Any, Optional
@@ -229,7 +230,7 @@ class RobustYouTubeTranscriptServer:
             url = "https://www.youtube.com/youtubei/v1/player"
             
             # API key (public, used by YouTube web)
-            api_key = "***REMOVED***"
+            api_key = os.getenv("YOUTUBE_INNERTUBE_API_KEY", "")
             
             headers = {
                 'Content-Type': 'application/json',

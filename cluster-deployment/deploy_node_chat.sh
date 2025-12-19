@@ -100,7 +100,7 @@ for NODE in $NODES; do
 
     # Create inbox directory
     echo "  📂 Creating inbox directory..."
-    ssh "$NODE_IP" "mkdir -p $NODE_STORAGE/cluster-inbox && chmod 777 $NODE_STORAGE/cluster-inbox"
+    ssh "$NODE_IP" "mkdir -p $NODE_STORAGE/cluster-inbox && chmod 750 $NODE_STORAGE/cluster-inbox"
 
     # Install Python dependencies
     echo "  📚 Installing Python dependencies..."
