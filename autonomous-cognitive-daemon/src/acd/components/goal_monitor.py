@@ -75,6 +75,29 @@ class GoalMonitor:
                     goal_id = goal_dict["id"]
                     goal_name = goal_dict["name"]
 
+                    # Skip autonomous/continuous/immutable goals - they don't have discrete completions
+                    try:
+                        import json
+                        metadata = json.loads(goal_dict.get("metadata") or "{}")
+                        is_autonomous = metadata.get("autonomous") in (True, "true", 1)
+                        is_immutable = metadata.get("immutable") in (True, "true", 1)
+                        if is_autonomous or is_immutable:
+                            logger.debug(
+                                "skipping_persistent_goal",
+                                goal_id=goal_id,
+                                goal_name=goal_name,
+                                autonomous=is_autonomous,
+                                immutable=is_immutable,
+                            )
+                            report["progressing_goals"].append({
+                                "id": goal_id,
+                                "name": goal_name,
+                                "note": "persistent goal (autonomous or immutable)",
+                            })
+                            continue
+                    except (json.JSONDecodeError, TypeError):
+                        pass
+
                     # Check for recent task completions
                     stalled = await self._is_goal_stalled(db, goal_id)
 
