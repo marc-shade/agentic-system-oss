@@ -320,8 +320,13 @@ class SessionTracker:
         """Update session index with current session."""
         index = []
         if self.index_file.exists():
-            with open(self.index_file, 'r') as f:
-                index = json.load(f)
+            try:
+                with open(self.index_file, 'r') as f:
+                    index = json.load(f)
+            except json.JSONDecodeError as e:
+                # Log corrupted index, start fresh
+                logger.warning(f"Corrupted session index, starting fresh: {e}")
+                index = []
 
         index.append({
             "session_id": self.current_session.session_id,
@@ -367,8 +372,12 @@ class SessionTracker:
         if not self.index_file.exists():
             return []
 
-        with open(self.index_file, 'r') as f:
-            index = json.load(f)
+        try:
+            with open(self.index_file, 'r') as f:
+                index = json.load(f)
+        except json.JSONDecodeError as e:
+            logger.warning(f"Failed to parse session index: {e}")
+            return []
 
         return index[-limit:][::-1]  # Most recent first
 
@@ -461,20 +470,28 @@ class SessionTracker:
             month_dir = self.sessions_dir / month_str
             session_file = month_dir / f"{session_id}.json"
             if session_file.exists():
-                with open(session_file, 'r') as f:
-                    data = json.load(f)
-                    self._cache_put(session_id, data)
-                    return data
+                try:
+                    with open(session_file, 'r') as f:
+                        data = json.load(f)
+                        self._cache_put(session_id, data)
+                        return data
+                except json.JSONDecodeError as e:
+                    logger.warning(f"Corrupted session file {session_file}: {e}")
+                    # Fall through to linear scan
 
         # Fallback: Linear scan for non-standard session_ids or moved files
         for month_dir in sorted(self.sessions_dir.iterdir(), reverse=True):
             if month_dir.is_dir():
                 session_file = month_dir / f"{session_id}.json"
                 if session_file.exists():
-                    with open(session_file, 'r') as f:
-                        data = json.load(f)
-                        self._cache_put(session_id, data)
-                        return data
+                    try:
+                        with open(session_file, 'r') as f:
+                            data = json.load(f)
+                            self._cache_put(session_id, data)
+                            return data
+                    except json.JSONDecodeError as e:
+                        logger.warning(f"Corrupted session file {session_file}: {e}")
+                        continue
         return None
 
     def search_sessions(
@@ -500,8 +517,12 @@ class SessionTracker:
         if not self.index_file.exists():
             return []
 
-        with open(self.index_file, 'r') as f:
-            index = json.load(f)
+        try:
+            with open(self.index_file, 'r') as f:
+                index = json.load(f)
+        except json.JSONDecodeError as e:
+            logger.warning(f"Failed to parse session index in search: {e}")
+            return []
 
         results = []
         for session in reversed(index):
@@ -547,8 +568,12 @@ class SessionTracker:
         if not self.index_file.exists():
             return {"total_errors": 0, "sessions_with_errors": 0, "error_rate": 0}
 
-        with open(self.index_file, 'r') as f:
-            index = json.load(f)
+        try:
+            with open(self.index_file, 'r') as f:
+                index = json.load(f)
+        except json.JSONDecodeError as e:
+            logger.warning(f"Failed to parse session index for error summary: {e}")
+            return {"total_errors": 0, "sessions_with_errors": 0, "error_rate": 0}
 
         total_errors = 0
         sessions_with_errors = 0

@@ -21,6 +21,24 @@ class PathTraversalError(ValueError):
     pass
 
 
+class JSONParseError(ValueError):
+    """Raised when JSON parsing fails with context about the file."""
+
+    def __init__(self, path: Path, original_error: Exception):
+        self.path = path
+        self.original_error = original_error
+        super().__init__(f"Failed to parse JSON from '{path}': {original_error}")
+
+
+class FileReadError(IOError):
+    """Raised when file read fails with context."""
+
+    def __init__(self, path: Path, original_error: Exception):
+        self.path = path
+        self.original_error = original_error
+        super().__init__(f"Failed to read file '{path}': {original_error}")
+
+
 class FileOps:
     """Deterministic file operations - no AI required."""
 
@@ -110,10 +128,21 @@ class FileOps:
 
     @staticmethod
     def read_json(path: Union[str, Path], base_dir: Optional[Path] = None) -> Dict[str, Any]:
-        """Read JSON file with path validation."""
+        """Read JSON file with path validation.
+
+        Raises:
+            PathTraversalError: If path contains traversal sequences
+            JSONParseError: If JSON parsing fails
+            FileReadError: If file cannot be read
+        """
         validated_path = FileOps.validate_path(path, base_dir)
-        with open(validated_path, 'r', encoding='utf-8') as f:
-            return json.load(f)
+        try:
+            with open(validated_path, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except json.JSONDecodeError as e:
+            raise JSONParseError(validated_path, e)
+        except (IOError, OSError) as e:
+            raise FileReadError(validated_path, e)
 
     @staticmethod
     def write_json(path: Union[str, Path], data: Dict[str, Any], indent: int = 2,
