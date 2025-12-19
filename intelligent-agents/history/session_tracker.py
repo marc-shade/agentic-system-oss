@@ -8,6 +8,7 @@ Performance: TTL-based caching for session lookups (50% speedup per review).
 """
 
 import json
+import logging
 import os
 import time
 from datetime import datetime
@@ -16,6 +17,20 @@ from typing import Dict, List, Optional, Any, Tuple
 from dataclasses import dataclass, asdict, field
 from enum import Enum
 import hashlib
+
+logger = logging.getLogger(__name__)
+
+from .constants import (
+    CACHE_TTL_SECONDS,
+    CACHE_MAX_SIZE,
+    CACHE_EVICTION_PERCENT,
+    MAX_INDEX_ENTRIES,
+    SESSION_ID_HASH_LENGTH,
+    DEFAULT_RECENT_SESSIONS_LIMIT,
+    DEFAULT_SEARCH_LIMIT,
+    DEFAULT_ERROR_SUMMARY_DAYS,
+)
+from .rate_limiter import rate_limited, RateLimitExceeded
 
 
 class ActionType(Enum):
@@ -77,13 +92,9 @@ class SessionMetadata:
 class SessionTracker:
     """Tracks actions within a session for history and learning."""
 
-    # Cache settings
-    DEFAULT_CACHE_TTL = 300  # 5 minutes
-    DEFAULT_CACHE_SIZE = 100  # Max entries
-
     def __init__(self, history_dir: Optional[str] = None,
-                 cache_ttl: int = DEFAULT_CACHE_TTL,
-                 cache_size: int = DEFAULT_CACHE_SIZE):
+                 cache_ttl: int = CACHE_TTL_SECONDS,
+                 cache_size: int = CACHE_MAX_SIZE):
         """Initialize session tracker.
 
         Args:
@@ -119,7 +130,7 @@ class SessionTracker:
         now = datetime.now()
         timestamp = now.strftime("%Y%m%d_%H%M%S")
         hash_input = f"{timestamp}_{os.getpid()}_{id(self)}"
-        short_hash = hashlib.md5(hash_input.encode()).hexdigest()[:8]
+        short_hash = hashlib.md5(hash_input.encode()).hexdigest()[:SESSION_ID_HASH_LENGTH]
         return f"session_{timestamp}_{short_hash}"
 
     def _generate_action_id(self) -> str:
@@ -338,8 +349,8 @@ class SessionTracker:
             "error_count": self.current_session.error_count
         })
 
-        # Keep only last 1000 entries
-        index = index[-1000:]
+        # Keep only last MAX_INDEX_ENTRIES entries
+        index = index[-MAX_INDEX_ENTRIES:]
 
         with open(self.index_file, 'w') as f:
             json.dump(index, f, indent=2)
@@ -360,7 +371,8 @@ class SessionTracker:
                 "timestamp": datetime.now().isoformat()
             }, f, indent=2)
 
-    def get_recent_sessions(self, limit: int = 10) -> List[Dict]:
+    @rate_limited("file_read")
+    def get_recent_sessions(self, limit: int = DEFAULT_RECENT_SESSIONS_LIMIT) -> List[Dict]:
         """Get recent session summaries.
 
         Args:
@@ -368,6 +380,9 @@ class SessionTracker:
 
         Returns:
             List of session summary dicts
+
+        Raises:
+            RateLimitExceeded: If rate limit exceeded
         """
         if not self.index_file.exists():
             return []
@@ -418,9 +433,9 @@ class SessionTracker:
 
             # If still full, remove oldest entries
             if len(self._session_cache) >= self._cache_size:
-                # Sort by expiry time and remove oldest 10%
+                # Sort by expiry time and remove oldest CACHE_EVICTION_PERCENT%
                 sorted_entries = sorted(self._session_cache.items(), key=lambda x: x[1][1])
-                remove_count = max(1, len(sorted_entries) // 10)
+                remove_count = max(1, len(sorted_entries) * CACHE_EVICTION_PERCENT // 100)
                 for k, _ in sorted_entries[:remove_count]:
                     del self._session_cache[k]
 
@@ -444,6 +459,7 @@ class SessionTracker:
             "ttl_seconds": self._cache_ttl,
         }
 
+    @rate_limited("session_load")
     def get_session_details(self, session_id: str) -> Optional[Dict]:
         """Get full details for a session.
 
@@ -457,6 +473,9 @@ class SessionTracker:
 
         Returns:
             Session data dict or None if not found
+
+        Raises:
+            RateLimitExceeded: If rate limit exceeded
         """
         # Check cache first (fastest path)
         cached = self._cache_get(session_id)
@@ -494,13 +513,14 @@ class SessionTracker:
                         continue
         return None
 
+    @rate_limited("search")
     def search_sessions(
         self,
         query: Optional[str] = None,
         outcome: Optional[str] = None,
         start_date: Optional[str] = None,
         end_date: Optional[str] = None,
-        limit: int = 50
+        limit: int = DEFAULT_SEARCH_LIMIT
     ) -> List[Dict]:
         """Search sessions by various criteria.
 
@@ -513,6 +533,9 @@ class SessionTracker:
 
         Returns:
             List of matching session summaries
+
+        Raises:
+            RateLimitExceeded: If rate limit exceeded
         """
         if not self.index_file.exists():
             return []
@@ -552,7 +575,8 @@ class SessionTracker:
 
         return results
 
-    def get_error_summary(self, days: int = 7) -> Dict[str, Any]:
+    @rate_limited("search")
+    def get_error_summary(self, days: int = DEFAULT_ERROR_SUMMARY_DAYS) -> Dict[str, Any]:
         """Get summary of errors from recent sessions.
 
         Args:
@@ -560,6 +584,9 @@ class SessionTracker:
 
         Returns:
             Error summary dict
+
+        Raises:
+            RateLimitExceeded: If rate limit exceeded
         """
         from datetime import timedelta
 

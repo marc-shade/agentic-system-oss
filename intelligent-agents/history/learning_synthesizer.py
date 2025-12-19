@@ -6,6 +6,7 @@ Following Kai pattern: Build institutional knowledge.
 """
 
 import json
+import logging
 import os
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -13,6 +14,31 @@ from typing import Dict, List, Optional, Any, Tuple
 from collections import Counter, defaultdict
 from dataclasses import dataclass, asdict
 import re
+
+logger = logging.getLogger(__name__)
+
+from .constants import (
+    DEFAULT_PATTERN_DAYS,
+    TOP_SEQUENCES_LIMIT,
+    MIN_PATTERN_OCCURRENCES,
+    DEFAULT_SUCCESS_RATE,
+    DEFAULT_ERROR_PATTERN_DAYS,
+    MIN_ERROR_OCCURRENCES,
+    DEFAULT_LEARNING_DAYS,
+    TOP_KEYWORDS_FOR_GROUPING,
+    MIN_SIMILAR_LEARNINGS,
+    MIN_KEYWORD_LENGTH,
+    TOP_KEYWORDS_LIMIT,
+    CONFIDENCE_BASE,
+    CONFIDENCE_INCREMENT_PER_OCCURRENCE,
+    CONFIDENCE_MAX,
+    SUCCESS_PATTERN_THRESHOLD,
+    FAILURE_PATTERN_THRESHOLD,
+    MAX_RECOMMENDATIONS,
+    DEFAULT_SUMMARY_DAYS_LEARNING,
+    MAX_TOP_ERROR_TYPES,
+    MAX_SAMPLE_CONTEXTS,
+)
 
 
 @dataclass
@@ -162,7 +188,7 @@ class LearningSynthesizer:
 
         return sessions
 
-    def extract_action_patterns(self, days: int = 30) -> List[Pattern]:
+    def extract_action_patterns(self, days: int = DEFAULT_PATTERN_DAYS) -> List[Pattern]:
         """Extract common action patterns from session history.
 
         Args:
@@ -199,11 +225,11 @@ class LearningSynthesizer:
         existing = self._load_patterns()
         existing_names = {p.name for p in existing}
 
-        for seq, count in sequences.most_common(20):
-            if count >= 3:  # Only patterns that occur 3+ times
+        for seq, count in sequences.most_common(TOP_SEQUENCES_LIMIT):
+            if count >= MIN_PATTERN_OCCURRENCES:
                 outcomes = action_outcomes[seq]
                 total = outcomes["success"] + outcomes["failure"]
-                success_rate = outcomes["success"] / total if total > 0 else 0.5
+                success_rate = outcomes["success"] / total if total > 0 else DEFAULT_SUCCESS_RATE
 
                 pattern_name = f"pattern_{seq.replace(' -> ', '_').replace(' ', '_')}"
 
@@ -228,7 +254,7 @@ class LearningSynthesizer:
 
         return patterns
 
-    def extract_error_patterns(self, days: int = 30) -> List[Dict]:
+    def extract_error_patterns(self, days: int = DEFAULT_ERROR_PATTERN_DAYS) -> List[Dict]:
         """Extract common error patterns from session history.
 
         Args:
@@ -263,14 +289,14 @@ class LearningSynthesizer:
 
         # Build error pattern list
         error_patterns = []
-        for (action_type, error_key), count in error_types.most_common(20):
-            if count >= 2:  # Errors that occurred 2+ times
+        for (action_type, error_key), count in error_types.most_common(TOP_SEQUENCES_LIMIT):
+            if count >= MIN_ERROR_OCCURRENCES:
                 contexts = error_contexts[(action_type, error_key)]
                 error_patterns.append({
                     "error_type": error_key,
                     "action_type": action_type,
                     "frequency": count,
-                    "sample_contexts": contexts[:5],
+                    "sample_contexts": contexts[:MAX_SAMPLE_CONTEXTS],
                     "prevention_hint": self._generate_prevention_hint(action_type, error_key)
                 })
 
@@ -310,7 +336,7 @@ class LearningSynthesizer:
 
         return "Review error context for prevention strategy"
 
-    def synthesize_learnings(self, days: int = 30) -> List[Insight]:
+    def synthesize_learnings(self, days: int = DEFAULT_LEARNING_DAYS) -> List[Insight]:
         """Synthesize insights from accumulated learnings.
 
         Args:
@@ -329,7 +355,7 @@ class LearningSynthesizer:
             for learning in learning_entry.get("learnings", []):
                 # Extract keywords for grouping
                 keywords = self._extract_keywords(learning)
-                key = tuple(sorted(keywords[:3]))  # Use top 3 keywords
+                key = tuple(sorted(keywords[:TOP_KEYWORDS_FOR_GROUPING]))
                 learning_groups[key].append({
                     "content": learning,
                     "session_id": session_id
@@ -341,7 +367,7 @@ class LearningSynthesizer:
         existing_contents = {i.content for i in existing}
 
         for key, group in learning_groups.items():
-            if len(group) >= 2:  # Multiple similar learnings
+            if len(group) >= MIN_SIMILAR_LEARNINGS:
                 # Take the most detailed learning as representative
                 representative = max(group, key=lambda x: len(x["content"]))
                 session_ids = [g["session_id"] for g in group]
@@ -350,7 +376,7 @@ class LearningSynthesizer:
                     insight = Insight(
                         id=f"ins_{len(insights) + len(existing):04d}",
                         content=representative["content"],
-                        confidence=min(0.5 + len(group) * 0.1, 0.95),  # More occurrences = higher confidence
+                        confidence=min(CONFIDENCE_BASE + len(group) * CONFIDENCE_INCREMENT_PER_OCCURRENCE, CONFIDENCE_MAX),
                         source_sessions=session_ids,
                         category="recurring_learning",
                         timestamp=datetime.now().isoformat(),
@@ -380,11 +406,11 @@ class LearningSynthesizer:
             'before', 'after', 'when', 'while', 'not'
         }
 
-        keywords = [w for w in words if w not in stop_words and len(w) > 2]
+        keywords = [w for w in words if w not in stop_words and len(w) > MIN_KEYWORD_LENGTH]
 
         # Count and sort by frequency
         keyword_counts = Counter(keywords)
-        return [k for k, _ in keyword_counts.most_common(10)]
+        return [k for k, _ in keyword_counts.most_common(TOP_KEYWORDS_LIMIT)]
 
     def get_recommendations(self, context: str) -> List[str]:
         """Get recommendations based on current context.
@@ -411,18 +437,18 @@ class LearningSynthesizer:
         for pattern in patterns:
             pattern_keywords = set(self._extract_keywords(pattern.description))
             if context_keywords & pattern_keywords:
-                if pattern.success_rate > 0.7:
+                if pattern.success_rate >= SUCCESS_PATTERN_THRESHOLD:
                     recommendations.append(
                         f"[Pattern] {pattern.description} (success rate: {pattern.success_rate:.0%})"
                     )
-                elif pattern.success_rate < 0.3:
+                elif pattern.success_rate <= FAILURE_PATTERN_THRESHOLD:
                     recommendations.append(
                         f"[Warning] {pattern.description} often fails (success rate: {pattern.success_rate:.0%})"
                     )
 
-        return recommendations[:10]  # Limit to 10 recommendations
+        return recommendations[:MAX_RECOMMENDATIONS]
 
-    def get_success_patterns(self, min_success_rate: float = 0.8) -> List[Pattern]:
+    def get_success_patterns(self, min_success_rate: float = SUCCESS_PATTERN_THRESHOLD) -> List[Pattern]:
         """Get patterns with high success rates.
 
         Args:
@@ -434,7 +460,7 @@ class LearningSynthesizer:
         patterns = self._load_patterns()
         return [p for p in patterns if p.success_rate >= min_success_rate]
 
-    def get_failure_patterns(self, max_success_rate: float = 0.3) -> List[Pattern]:
+    def get_failure_patterns(self, max_success_rate: float = FAILURE_PATTERN_THRESHOLD) -> List[Pattern]:
         """Get patterns that often fail.
 
         Args:
@@ -463,7 +489,7 @@ class LearningSynthesizer:
                 return True
         return False
 
-    def get_summary(self, days: int = 30) -> Dict[str, Any]:
+    def get_summary(self, days: int = DEFAULT_SUMMARY_DAYS_LEARNING) -> Dict[str, Any]:
         """Get summary of synthesized knowledge.
 
         Args:
@@ -480,10 +506,10 @@ class LearningSynthesizer:
             "total_patterns": len(patterns),
             "total_insights": len(insights),
             "validated_insights": sum(1 for i in insights if i.validated),
-            "high_success_patterns": len([p for p in patterns if p.success_rate >= 0.8]),
-            "failure_prone_patterns": len([p for p in patterns if p.success_rate <= 0.3]),
+            "high_success_patterns": len([p for p in patterns if p.success_rate >= SUCCESS_PATTERN_THRESHOLD]),
+            "failure_prone_patterns": len([p for p in patterns if p.success_rate <= FAILURE_PATTERN_THRESHOLD]),
             "common_errors": len(error_patterns),
-            "top_error_types": [e["error_type"] for e in error_patterns[:5]],
+            "top_error_types": [e["error_type"] for e in error_patterns[:MAX_TOP_ERROR_TYPES]],
             "analysis_period_days": days
         }
 

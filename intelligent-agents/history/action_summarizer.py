@@ -6,11 +6,32 @@ Following Kai pattern: Generate summaries of sessions.
 """
 
 import json
+import logging
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, List, Optional, Any, Tuple
 from collections import Counter, defaultdict
 from dataclasses import dataclass, asdict
+
+logger = logging.getLogger(__name__)
+
+from .constants import (
+    MAX_KEY_ACTIONS,
+    MAX_FILES_TOUCHED,
+    MAX_FILES_MODIFIED,
+    MAX_ACTION_BREAKDOWN_ITEMS,
+    MAX_HIGHLIGHTS,
+    MAX_ACHIEVEMENTS,
+    MAX_CONCERNS,
+    TEXT_SUMMARY_TOP_ACTIONS,
+    TEXT_SUMMARY_MAX_ACHIEVEMENTS,
+    TEXT_SUMMARY_MAX_HIGHLIGHTS,
+    TEXT_SUMMARY_MAX_CONCERNS,
+    DEFAULT_SUMMARY_DAYS,
+    DEFAULT_PRODUCTIVITY_DAYS,
+    DAYS_IN_WEEK,
+    HIGH_ERROR_RATE_THRESHOLD,
+)
 
 
 @dataclass
@@ -166,16 +187,17 @@ class ActionSummarizer:
             duration_minutes=round(duration, 1),
             action_count=metadata.get("action_count", len(actions)),
             error_count=metadata.get("error_count", 0),
-            key_actions=key_actions[:10],
-            files_touched=metadata.get("files_modified", [])[:20],
+            key_actions=key_actions[:MAX_KEY_ACTIONS],
+            files_touched=metadata.get("files_modified", [])[:MAX_FILES_TOUCHED],
             learnings=metadata.get("learnings", [])
         )
 
     def summarize_period(
         self,
-        days: int = 1,
+        days: int = DEFAULT_SUMMARY_DAYS,
         start_date: Optional[str] = None,
-        end_date: Optional[str] = None
+        end_date: Optional[str] = None,
+        sessions: Optional[List[Dict]] = None
     ) -> ActionSummary:
         """Generate summary for a time period.
 
@@ -183,6 +205,7 @@ class ActionSummarizer:
             days: Number of days to summarize (used if dates not specified)
             start_date: Optional start date
             end_date: Optional end date
+            sessions: Optional pre-loaded sessions to avoid duplicate loading
 
         Returns:
             Action summary for the period
@@ -192,7 +215,9 @@ class ActionSummarizer:
         if not start_date:
             start_date = (datetime.now() - timedelta(days=days)).isoformat()
 
-        sessions = self._load_sessions_in_range(start_date, end_date)
+        # Use pre-loaded sessions if provided, otherwise load from disk
+        if sessions is None:
+            sessions = self._load_sessions_in_range(start_date, end_date)
 
         # Aggregate statistics
         total_actions = 0
@@ -237,7 +262,7 @@ class ActionSummarizer:
             # Track sessions with high error rates
             error_count = metadata.get("error_count", 0)
             action_count = metadata.get("action_count", 1)
-            if error_count > 0 and error_count / action_count > 0.3:
+            if error_count > 0 and error_count / action_count > HIGH_ERROR_RATE_THRESHOLD:
                 concerns.append(f"High error rate in session: {metadata.get('session_id', 'unknown')}")
 
         return ActionSummary(
@@ -246,11 +271,11 @@ class ActionSummarizer:
             total_actions=total_actions,
             successful_actions=successful_actions,
             failed_actions=failed_actions,
-            files_modified=sorted(list(all_files))[:50],
-            action_breakdown=dict(action_types.most_common(10)),
-            highlights=highlights[:10],
-            key_achievements=achievements[:10],
-            areas_of_concern=concerns[:10]
+            files_modified=sorted(list(all_files))[:MAX_FILES_MODIFIED],
+            action_breakdown=dict(action_types.most_common(MAX_ACTION_BREAKDOWN_ITEMS)),
+            highlights=highlights[:MAX_HIGHLIGHTS],
+            key_achievements=achievements[:MAX_ACHIEVEMENTS],
+            areas_of_concern=concerns[:MAX_CONCERNS]
         )
 
     def generate_daily_summary(self, date: Optional[str] = None) -> Dict[str, Any]:
@@ -297,17 +322,18 @@ class ActionSummarizer:
         """
         if not week_start:
             today = datetime.now()
-            monday = today - timedelta(days=today.weekday())
+            monday = today - timedelta(days=today.weekday() % DAYS_IN_WEEK)
             week_start = monday.strftime("%Y-%m-%d")
 
         start = f"{week_start}T00:00:00"
-        end_date = (datetime.fromisoformat(week_start) + timedelta(days=6)).strftime("%Y-%m-%d")
+        end_date = (datetime.fromisoformat(week_start) + timedelta(days=DAYS_IN_WEEK - 1)).strftime("%Y-%m-%d")
         end = f"{end_date}T23:59:59"
 
-        summary = self.summarize_period(start_date=start, end_date=end)
-
-        # Load all sessions for detailed analysis
+        # Load sessions once and reuse for both summary and detailed analysis
         sessions = self._load_sessions_in_range(start, end)
+
+        # Pass pre-loaded sessions to avoid duplicate loading
+        summary = self.summarize_period(start_date=start, end_date=end, sessions=sessions)
 
         # Calculate productivity metrics
         total_duration = 0
@@ -362,31 +388,31 @@ class ActionSummarizer:
         lines.append(f"Files Modified: {len(summary.files_modified)}")
 
         if summary.action_breakdown:
-            top_actions = list(summary.action_breakdown.items())[:3]
+            top_actions = list(summary.action_breakdown.items())[:TEXT_SUMMARY_TOP_ACTIONS]
             actions_str = ", ".join(f"{k}: {v}" for k, v in top_actions)
             lines.append(f"Top Actions: {actions_str}")
 
         if summary.key_achievements:
             lines.append(f"")
             lines.append(f"Key Achievements:")
-            for achievement in summary.key_achievements[:5]:
+            for achievement in summary.key_achievements[:TEXT_SUMMARY_MAX_ACHIEVEMENTS]:
                 lines.append(f"  - {achievement}")
 
         if summary.highlights:
             lines.append(f"")
             lines.append(f"Highlights:")
-            for highlight in summary.highlights[:5]:
+            for highlight in summary.highlights[:TEXT_SUMMARY_MAX_HIGHLIGHTS]:
                 lines.append(f"  - {highlight}")
 
         if summary.areas_of_concern:
             lines.append(f"")
             lines.append(f"Areas of Concern:")
-            for concern in summary.areas_of_concern[:3]:
+            for concern in summary.areas_of_concern[:TEXT_SUMMARY_MAX_CONCERNS]:
                 lines.append(f"  - {concern}")
 
         return "\n".join(lines)
 
-    def get_productivity_metrics(self, days: int = 7) -> Dict[str, Any]:
+    def get_productivity_metrics(self, days: int = DEFAULT_PRODUCTIVITY_DAYS) -> Dict[str, Any]:
         """Calculate productivity metrics.
 
         Args:

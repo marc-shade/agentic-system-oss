@@ -6,12 +6,27 @@ Following Kai pattern: Capture learnings from failures.
 """
 
 import json
+import logging
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, List, Optional, Any, Tuple
 from collections import Counter, defaultdict
 from dataclasses import dataclass, asdict
 import re
+
+logger = logging.getLogger(__name__)
+
+from .constants import (
+    ERROR_MESSAGE_MAX_LENGTH,
+    MAX_RESOLUTIONS_PER_PATTERN,
+    MIN_FAILURES_FOR_CLUSTER,
+    COMMON_CONTEXT_THRESHOLD_DIVISOR,
+    DEFAULT_RECURRING_FAILURES_MIN,
+    DEFAULT_RECENT_FAILURES_DAYS,
+    DEFAULT_FAILURE_STATS_DAYS,
+    TOP_ACTION_TYPES_LIMIT,
+    MAX_SAMPLE_CONTEXTS,
+)
 
 
 @dataclass
@@ -172,7 +187,7 @@ class FailureAnalyzer:
         normalized = re.sub(r'"[^"]*"', '<str>', normalized)
         normalized = re.sub(r'\s+', ' ', normalized).strip()
 
-        return normalized[:150]  # Truncate
+        return normalized[:ERROR_MESSAGE_MAX_LENGTH]  # Truncate
 
     def _find_similar_failure(
         self,
@@ -239,8 +254,8 @@ class FailureAnalyzer:
             "timestamp": datetime.now().isoformat()
         })
 
-        # Keep only last 10 resolutions per pattern
-        resolutions[key] = resolutions[key][-10:]
+        # Keep only last MAX_RESOLUTIONS_PER_PATTERN resolutions per pattern
+        resolutions[key] = resolutions[key][-MAX_RESOLUTIONS_PER_PATTERN:]
 
         self._save_resolutions(resolutions)
 
@@ -308,7 +323,7 @@ class FailureAnalyzer:
         # Create clusters
         clusters = []
         for key, group_failures in groups.items():
-            if len(group_failures) >= 2:  # Only cluster if 2+ occurrences
+            if len(group_failures) >= MIN_FAILURES_FOR_CLUSTER:  # Only cluster if minimum occurrences
                 resolved_count = sum(1 for f in group_failures if f.resolution)
                 resolution_rate = resolved_count / len(group_failures)
 
@@ -348,7 +363,7 @@ class FailureAnalyzer:
 
         # Find values that appear in majority
         common = {}
-        threshold = len(failures) / 2
+        threshold = len(failures) / COMMON_CONTEXT_THRESHOLD_DIVISOR
         for key, value_counts in context_counts.items():
             top_value, count = value_counts.most_common(1)[0]
             if count >= threshold:
@@ -401,7 +416,7 @@ class FailureAnalyzer:
 
         return "Review error context and add appropriate error handling"
 
-    def get_recurring_failures(self, min_count: int = 3) -> List[FailureRecord]:
+    def get_recurring_failures(self, min_count: int = DEFAULT_RECURRING_FAILURES_MIN) -> List[FailureRecord]:
         """Get failures that recur frequently.
 
         Args:
@@ -422,7 +437,7 @@ class FailureAnalyzer:
         failures = self._load_failures()
         return [f for f in failures if not f.resolution]
 
-    def get_recent_failures(self, days: int = 7) -> List[FailureRecord]:
+    def get_recent_failures(self, days: int = DEFAULT_RECENT_FAILURES_DAYS) -> List[FailureRecord]:
         """Get recent failures.
 
         Args:
@@ -435,7 +450,7 @@ class FailureAnalyzer:
         failures = self._load_failures()
         return [f for f in failures if f.timestamp >= cutoff]
 
-    def get_failure_stats(self, days: int = 30) -> Dict[str, Any]:
+    def get_failure_stats(self, days: int = DEFAULT_FAILURE_STATS_DAYS) -> Dict[str, Any]:
         """Get failure statistics.
 
         Args:
@@ -465,7 +480,7 @@ class FailureAnalyzer:
             "resolved": resolved,
             "unresolved": unresolved,
             "resolution_rate": resolved / len(recent) if recent else 0,
-            "by_action_type": dict(by_action_type.most_common(10)),
+            "by_action_type": dict(by_action_type.most_common(TOP_ACTION_TYPES_LIMIT)),
             "period_days": days
         }
 
