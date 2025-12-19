@@ -223,7 +223,7 @@ pip3 install groq
 
 ### Groq API Configuration
 ```python
-GROQ_API_KEY = "***REMOVED***"
+GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")  # Set via environment variable
 MODEL = "llama-3.3-70b-versatile"
 TEMPERATURE = 0.3  # Low for consistent formatting
 MAX_TOKENS = 100   # Short responses only

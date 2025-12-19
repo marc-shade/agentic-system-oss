@@ -14,7 +14,7 @@ from pathlib import Path
 
 # Ember configuration
 EMBER_CLI_PATH = str(Path.home() / ".claude" / "tamagotchi" / "dist" / "commands" / "cli.js")
-GROQ_API_KEY = "***REMOVED***"
+GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
 
 # Import smart violation detector
 try:

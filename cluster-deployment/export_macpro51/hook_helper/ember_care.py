@@ -12,7 +12,7 @@ import time
 from pathlib import Path
 
 EMBER_CLI = str(Path.home() / ".claude" / "tamagotchi" / "dist" / "index.js")
-GROQ_API_KEY = "***REMOVED***"
+GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
 CARE_STATE_FILE = Path.home() / ".claude" / "ember_care_state.json"
 
 def load_care_state():

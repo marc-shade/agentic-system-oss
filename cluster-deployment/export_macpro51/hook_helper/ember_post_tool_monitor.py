@@ -18,7 +18,7 @@ from typing import Dict, List, Optional
 from datetime import datetime
 
 # Configuration
-GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "***REMOVED***")
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
 OLLAMA_URL = "http://localhost:11434"
 EMBER_DB = Path.home() / ".claude" / "ember.db"
 VIOLATIONS_LOG = Path.home() / ".claude" / "ember_violations.jsonl"
