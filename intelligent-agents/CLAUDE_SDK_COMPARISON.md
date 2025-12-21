@@ -91,9 +91,10 @@ agent = Agent(
 
 **Our Implementation**:
 ```python
-# Manual tool implementation
-async def run_headless_codex(self, prompt):
-    result = subprocess.run(['codex', 'exec', prompt], ...)
+# Programmatic CLI execution (formerly "headless")
+# Claude Code uses -p flag: claude -p "prompt" --output-format json
+async def run_claude_programmatic(self, prompt):
+    result = subprocess.run(['claude', '-p', prompt, '--output-format', 'json'], ...)
     return self._parse_result(result.stdout)
 
 # Manual MCP tool usage

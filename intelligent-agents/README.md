@@ -259,24 +259,47 @@ agent.log_decision(AgentDecision(
 recent_confidence = avg([d.confidence for d in recent_decisions])
 ```
 
-### 4. Headless CLI Integration
+### 4. Programmatic CLI Integration (Formerly "Headless Mode")
 
-Agents can run Codex and Gemini in headless mode:
+Agents can run Claude Code and Gemini programmatically using the `-p` flag:
 
+**Claude Code Programmatic Usage:**
+```bash
+# Basic programmatic execution
+claude -p "Audit code for security issues" --output-format json
+
+# With tool approval
+claude -p "Fix the bug and commit" --allowedTools "Bash,Read,Edit"
+
+# Continue conversation
+claude -p "Now add tests" --continue
+```
+
+**Python Integration:**
 ```python
-# Run Codex CLI without interaction
-result = await agent.run_headless_codex(
+# Run Claude Code programmatically (uses -p flag internally)
+result = await agent.run_claude_programmatic(
     "Audit code for security issues",
-    format="json"
+    output_format="json",
+    allowed_tools=["Read", "Bash"]
 )
 
 # Run Gemini CLI with image analysis
-result = await agent.run_headless_gemini(
+result = await agent.run_gemini_programmatic(
     "Analyze system state",
     image_path="/tmp/screenshot.png",
-    format="json"
+    output_format="json"
 )
 ```
+
+**Key Options:**
+- `--output-format`: `text` (default), `json`, or `stream-json`
+- `--allowedTools`: Auto-approve specific tools (e.g., "Bash,Read,Edit")
+- `--continue`: Continue most recent conversation
+- `--resume <session_id>`: Resume specific session
+- `--append-system-prompt`: Add custom instructions
+
+See: https://code.claude.com/docs/en/headless
 
 ---
 

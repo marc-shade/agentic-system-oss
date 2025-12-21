@@ -50,11 +50,13 @@ def calculate_next_interval(decision) -> int    # Adapts check frequency
 - Security audit capabilities
 - Lower temperature for code precision
 
-**Headless CLI Support**:
+**Programmatic CLI Support** (formerly "headless"):
 ```python
-await agent.run_headless_codex(
+# Using Claude Code -p flag (programmatic mode)
+# claude -p "Audit code for security issues" --output-format json
+await agent.run_claude_programmatic(
     "Audit code for security issues",
-    format="json"
+    output_format="json"
 )
 ```
 

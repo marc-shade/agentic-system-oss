@@ -135,7 +135,7 @@ Each node has:
 - Adaptive check intervals based on system state
 - Evolution-aware protection systems
 - Claude Code Skills for automatic AI routing (`codex-consultant`, `gemini-analyst`, `ai-orchestrator`)
-- Headless CLI execution: `await agent.run_headless_codex("task")` or `run_headless_gemini("task", image_path="...")`
+- Programmatic CLI execution (formerly "headless"): `claude -p "task" --output-format json` or `gemini "task"` with image support
 
 **AGI Orchestrator** (6-phase unified workflow):
 - Goal Decomposition → Context Synthesis → Multi-Agent Coordination → Meta-Learning → Skill Evolution → Darwin Gödel

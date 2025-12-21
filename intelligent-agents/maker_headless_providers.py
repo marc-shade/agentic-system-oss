@@ -1,15 +1,18 @@
 #!/usr/bin/env python3
 """
-MAKER Headless Multi-Provider Agent
-====================================
+MAKER Programmatic Multi-Provider Agent (formerly "Headless")
+==============================================================
 
 Diverse AI provider voting for 99.9999% reliability:
-1. Claude Code Haiku (claude --print --model haiku)
+1. Claude Code Haiku (claude -p "prompt" --model haiku --output-format json)
 2. Gemini CLI (gemini "prompt")
 3. OpenAI Codex (codex exec -- "prompt")
 4. Ollama Cloud (ollama run gpt-oss:20b-cloud)
 
 Distribution: Claude 40%, Codex 30%, Gemini 20%, Ollama 10%
+
+Note: Claude Code now uses the -p flag for programmatic/non-interactive execution.
+See: https://code.claude.com/docs/en/headless
 """
 
 import asyncio
@@ -45,7 +48,7 @@ class HeadlessMultiProvider:
         self.providers = {
             AIProvider.CLAUDE_HAIKU: ProviderConfig(
                 command_path="/Users/marc/.nvm/versions/node/v24.7.0/bin/claude",
-                args_template=["--print", "--model", "haiku", "--"],
+                args_template=["-p", "--model", "haiku", "--output-format", "json", "--"],
                 timeout=45
             ),
             AIProvider.GEMINI: ProviderConfig(

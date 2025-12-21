@@ -138,9 +138,12 @@ class GeminiAgent:
         format: str = "json"
     ) -> Dict[str, Any]:
         """
-        Run Gemini CLI in headless mode
+        Run Gemini CLI programmatically (formerly "headless mode")
 
-        Example: gemini --headless --format json analyze screenshot.png
+        Uses the Gemini CLI for non-interactive execution.
+        Note: Method name kept for backwards compatibility.
+
+        Example: gemini "analyze screenshot.png"
         """
         try:
             cmd = ['gemini', '--headless', '--format', format]
