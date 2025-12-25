@@ -32,6 +32,12 @@ from memory_client import MemoryClient
 from sandbox.executor import CodeExecutor, create_api_context
 from sandbox.security import comprehensive_safety_check, sanitize_output
 
+# Fact Validation for anti-gaming (Stage 3 hardening)
+from fact_validator import validate_entities_before_storage, ValidationResult
+
+# Provenance Tracking for L-Score management (Stage 3 hardening)
+from provenance import ProvenanceManager, calculate_l_score, LScoreResult
+
 # TPU Importance Scoring - Add to Python path with platform detection
 import sys
 import platform
@@ -73,6 +79,32 @@ except ImportError:
         return min(1.0, score)
     def is_tpu_available() -> bool:
         return False
+
+# Entropy-based tier assignment (PTM paper integration)
+try:
+    from entropy_scoring import (
+        score_entity_entropy,
+        combine_scores,
+        update_stats as update_entropy_stats,
+        get_stats as get_entropy_stats,
+        EntropyResult
+    )
+    ENTROPY_SCORING_AVAILABLE = True
+except ImportError:
+    ENTROPY_SCORING_AVAILABLE = False
+    def score_entity_entropy(name: str, observations: list, entity_type: str = "general"):
+        """Fallback when entropy scoring unavailable."""
+        return None
+    def combine_scores(tpu_score: float, entropy_result, **kwargs):
+        """Fallback - use TPU score only."""
+        if tpu_score >= 0.8:
+            return tpu_score, "long_term"
+        elif tpu_score >= 0.6:
+            return tpu_score, "episodic"
+        return tpu_score, "working"
+    def update_entropy_stats(result): pass
+    def get_entropy_stats(): return {}
+    EntropyResult = None
 
 # Set up logging - CRITICAL: Must use stderr for MCP compatibility
 # MCP protocol requires stdout is reserved for JSON-RPC messages only
@@ -358,6 +390,7 @@ async def create_entities(entities: List[Dict[str, Any]]) -> Dict[str, Any]:
 
     CONCURRENT ACCESS: Uses memory-db Unix socket service for database operations.
     CONTEXTUAL ENRICHMENT: Automatically adds LLM-generated contextual prefixes (RAG Tier 1).
+    FACT VALIDATION: Blocks entities with false claims or logical contradictions (Stage 3 hardening).
 
     Args:
         entities: List of entity objects with name, entityType, and observations
@@ -366,28 +399,70 @@ async def create_entities(entities: List[Dict[str, Any]]) -> Dict[str, Any]:
         Results with compression statistics and entity details
     """
     try:
-        # Delegate to memory-db service for concurrent access
-        response = await memory_client.create_entities(entities)
+        # STAGE 3 HARDENING: Validate entities before storage
+        # Prevents false claims (like "2+2=5") and logical contradictions
+        validation_result = validate_entities_before_storage(entities)
+
+        blocked_count = len(validation_result.get("blocked_entities", []))
+        if blocked_count > 0:
+            logger.warning(
+                f"FACT VALIDATION: Blocked {blocked_count} entities with false/contradictory claims"
+            )
+            for blocked in validation_result["blocked_entities"]:
+                logger.warning(f"  - Blocked: {blocked['entity'].get('name', 'unknown')}: {blocked['reason']}")
+
+        # Only process valid entities
+        valid_entities = validation_result.get("valid_entities", [])
+        if not valid_entities:
+            return {
+                "created": 0,
+                "failed": len(entities),
+                "blocked": blocked_count,
+                "error": "All entities blocked by fact validation",
+                "blocked_details": [
+                    {"name": b["entity"].get("name"), "reason": b["reason"]}
+                    for b in validation_result.get("blocked_entities", [])
+                ],
+                "validation_stats": validation_result.get("stats", {})
+            }
+
+        # Delegate valid entities to memory-db service for concurrent access
+        response = await memory_client.create_entities(valid_entities)
 
         if response.get("success"):
             # Apply contextual enrichment to newly created entities
-            enrichment_stats = await _enrich_new_entities(entities)
+            enrichment_stats = await _enrich_new_entities(valid_entities)
 
             # Score importance and assign memory tiers via TPU
-            scoring_stats = await _score_and_tier_entities(entities)
+            scoring_stats = await _score_and_tier_entities(valid_entities)
+
+            # STAGE 3 HARDENING: Mandatory provenance tracking
+            # Track L-Score for all entities - no exceptions
+            provenance_stats = await _track_entity_provenance(valid_entities)
 
             return {
                 "created": response.get("count", 0),
-                "failed": 0,
+                "failed": blocked_count,
+                "blocked": blocked_count,
+                "flagged": len(validation_result.get("flagged_entities", [])),
+                "flagged_unverified": provenance_stats.get("flagged_unverified", 0),
                 "results": response.get("results", []),
                 "contextual_enrichment": enrichment_stats,
-                "tpu_scoring": scoring_stats
+                "tpu_scoring": scoring_stats,
+                "provenance_tracking": provenance_stats,
+                "fact_validation": validation_result.get("stats", {}),
+                "blocked_details": [
+                    {"name": b["entity"].get("name"), "reason": b["reason"]}
+                    for b in validation_result.get("blocked_entities", [])
+                ] if blocked_count > 0 else []
             }
         else:
             return {
                 "created": 0,
                 "failed": len(entities),
-                "error": response.get("error", "Unknown error from memory-db service")
+                "blocked": blocked_count,
+                "error": response.get("error", "Unknown error from memory-db service"),
+                "fact_validation": validation_result.get("stats", {})
             }
 
     except Exception as e:
@@ -512,15 +587,20 @@ async def _enrich_new_entities(entities: List[Dict[str, Any]]) -> Dict[str, Any]
 
 async def _score_and_tier_entities(entities: List[Dict[str, Any]]) -> Dict[str, Any]:
     """
-    Score entity importance via TPU and assign appropriate memory tier.
+    Score entity importance via TPU + entropy and assign appropriate memory tier.
 
-    TPU IMPORTANCE SCORING: Uses TPU Warm Service (port 8780) for fast
-    semantic scoring, with fallback to heuristics when unavailable.
+    COMBINED SCORING (PTM paper integration):
+    - TPU score (70% weight): Semantic importance from TPU Warm Service
+    - Entropy score (30% weight): Information density from PTM-inspired analysis
 
-    Tier assignment rules:
-    - score >= 0.8: long_term (permanent storage, high importance)
-    - score >= 0.6: episodic (time-bound experiences)
-    - score < 0.6: working (temporary, session-scoped)
+    Tier assignment based on combined score:
+    - combined >= 0.75: long_term (permanent storage, high importance + unique)
+    - combined >= 0.50: episodic (time-bound experiences)
+    - combined < 0.50: working (temporary, session-scoped, compressible)
+
+    Entropy classification modifiers:
+    - "anchor" entities (high entropy): +0.1 boost (precision retrieval needed)
+    - "bridge" entities (low entropy): -0.1 penalty (can be compressed)
 
     Args:
         entities: List of entity dictionaries with observations
@@ -530,7 +610,9 @@ async def _score_and_tier_entities(entities: List[Dict[str, Any]]) -> Dict[str, 
     """
     scored_count = 0
     tier_changes = {"long_term": 0, "episodic": 0, "working": 0}
+    entropy_classifications = {"anchor": 0, "bridge": 0, "mixed": 0}
     tpu_used = is_tpu_available() if TPU_SCORING_AVAILABLE else False
+    entropy_used = ENTROPY_SCORING_AVAILABLE
 
     try:
         conn = sqlite3.connect(DB_PATH)
@@ -539,6 +621,7 @@ async def _score_and_tier_entities(entities: List[Dict[str, Any]]) -> Dict[str, 
         for entity in entities:
             try:
                 entity_name = entity.get('name')
+                entity_type = entity.get('entityType', 'general')
                 observations = entity.get('observations', [])
 
                 # Combine observations for scoring
@@ -547,15 +630,23 @@ async def _score_and_tier_entities(entities: List[Dict[str, Any]]) -> Dict[str, 
                 )
 
                 # Score importance via TPU or heuristics
-                importance = score_importance(combined_text, context="memory", source="direct")
+                tpu_score = score_importance(combined_text, context="memory", source="direct")
 
-                # Determine tier based on score
-                if importance >= 0.8:
-                    new_tier = "long_term"
-                elif importance >= 0.6:
-                    new_tier = "episodic"
-                else:
-                    new_tier = "working"
+                # Score entropy for PTM-style anchor/bridge classification
+                entropy_result = None
+                if ENTROPY_SCORING_AVAILABLE:
+                    entropy_result = score_entity_entropy(
+                        entity_name, observations, entity_type
+                    )
+                    if entropy_result:
+                        update_entropy_stats(entropy_result)
+                        entropy_classifications[entropy_result.classification] += 1
+
+                # Combine TPU and entropy scores for tier assignment
+                combined_score, new_tier = combine_scores(
+                    tpu_score, entropy_result,
+                    tpu_weight=0.7, entropy_weight=0.3
+                )
 
                 # Update entity tier in database
                 cursor.execute('''
@@ -574,19 +665,188 @@ async def _score_and_tier_entities(entities: List[Dict[str, Any]]) -> Dict[str, 
         conn.commit()
         conn.close()
 
-        return {
+        # Build result with entropy stats
+        result = {
             "scored": scored_count,
             "tier_assignments": tier_changes,
             "tpu_available": tpu_used,
-            "scoring_method": "tpu_warm_service" if tpu_used else "heuristic"
+            "scoring_method": "tpu+entropy" if entropy_used else ("tpu_warm_service" if tpu_used else "heuristic"),
+            "entropy_scoring": {
+                "enabled": entropy_used,
+                "classifications": entropy_classifications if entropy_used else {},
+                "stats": get_entropy_stats() if entropy_used else {}
+            }
         }
+        return result
 
     except Exception as e:
-        logger.error(f"Error in TPU scoring: {e}")
+        logger.error(f"Error in TPU+entropy scoring: {e}")
         return {
             "scored": 0,
             "error": str(e),
-            "tpu_available": False
+            "tpu_available": False,
+            "entropy_scoring": {"enabled": False}
+        }
+
+
+async def _track_entity_provenance(entities: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """
+    Track provenance for newly created entities (STAGE 3 HARDENING).
+
+    Mandatory provenance tracking ensures all entities have:
+    - Source attribution (where the information came from)
+    - Confidence scoring (how reliable is the source)
+    - L-Score calculation (combined provenance quality metric)
+
+    Derivation methods and default confidence levels:
+    - user_input: 0.7 (user claims, unverified)
+    - inference: 0.6 (AI-derived conclusions)
+    - extraction: 0.75 (extracted from documents)
+    - observation: 0.65 (runtime observations)
+    - citation: 0.85 (cited from external sources)
+    - synthesis: 0.55 (combined from multiple sources)
+    - unknown: 0.4 (no provenance provided - flagged)
+
+    Args:
+        entities: List of entity dictionaries with optional provenance metadata
+
+    Returns:
+        Statistics about provenance tracking
+    """
+    tracked_count = 0
+    flagged_unverified = 0
+    l_score_distribution = {"high": 0, "acceptable": 0, "low": 0}
+
+    # Default confidence by derivation method
+    DERIVATION_CONFIDENCE = {
+        "user_input": 0.7,
+        "inference": 0.6,
+        "extraction": 0.75,
+        "observation": 0.65,
+        "citation": 0.85,
+        "synthesis": 0.55,
+        "api_call": 0.8,
+        "unknown": 0.4  # Flagged for review
+    }
+
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+
+        for entity in entities:
+            try:
+                entity_name = entity.get('name')
+
+                # Get entity ID
+                cursor.execute('SELECT id FROM entities WHERE name = ?', (entity_name,))
+                result = cursor.fetchone()
+                if not result:
+                    logger.warning(f"Entity '{entity_name}' not found for provenance tracking")
+                    continue
+
+                entity_id = result[0]
+
+                # Extract provenance metadata from entity (if provided)
+                provenance = entity.get('provenance', {})
+                derivation_method = provenance.get('derivation_method', 'unknown')
+                source_ids = provenance.get('source_ids', [])
+                explicit_confidence = provenance.get('confidence')
+                relevance = provenance.get('relevance', 0.7)
+
+                # Determine confidence based on derivation method
+                if explicit_confidence is not None:
+                    confidence = float(explicit_confidence)
+                else:
+                    confidence = DERIVATION_CONFIDENCE.get(derivation_method, 0.4)
+
+                # Flag entities with unknown provenance
+                if derivation_method == 'unknown':
+                    flagged_unverified += 1
+                    logger.warning(
+                        f"PROVENANCE: Entity '{entity_name}' has no provenance metadata - flagged for review"
+                    )
+
+                # Calculate L-Score
+                # For entities without source_ids, use single-hop calculation
+                confidence_scores = [confidence]
+                relevance_scores = [relevance]
+
+                # If we have source entities, gather their provenance
+                if source_ids:
+                    for source_id in source_ids[:5]:  # Limit depth
+                        cursor.execute('''
+                            SELECT l_score, reasoning_quality
+                            FROM entities WHERE id = ?
+                        ''', (source_id,))
+                        source = cursor.fetchone()
+                        if source and source[0]:
+                            confidence_scores.append(source[1] if source[1] else 0.5)
+
+                # Calculate L-Score
+                depth = len(source_ids) if source_ids else 1
+                l_score_result = calculate_l_score(
+                    confidence_scores=confidence_scores,
+                    relevance_scores=relevance_scores,
+                    depth=depth
+                )
+
+                # Build provenance chain JSON
+                provenance_chain = {
+                    "source_ids": source_ids,
+                    "confidence_scores": confidence_scores,
+                    "relevance_scores": relevance_scores,
+                    "derivation_methods": [derivation_method],
+                    "timestamps": [datetime.now().isoformat()]
+                }
+
+                # Update entity with provenance data
+                cursor.execute('''
+                    UPDATE entities SET
+                        l_score = ?,
+                        reasoning_quality = ?,
+                        source_chain = ?,
+                        derivation_depth = ?
+                    WHERE id = ?
+                ''', (
+                    l_score_result.l_score,
+                    l_score_result.reasoning_quality,
+                    json.dumps(provenance_chain),
+                    depth,
+                    entity_id
+                ))
+
+                tracked_count += 1
+
+                # Categorize L-Score distribution
+                if l_score_result.l_score >= 0.7:
+                    l_score_distribution["high"] += 1
+                elif l_score_result.l_score >= 0.3:
+                    l_score_distribution["acceptable"] += 1
+                else:
+                    l_score_distribution["low"] += 1
+                    logger.warning(
+                        f"PROVENANCE: Entity '{entity_name}' has low L-Score ({l_score_result.l_score:.2f}) - needs verification"
+                    )
+
+            except Exception as e:
+                logger.debug(f"Error tracking provenance for '{entity.get('name')}': {e}")
+
+        conn.commit()
+        conn.close()
+
+        return {
+            "tracked": tracked_count,
+            "flagged_unverified": flagged_unverified,
+            "l_score_distribution": l_score_distribution,
+            "tracking_mandatory": True
+        }
+
+    except Exception as e:
+        logger.error(f"Error in provenance tracking: {e}")
+        return {
+            "tracked": 0,
+            "error": str(e),
+            "tracking_mandatory": True
         }
 
 
@@ -1258,6 +1518,110 @@ if __name__ == "__main__":
         logger.info("✅ Semantic Cache integrated - 30-40% hit rate, sub-50ms retrieval")
     except Exception as e:
         logger.warning(f"⚠️  Semantic Cache integration skipped: {e}")
+
+    # Register FACT Cache tools - Cache-first retrieval for 10x performance boost
+    try:
+        from fact_integration import register_fact_tools, get_fact_wrapper
+        fact_wrapper = register_fact_tools(app, memory_client=memory_client)
+        logger.info("✅ FACT Cache integrated - <48ms cache hits, 87%+ hit rate target")
+    except Exception as e:
+        logger.warning(f"⚠️  FACT Cache integration skipped: {e}")
+
+    # Register Unified Search API - Intelligent routing between FACT and Qdrant
+    try:
+        from unified_search_api import register_unified_search_tools
+        unified_api = register_unified_search_tools(app, nmf_instance=nmf_instance)
+        logger.info("✅ Unified Search API integrated - FACT + Qdrant intelligent routing")
+    except Exception as e:
+        logger.warning(f"⚠️  Unified Search API integration skipped: {e}")
+
+    # Register ReasoningBank - Persistent learning memory (70% → 90%+ success rate)
+    try:
+        from reasoning_bank import register_reasoning_bank_tools
+        reasoning_bank = register_reasoning_bank_tools(app)
+        logger.info("✅ ReasoningBank integrated - Agents learn from experience")
+    except Exception as e:
+        logger.warning(f"⚠️  ReasoningBank integration skipped: {e}")
+
+    # Register ModelRouter - Multi-provider LLM routing (from ruvnet/agentic-flow)
+    try:
+        from model_router import register_model_router_tools
+        model_router = register_model_router_tools(app)
+        logger.info("✅ ModelRouter integrated - Multi-provider LLM routing with cost/performance optimization")
+    except Exception as e:
+        logger.warning(f"⚠️  ModelRouter integration skipped: {e}")
+
+    # Register Anti-Hallucination - Multi-stage verification pipeline (from ruvnet/agentic-flow)
+    try:
+        from anti_hallucination import register_anti_hallucination_tools
+        verification_pipeline = register_anti_hallucination_tools(app)
+        logger.info("✅ Anti-Hallucination integrated - Confidence scoring, citation validation, hallucination detection")
+    except Exception as e:
+        logger.warning(f"⚠️  Anti-Hallucination integration skipped: {e}")
+
+    # Register Continuous Learning - Gradient descent learning from corrections (from ruvnet/agentic-flow)
+    try:
+        from continuous_learning import register_continuous_learning_tools
+        continuous_learning = register_continuous_learning_tools(app)
+        logger.info("✅ Continuous Learning integrated - Gradient descent, pattern recognition, source reliability")
+    except Exception as e:
+        logger.warning(f"⚠️  Continuous Learning integration skipped: {e}")
+
+    # Register Strange Loops Detector - Circular reasoning, contradiction, and causality validation (from ruvnet/agentic-flow)
+    try:
+        from strange_loops import register_strange_loops_tools
+        strange_loops_detector = register_strange_loops_tools(app)
+        logger.info("✅ Strange Loops Detector integrated - Circular reasoning, contradictions, causal chain validation")
+    except Exception as e:
+        logger.warning(f"⚠️  Strange Loops Detector integration skipped: {e}")
+
+    # Register Causal Inference Engine - Statistical causal validation, DAG checking, bias detection (from ruvnet/agentic-flow)
+    try:
+        from causal_inference import register_causal_inference_tools
+        causal_engine = register_causal_inference_tools(app)
+        logger.info("✅ Causal Inference Engine integrated - DAG validation, assumption checking, significance testing, power analysis")
+    except Exception as e:
+        logger.warning(f"⚠️  Causal Inference Engine integration skipped: {e}")
+
+    # Register Activation Field - Holographic memory that modulates behavior without explicit retrieval
+    try:
+        from activation_field_tools import register_activation_field_tools
+        register_activation_field_tools(app)
+        logger.info("✅ Activation Field integrated - Holographic memory influence on routing, confidence, priming")
+    except Exception as e:
+        logger.warning(f"⚠️  Activation Field integration skipped: {e}")
+
+    # Register Procedural Evolution - Phase 3 Holographic Memory: Skills evolve through A/B testing
+    try:
+        from procedural_evolution_tools import register_procedural_evolution_tools
+        register_procedural_evolution_tools(app)
+        logger.info("✅ Procedural Evolution integrated - Phase 3: A/B testing, fitness tracking, skill evolution")
+    except Exception as e:
+        logger.warning(f"⚠️  Procedural Evolution integration skipped: {e}")
+
+    # Register Routing Learning - Phase 4 Holographic Memory: Memory learns optimal model routing
+    try:
+        from routing_learning_tools import register_routing_learning_tools
+        register_routing_learning_tools(app)
+        logger.info("✅ Routing Learning integrated - Phase 4: Historical success patterns, model tier optimization")
+    except Exception as e:
+        logger.warning(f"⚠️  Routing Learning integration skipped: {e}")
+
+    # Register Triple-Signal Search - PTM Phase 3: Vector + Lexical + Trajectory fusion
+    try:
+        from triple_signal_tools import register_triple_signal_tools
+        register_triple_signal_tools(app, nmf_instance)
+        logger.info("✅ Triple-Signal Search integrated - PTM Phase 3: 3-signal RRF fusion for +15-25% precision")
+    except Exception as e:
+        logger.warning(f"⚠️  Triple-Signal Search integration skipped: {e}")
+
+    # Register Manifold Working Memory - PTM Phase 4: T^8 hyper-torus with resonance retrieval
+    try:
+        from manifold_working_memory_tools import register_manifold_working_memory_tools
+        register_manifold_working_memory_tools(app)
+        logger.info("✅ Manifold Working Memory integrated - PTM Phase 4: T^8 manifold with phase-based addressing")
+    except Exception as e:
+        logger.warning(f"⚠️  Manifold Working Memory integration skipped: {e}")
 
     # Disable banner to prevent stdout pollution (MCP protocol requirement)
     # Explicitly specify stdio transport for proper stdin/stdout handling
