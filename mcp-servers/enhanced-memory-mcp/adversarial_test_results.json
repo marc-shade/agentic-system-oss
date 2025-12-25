@@ -1,0 +1,98 @@
+{
+  "timestamp": "2025-12-18T20:59:42.727353",
+  "tests": {
+    "anti_gaming": [
+      {
+        "test": "Keyword stuffing detection",
+        "passed": true,
+        "details": "Score: 0.26, Weight: 0.1 (should be penalized)"
+      },
+      {
+        "test": "Legitimate content acceptance",
+        "passed": true,
+        "details": "Score: 0.45 (should accept legitimate reasoning)"
+      },
+      {
+        "test": "Edge-clustered keywords detection",
+        "passed": true,
+        "details": "Score: 0.42 (should penalize edge clustering)"
+      },
+      {
+        "test": "Short content gaming blocked",
+        "passed": true,
+        "details": "Score: 0.00 (should be 0 for <10 words)"
+      }
+    ],
+    "circular_causation": [
+      {
+        "test": "Self-referential link blocked (A\u2192A)",
+        "passed": true,
+        "details": "Correctly blocked: Cannot create self-referential causal link. Entity 1 cannot ..."
+      },
+      {
+        "test": "Valid causal links allowed (A\u2192B)",
+        "passed": true,
+        "details": "Code path verified - different IDs don't raise ValueError"
+      }
+    ],
+    "fact_validation": [
+      {
+        "test": "Block 2+2=5 false claim",
+        "passed": true,
+        "details": "Result: blocked, Reason: Blocked due to: Known false mathematical claim: 2+..."
+      },
+      {
+        "test": "Block division by zero claim",
+        "passed": true,
+        "details": "Result: blocked"
+      },
+      {
+        "test": "Block logical contradiction",
+        "passed": true,
+        "details": "Result: blocked"
+      },
+      {
+        "test": "Accept valid claims",
+        "passed": true,
+        "details": "Result: valid"
+      },
+      {
+        "test": "Block false equality claim",
+        "passed": true,
+        "details": "Result: blocked"
+      },
+      {
+        "test": "Batch validation filters correctly",
+        "passed": true,
+        "details": "Valid: 2, Blocked: 1"
+      }
+    ],
+    "provenance": [
+      {
+        "test": "Provenance module imports",
+        "passed": true,
+        "details": "ProvenanceManager, calculate_l_score, LScoreResult imported"
+      },
+      {
+        "test": "L-Score calculation",
+        "passed": true,
+        "details": "L-Score: 0.579, conf=0.85, rel=0.75"
+      },
+      {
+        "test": "Server integration",
+        "passed": true,
+        "details": "Provenance tracking integrated in server.py"
+      },
+      {
+        "test": "L-Score reflects quality",
+        "passed": true,
+        "details": "High conf: 0.736 > Low conf: 0.120"
+      }
+    ]
+  },
+  "summary": {
+    "passed": 16,
+    "failed": 0,
+    "total": 16
+  }
+}

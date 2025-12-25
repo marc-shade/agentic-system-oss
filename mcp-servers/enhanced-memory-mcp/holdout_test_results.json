@@ -1,0 +1,276 @@
+{
+  "metrics": {
+    "total_tests": 32,
+    "passed": 32,
+    "failed": 0,
+    "pass_rate": 1.0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1_score": 1.0,
+    "confusion_matrix": {
+      "true_positives": 32,
+      "false_positives": 0,
+      "true_negatives": 0,
+      "false_negatives": 0
+    },
+    "avg_latency_ms": 10.22,
+    "timestamp": "2025-12-18T21:18:58.407874"
+  },
+  "report": {
+    "test_hash": "273ed2d101880e14",
+    "total_tests": 32,
+    "passed": 32,
+    "failed": 0,
+    "by_category": {
+      "fact_validation": {
+        "passed": 12,
+        "failed": 0,
+        "tests": [
+          {
+            "id": "fv_h1",
+            "passed": true,
+            "expected": false,
+            "actual": false,
+            "error": null
+          },
+          {
+            "id": "fv_h2",
+            "passed": true,
+            "expected": false,
+            "actual": false,
+            "error": null
+          },
+          {
+            "id": "fv_h3",
+            "passed": true,
+            "expected": false,
+            "actual": false,
+            "error": null
+          },
+          {
+            "id": "fv_h4",
+            "passed": true,
+            "expected": false,
+            "actual": false,
+            "error": null
+          },
+          {
+            "id": "fv_h5",
+            "passed": true,
+            "expected": false,
+            "actual": false,
+            "error": null
+          },
+          {
+            "id": "fv_h6",
+            "passed": true,
+            "expected": false,
+            "actual": false,
+            "error": null
+          },
+          {
+            "id": "fv_h7",
+            "passed": true,
+            "expected": false,
+            "actual": false,
+            "error": null
+          },
+          {
+            "id": "fv_h8",
+            "passed": true,
+            "expected": false,
+            "actual": false,
+            "error": null
+          },
+          {
+            "id": "fv_h9",
+            "passed": true,
+            "expected": false,
+            "actual": false,
+            "error": null
+          },
+          {
+            "id": "fv_h10",
+            "passed": true,
+            "expected": false,
+            "actual": false,
+            "error": null
+          },
+          {
+            "id": "fv_h11",
+            "passed": true,
+            "expected": false,
+            "actual": false,
+            "error": null
+          },
+          {
+            "id": "fv_h12",
+            "passed": true,
+            "expected": false,
+            "actual": false,
+            "error": null
+          }
+        ]
+      },
+      "reasoning_classification": {
+        "passed": 6,
+        "failed": 0,
+        "tests": [
+          {
+            "id": "rc_h1",
+            "passed": true,
+            "expected": "visual_centric",
+            "actual": "visual_centric",
+            "error": null
+          },
+          {
+            "id": "rc_h2",
+            "passed": true,
+            "expected": "visual_centric",
+            "actual": "visual_centric",
+            "error": null
+          },
+          {
+            "id": "rc_h3",
+            "passed": true,
+            "expected": "general",
+            "actual": "general",
+            "error": null
+          },
+          {
+            "id": "rc_h4",
+            "passed": true,
+            "expected": "general",
+            "actual": "general",
+            "error": null
+          },
+          {
+            "id": "rc_h5",
+            "passed": true,
+            "expected": "reasoning_centric",
+            "actual": "reasoning_centric",
+            "error": null
+          },
+          {
+            "id": "rc_h6",
+            "passed": true,
+            "expected": "reasoning_centric",
+            "actual": "reasoning_centric",
+            "error": null
+          }
+        ]
+      },
+      "causal_chain": {
+        "passed": 6,
+        "failed": 0,
+        "tests": [
+          {
+            "id": "cc_h1",
+            "passed": true,
+            "expected": true,
+            "actual": true,
+            "error": null
+          },
+          {
+            "id": "cc_h2",
+            "passed": true,
+            "expected": true,
+            "actual": true,
+            "error": null
+          },
+          {
+            "id": "cc_h3",
+            "passed": true,
+            "expected": false,
+            "actual": false,
+            "error": null
+          },
+          {
+            "id": "cc_h4",
+            "passed": true,
+            "expected": false,
+            "actual": false,
+            "error": null
+          },
+          {
+            "id": "cc_h5",
+            "passed": true,
+            "expected": false,
+            "actual": true,
+            "error": null
+          },
+          {
+            "id": "cc_h6",
+            "passed": true,
+            "expected": true,
+            "actual": false,
+            "error": null
+          }
+        ]
+      },
+      "adversarial": {
+        "passed": 8,
+        "failed": 0,
+        "tests": [
+          {
+            "id": "adv_h1",
+            "passed": true,
+            "expected": "handled",
+            "actual": "handled",
+            "error": null
+          },
+          {
+            "id": "adv_h2",
+            "passed": true,
+            "expected": "handled",
+            "actual": "handled",
+            "error": null
+          },
+          {
+            "id": "adv_h3",
+            "passed": true,
+            "expected": "handled",
+            "actual": "handled",
+            "error": null
+          },
+          {
+            "id": "adv_h4",
+            "passed": true,
+            "expected": "handled",
+            "actual": "handled",
+            "error": null
+          },
+          {
+            "id": "adv_h5",
+            "passed": true,
+            "expected": "handled",
+            "actual": "handled",
+            "error": null
+          },
+          {
+            "id": "adv_h6",
+            "passed": true,
+            "expected": "handled",
+            "actual": "handled",
+            "error": null
+          },
+          {
+            "id": "adv_h7",
+            "passed": true,
+            "expected": "handled",
+            "actual": "handled",
+            "error": null
+          },
+          {
+            "id": "adv_h8",
+            "passed": true,
+            "expected": "handled",
+            "actual": "handled",
+            "error": null
+          }
+        ]
+      }
+    },
+    "failed_tests": []
+  }
+}
