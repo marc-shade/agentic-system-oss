@@ -485,7 +485,7 @@ if __name__ == '__main__':
     good_source = {
         "url": "https://example.edu/research",
         "author": "Dr. Smith",
-        "date": "2024-01-15",
+        "date": "2025-01-15",
         "title": "Research Paper",
     }
     eval_result = agent.evaluate_source(good_source)
