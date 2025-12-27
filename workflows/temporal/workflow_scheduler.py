@@ -3,10 +3,15 @@
 Workflow Scheduler - Sets up periodic execution of all autonomous workflows
 
 Schedules:
+- Morning Briefing: Daily at 6 AM (Hyperthink Move 1)
 - Memory Consolidation: Daily at 3 AM (sleep time)
 - Memory Manager: Every hour
 - System Optimization: Every 4 hours
-- Service Health: Every 15 minutes
+- Model Discovery: Daily (track LLM model versions)
+- Visual Monitoring: Every 30 minutes
+- Visual Consolidation: Daily (nightly)
+- Cross-Modal Integration: Every 2 hours
+- Librarian Consolidation: Every 6 hours (structured synthesis)
 
 STATUS: Production Ready
 """
@@ -25,6 +30,14 @@ async def setup_schedules():
     client = await Client.connect("localhost:7233")
     
     schedules = [
+        {
+            "id": "morning-briefing",
+            "workflow": "MorningBriefingWorkflow",
+            "task_queue": "morning-briefing",
+            "interval": timedelta(days=1),  # Daily at 6 AM
+            "description": "Daily morning briefing - replaces log diving (Hyperthink Move 1)",
+            "args": [12]  # Cover last 12 hours
+        },
         {
             "id": "nightly-memory-consolidation",
             "workflow": "MemoryConsolidationWorkflow",
@@ -48,6 +61,46 @@ async def setup_schedules():
             "interval": timedelta(hours=4),  # Every 4 hours
             "description": "System performance optimization",
             "args": [False]  # Not dry-run
+        },
+        {
+            "id": "daily-model-discovery",
+            "workflow": "ModelDiscoveryWorkflow",
+            "task_queue": "model-discovery",
+            "interval": timedelta(days=1),  # Daily
+            "description": "Discover current LLM model versions from CLI providers",
+            "args": ["quick"]  # Quick mode (just CLI versions, no token usage)
+        },
+        {
+            "id": "visual-monitoring",
+            "workflow": "VisualMonitoringWorkflow",
+            "task_queue": "visual-perception",
+            "interval": timedelta(minutes=30),  # Every 30 minutes
+            "description": "Periodic visual environment monitoring with multi-provider analysis",
+            "args": [30]  # 30 minute interval
+        },
+        {
+            "id": "nightly-visual-consolidation",
+            "workflow": "VisualMemoryConsolidationWorkflow",
+            "task_queue": "visual-memory-consolidation",
+            "interval": timedelta(days=1),  # Daily (runs at night)
+            "description": "Nightly visual memory consolidation, pattern extraction, and learning",
+            "args": ["full"]  # Full consolidation mode
+        },
+        {
+            "id": "cross-modal-integration",
+            "workflow": "CrossModalIntegrationWorkflow",
+            "task_queue": "cross-modal",
+            "interval": timedelta(hours=2),  # Every 2 hours
+            "description": "Cross-modal correlation discovery, pattern extraction, and unified context building",
+            "args": ["full"]  # Full mode (hours passed separately in workflow)
+        },
+        {
+            "id": "librarian-consolidation",
+            "workflow": "LibrarianConsolidationWorkflow",
+            "task_queue": "librarian-consolidation",
+            "interval": timedelta(hours=6),  # Every 6 hours
+            "description": "Librarian-style memory consolidation (structured synthesis replacing learnings block)",
+            "args": []  # Uses defaults: agent_id="phoenix", time_window_hours=24
         }
     ]
     
@@ -92,15 +145,33 @@ async def setup_schedules():
 async def list_schedules():
     """List all configured schedules"""
     client = await Client.connect("localhost:7233")
-    
+
     logger.info("\nConfigured Schedules:")
     logger.info("="*60)
-    
-    async for sched in client.list_schedules():
-        logger.info(f"Schedule ID: {sched.id}")
-        logger.info(f"  Description: {sched.memo.get('description', 'N/A')}")
-        logger.info(f"  Next run: {sched.info.next_action_times}")
-        logger.info("")
+
+    # Get schedule handles directly by ID (more reliable)
+    schedule_ids = [
+        "morning-briefing",
+        "nightly-memory-consolidation",
+        "hourly-memory-manager",
+        "system-optimization",
+        "daily-model-discovery",
+        "visual-monitoring",
+        "nightly-visual-consolidation",
+        "cross-modal-integration",
+        "librarian-consolidation"
+    ]
+
+    for sched_id in schedule_ids:
+        try:
+            handle = client.get_schedule_handle(sched_id)
+            desc = await handle.describe()
+            logger.info(f"Schedule ID: {sched_id}")
+            if desc.info and desc.info.next_action_times:
+                logger.info(f"  Next run: {desc.info.next_action_times[0]}")
+            logger.info("")
+        except Exception as e:
+            logger.info(f"Schedule ID: {sched_id} - Not found or error: {e}")
 
 
 async def main():

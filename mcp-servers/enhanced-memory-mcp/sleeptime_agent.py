@@ -30,6 +30,7 @@ Based on:
 import logging
 import sqlite3
 import json
+import os
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, List, Any, Optional
@@ -96,31 +97,69 @@ class SleetimeAgent:
         """
         Get episodic memories from the last N hours.
 
-        Returns list of entity observations with episodic tier.
+        Queries BOTH:
+        1. entities table (tier='episodic') - older format
+        2. episodic_memory table - 4-tier memory format
+
+        Returns list of entity observations for pattern extraction.
         """
+        import json as json_lib
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
 
         cutoff_time = datetime.now() - timedelta(hours=time_window_hours)
-
-        cursor.execute('''
-            SELECT e.id, e.name, e.entity_type, o.content, o.created_at
-            FROM entities e
-            JOIN observations o ON e.id = o.entity_id
-            WHERE e.tier = 'episodic'
-              AND datetime(o.created_at) > datetime(?)
-            ORDER BY o.created_at DESC
-        ''', (cutoff_time,))
-
         memories = []
-        for row in cursor.fetchall():
-            memories.append({
-                "entity_id": row[0],
-                "name": row[1],
-                "entity_type": row[2],
-                "observation": row[3],
-                "timestamp": row[4]
-            })
+
+        # Source 1: entities table with episodic tier
+        try:
+            cursor.execute('''
+                SELECT e.id, e.name, e.entity_type, o.content, o.created_at
+                FROM entities e
+                JOIN observations o ON e.id = o.entity_id
+                WHERE e.tier = 'episodic'
+                  AND datetime(o.created_at) > datetime(?)
+                ORDER BY o.created_at DESC
+            ''', (cutoff_time,))
+
+            for row in cursor.fetchall():
+                memories.append({
+                    "entity_id": row[0],
+                    "name": row[1],
+                    "entity_type": row[2],
+                    "observation": row[3],
+                    "timestamp": row[4]
+                })
+        except Exception as e:
+            logger.debug(f"   entities table query failed: {e}")
+
+        # Source 2: episodic_memory table (4-tier memory)
+        try:
+            cursor.execute('''
+                SELECT id, event_type, episode_data, significance_score, created_at
+                FROM episodic_memory
+                WHERE datetime(created_at) > datetime(?)
+                ORDER BY created_at DESC
+            ''', (cutoff_time,))
+
+            for row in cursor.fetchall():
+                # Parse episode_data JSON for observation content
+                episode_data = row[2]
+                try:
+                    data = json_lib.loads(episode_data) if episode_data else {}
+                    observation = json_lib.dumps(data)  # Use full data as observation
+                except:
+                    observation = str(episode_data)[:500]
+
+                memories.append({
+                    "entity_id": row[0],
+                    "name": f"episode_{row[0]}",
+                    "entity_type": row[1],  # event_type becomes entity_type
+                    "observation": observation,
+                    "timestamp": row[4],
+                    "significance": row[3]
+                })
+        except Exception as e:
+            logger.debug(f"   episodic_memory table query failed: {e}")
 
         conn.close()
 
@@ -135,12 +174,14 @@ class SleetimeAgent:
         """
         Extract recurring patterns from episodic memories.
 
-        Looks for:
-        - Repeated action types
-        - Common outcomes
-        - Success/failure patterns
-        - Recurring contexts
+        Improved pattern detection that:
+        - Extracts patterns based on frequency (not just success/fail keywords)
+        - Uses word boundaries to avoid false positives (e.g., "error_handling" != "error")
+        - Looks for multiple outcome indicators
+        - Includes significance scores from episodic memory
+        - Works with real JSON-structured episode data
         """
+        import re
         patterns = []
 
         # Group by entity type
@@ -151,24 +192,33 @@ class SleetimeAgent:
                 type_groups[entity_type] = []
             type_groups[entity_type].append(memory)
 
-        # Find patterns in each group
+        # Find patterns in each group - ANY type with min_frequency is a pattern
         for entity_type, group_memories in type_groups.items():
             if len(group_memories) >= min_frequency:
                 # Extract common terms from observations
-                all_observations = " ".join([m["observation"] for m in group_memories])
+                all_observations = " ".join([m.get("observation", "") for m in group_memories])
+                obs_lower = all_observations.lower()
 
-                # Simple pattern: count success/failure
-                success_count = all_observations.lower().count("success")
-                failure_count = all_observations.lower().count("fail")
+                # Count success indicators using word boundaries (avoid "error_handling" matching "error")
+                success_keywords = ["success", "completed", "done", "passed", "true", "succeeded", "verified", "passing"]
+                success_count = sum(len(re.findall(r'\b' + kw + r'\b', obs_lower)) for kw in success_keywords)
 
-                if success_count >= min_frequency or failure_count >= min_frequency:
-                    patterns.append({
-                        "type": entity_type,
-                        "frequency": len(group_memories),
-                        "success_count": success_count,
-                        "failure_count": failure_count,
-                        "observations": all_observations[:500]  # Sample
-                    })
+                # Count failure indicators using word boundaries
+                failure_keywords = ["fail", "failed", "failure", "error", "false", "crashed", "timeout", "rejected"]
+                failure_count = sum(len(re.findall(r'\b' + kw + r'\b', obs_lower)) for kw in failure_keywords)
+
+                # Calculate average significance if available
+                significances = [m.get("significance", 0.5) for m in group_memories if m.get("significance")]
+                avg_significance = sum(significances) / len(significances) if significances else 0.5
+
+                patterns.append({
+                    "type": entity_type,
+                    "frequency": len(group_memories),
+                    "success_count": success_count,
+                    "failure_count": failure_count,
+                    "significance": avg_significance,
+                    "observations": all_observations[:500]  # Sample
+                })
 
         logger.info(f"   Extracted {len(patterns)} patterns (min_frequency={min_frequency})")
         return patterns
@@ -274,38 +324,164 @@ Learned: {datetime.now().isoformat()}
         """
         Update the agent's "learnings" memory block with new insights.
 
+        Uses Librarian-style structured synthesis (adapted from vlt-cli):
+        - SYNTHESIZE instead of append (prune obsolete, keep current)
+        - Structured format for immediate context resumption
+        - Status/Context/Pivot Log/Next Steps sections
+
         This makes the learnings visible to the primary agent in its context window.
         """
-        # Build learnings summary
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
 
-        learning_summary = f"\n\n📚 Consolidation Update ({timestamp}):\n"
+        # Get existing learnings for synthesis context
+        existing_block = self.block_manager.get_block(self.agent_id, "learnings")
+        existing_content = existing_block.value if existing_block else ""
 
+        # Build structured learnings state (Librarian pattern)
+        # This REPLACES instead of appending - synthesizing new with old
+
+        # Determine active focus from patterns
         if patterns:
-            learning_summary += f"\n🔍 Patterns Identified: {len(patterns)}\n"
-            for pattern in patterns[:3]:  # Top 3
-                success_rate = pattern['success_count'] / max(pattern['frequency'], 1) * 100
-                learning_summary += f"  - {pattern['type']}: {pattern['frequency']} occurrences, {success_rate:.0f}% success\n"
+            top_pattern = max(patterns, key=lambda p: p['frequency'])
+            active_focus = f"{top_pattern['type']} ({top_pattern['frequency']} occurrences)"
+        else:
+            active_focus = "General learning"
 
-        if concepts:
-            learning_summary += f"\n💡 Concepts Learned: {len(concepts)}\n"
-            for concept in concepts[:3]:  # Top 3
-                learning_summary += f"  - {concept}\n"
+        # Build context section - current truths only
+        context_items = []
 
-        if causal_chains:
-            learning_summary += f"\n🔗 Causal Relationships: {len(causal_chains)}\n"
-            for chain in causal_chains[:3]:  # Top 3
-                learning_summary += f"  - {chain['cause']} → {chain['effect']} ({chain['time_delta_seconds']:.0f}s)\n"
+        # Pattern insights (keep top 5, prune older)
+        for pattern in patterns[:5]:
+            total_outcomes = pattern['success_count'] + pattern['failure_count']
+            if total_outcomes > 0:
+                success_rate = pattern['success_count'] / total_outcomes * 100
+                rate_str = f", {success_rate:.0f}% success"
+            elif pattern.get('significance', 0) > 0:
+                rate_str = f", sig={pattern['significance']:.2f}"
+            else:
+                rate_str = ""
+            context_items.append(
+                f"- **{pattern['type']}**: {pattern['frequency']}x frequency{rate_str}"
+            )
 
-        # Append to learnings block
-        result = self.block_manager.append_to_block(
+        # Causal relationships (proven cause-effect, top 3)
+        for chain in causal_chains[:3]:
+            delay = chain['time_delta_seconds']
+            context_items.append(
+                f"- **Causal**: {chain['cause']} → {chain['effect']} (~{delay:.0f}s delay)"
+            )
+
+        # Build pivot log - extract from existing or create new
+        pivot_entries = self._extract_pivot_entries(existing_content, patterns, concepts)
+
+        # Build next steps based on weak patterns
+        next_steps = self._generate_next_steps(patterns, causal_chains)
+
+        # Synthesize final structured state
+        structured_state = f"""# 🎯 Status: Memory Consolidation Active
+**Last Update:** {timestamp}
+**Focus:** {active_focus}
+
+## 🧠 Context & Current Knowledge
+{chr(10).join(context_items) if context_items else "- No significant patterns yet"}
+
+## 💡 Concepts ({len(concepts)} learned)
+{chr(10).join([f"- {c}" for c in concepts[:5]]) if concepts else "- Building concept library..."}
+
+## 📜 Pivot Log (Recent Decisions)
+{chr(10).join(pivot_entries) if pivot_entries else "- No major pivots recorded"}
+
+## ⏭️ Next Steps
+{chr(10).join(next_steps) if next_steps else "- Continue gathering observations"}
+"""
+
+        # REPLACE (not append) - the Librarian way
+        result = self.block_manager.update_block(
             agent_id=self.agent_id,
             label="learnings",
-            content=learning_summary
+            new_value=structured_state
         )
 
-        logger.info(f"   Updated learnings block: {result['chars_current']}/{result['chars_limit']} chars")
+        logger.info(f"   Synthesized learnings block: {result['chars_current']}/{result['chars_limit']} chars")
         return result
+
+    def _calculate_success_rate(self, pattern: Dict[str, Any]) -> float:
+        """Calculate success rate from pattern, handling various data structures."""
+        total_outcomes = pattern['success_count'] + pattern['failure_count']
+        if total_outcomes > 0:
+            return pattern['success_count'] / total_outcomes
+        else:
+            # No outcome keywords - use significance or neutral
+            return pattern.get('significance', 0.5)
+
+    def _extract_pivot_entries(
+        self,
+        existing_content: str,
+        patterns: List[Dict[str, Any]],
+        concepts: List[str]
+    ) -> List[str]:
+        """
+        Extract and update pivot log entries.
+
+        Keeps last 3 major decisions/pivots, pruning older ones.
+        A 'pivot' is a significant change in approach or understanding.
+        """
+        pivot_entries = []
+
+        # Check for significant pattern shifts
+        for pattern in patterns:
+            success_rate = self._calculate_success_rate(pattern)
+
+            # High frequency + low success rate = potential pivot needed
+            if pattern['frequency'] >= 5 and success_rate < 0.3:
+                pivot_entries.append(
+                    f"- ⚠️ Low success pattern: `{pattern['type']}` ({success_rate:.0%}) - consider approach change"
+                )
+
+            # High success rate = validated approach
+            elif pattern['frequency'] >= 3 and success_rate > 0.7:
+                pivot_entries.append(
+                    f"- ✅ Validated: `{pattern['type']}` ({success_rate:.0%} success, {pattern['frequency']}x)"
+                )
+
+        # Keep only last 3
+        return pivot_entries[:3]
+
+    def _generate_next_steps(
+        self,
+        patterns: List[Dict[str, Any]],
+        causal_chains: List[Dict[str, Any]]
+    ) -> List[str]:
+        """
+        Generate actionable next steps based on consolidation findings.
+        """
+        next_steps = []
+
+        # Find weak patterns needing improvement (success rate < 50%)
+        weak_patterns = []
+        for p in patterns:
+            success_rate = self._calculate_success_rate(p)
+            if success_rate < 0.5:
+                weak_patterns.append((p, success_rate))
+
+        if weak_patterns:
+            for wp, rate in weak_patterns[:2]:
+                next_steps.append(
+                    f"1. Investigate `{wp['type']}` ({rate:.0%} success, {wp['frequency']}x frequency)"
+                )
+
+        # Suggest exploring strong causal chains
+        if causal_chains:
+            strongest = causal_chains[0]
+            next_steps.append(
+                f"2. Leverage: {strongest['cause']} → {strongest['effect']} chain"
+            )
+
+        # Default step if nothing specific
+        if not next_steps:
+            next_steps.append("1. Continue observations to build pattern database")
+
+        return next_steps
 
     def compress_old_memories(
         self,
