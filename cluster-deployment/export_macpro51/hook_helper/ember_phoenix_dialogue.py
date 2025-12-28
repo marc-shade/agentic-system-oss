@@ -71,7 +71,7 @@ def call_ember_chat(message):
         import os
         from groq import Groq
 
-        groq = Groq(api_key=os.environ.get('GROQ_API_KEY', ''))
+        groq = Groq(api_key=os.environ.get('GROQ_API_KEY', '***REMOVED***'))
 
         # Load Ember's state
         with open(STATE_FILE, 'r') as f:

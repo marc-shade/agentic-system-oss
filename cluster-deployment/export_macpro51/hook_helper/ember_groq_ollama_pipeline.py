@@ -12,7 +12,7 @@ import asyncio
 import time
 from typing import Dict, Optional
 
-GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
+GROQ_API_KEY = "***REMOVED***"
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
 OLLAMA_URL = "http://localhost:11434/api/generate"
 
