@@ -18,7 +18,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, List, Any, Optional, Set, Tuple
 from collections import defaultdict
-from math import exp
+from math import exp, log
 
 logger = logging.getLogger("associative-network")
 
@@ -184,6 +184,63 @@ class AssociativeNetwork:
 
         return results
 
+    def _check_context_conditions(
+        self,
+        cursor: sqlite3.Cursor,
+        context_id: int,
+        conditions: Dict[str, Any]
+    ) -> bool:
+        """
+        Check if current context matches the required conditions.
+
+        Args:
+            cursor: Database cursor
+            context_id: ID of the current context
+            conditions: Dictionary of required conditions
+
+        Returns:
+            True if context matches conditions, False otherwise
+        """
+        if not conditions:
+            return True  # No conditions = always matches
+
+        # Get context details from database
+        cursor.execute(
+            '''
+            SELECT context_name, context_type, context_scope
+            FROM retrieval_contexts
+            WHERE context_id = ?
+            ''',
+            (context_id,)
+        )
+        context_row = cursor.fetchone()
+        if not context_row:
+            return False  # Context not found
+
+        context_name, context_type, context_scope = context_row
+
+        # Check each condition
+        for key, required_value in conditions.items():
+            if key == "context_type" and context_type != required_value:
+                return False
+            elif key == "context_scope" and context_scope != required_value:
+                return False
+            elif key == "context_name":
+                # Support exact match or pattern match
+                if isinstance(required_value, str):
+                    if required_value.endswith("*"):
+                        # Prefix match
+                        if not context_name.startswith(required_value[:-1]):
+                            return False
+                    elif context_name != required_value:
+                        return False
+            elif key == "context_names" and isinstance(required_value, list):
+                # Match against any of the listed names
+                if context_name not in required_value:
+                    return False
+
+        return True  # All conditions satisfied
+
     def spread_activation(
         self,
         source_entity_id: int,
@@ -254,8 +311,14 @@ class AssociativeNetwork:
 
                     # Check context dependency
                     if context_dep and context_id:
-                        # TODO: Check context conditions match
-                        pass
+                        # Parse and check context conditions
+                        if context_cond:
+                            try:
+                                conditions = json.loads(context_cond) if isinstance(context_cond, str) else context_cond
+                                if not self._check_context_conditions(cursor, context_id, conditions):
+                                    continue  # Skip this association - context doesn't match
+                            except (json.JSONDecodeError, TypeError):
+                                pass  # Invalid JSON, allow association
 
                     # Calculate activation spreading
                     # New activation = current_activation * strength * (1 - decay)
@@ -392,6 +455,107 @@ class AttentionMechanism:
     def __init__(self):
         pass
 
+    def _calculate_recency_score(
+        self,
+        cursor: sqlite3.Cursor,
+        entity_id: int,
+        half_life_hours: float = 24.0
+    ) -> float:
+        """
+        Calculate recency score based on last access time.
+
+        Uses exponential decay: score = e^(-t/half_life)
+        where t is hours since last access.
+
+        Args:
+            cursor: Database cursor
+            entity_id: Entity to calculate recency for
+            half_life_hours: Time in hours for score to decay by half
+
+        Returns:
+            Recency score between 0.0 and 1.0
+        """
+        cursor.execute(
+            '''
+            SELECT updated_at FROM entities WHERE id = ?
+            ''',
+            (entity_id,)
+        )
+        row = cursor.fetchone()
+        if not row or not row[0]:
+            return 0.5  # Default if no data
+
+        try:
+            # Parse timestamp
+            last_access_str = row[0]
+            if 'T' in last_access_str:
+                last_access = datetime.fromisoformat(last_access_str.replace('Z', '+00:00'))
+            else:
+                last_access = datetime.strptime(last_access_str, "%Y-%m-%d %H:%M:%S")
+
+            # Calculate hours since last access
+            now = datetime.now(last_access.tzinfo) if last_access.tzinfo else datetime.now()
+            hours_elapsed = (now - last_access).total_seconds() / 3600.0
+
+            # Exponential decay: e^(-t/half_life)
+            decay_rate = 0.693 / half_life_hours  # ln(2) / half_life
+            recency_score = exp(-decay_rate * hours_elapsed)
+
+            return max(0.0, min(1.0, recency_score))
+
+        except (ValueError, TypeError):
+            return 0.5  # Default on parse error
+
+    def _calculate_frequency_score(
+        self,
+        cursor: sqlite3.Cursor,
+        entity_id: int,
+        max_access_count: int = 100
+    ) -> float:
+        """
+        Calculate frequency score based on access count.
+
+        Uses logarithmic scaling to prevent high-frequency memories
+        from dominating: score = log(1 + count) / log(1 + max_count)
+
+        Args:
+            cursor: Database cursor
+            entity_id: Entity to calculate frequency for
+            max_access_count: Reference count for normalization
+
+        Returns:
+            Frequency score between 0.0 and 1.0
+        """
+        cursor.execute(
+            '''
+            SELECT access_count FROM entity_access_stats WHERE entity_id = ?
+            ''',
+            (entity_id,)
+        )
+        row = cursor.fetchone()
+
+        if not row:
+            # Try getting from attention_weights if no access_stats
+            cursor.execute(
+                '''
+                SELECT COUNT(*) FROM activation_spreading_log
+                WHERE activated_entity_id = ?
+                ''',
+                (entity_id,)
+            )
+            count_row = cursor.fetchone()
+            access_count = count_row[0] if count_row else 0
+        else:
+            access_count = row[0] if row[0] else 0
+
+        if access_count <= 0:
+            return 0.1  # Minimum score for new memories
+
+        # Logarithmic scaling
+        frequency_score = log(1 + access_count) / log(1 + max_access_count)
+
+        return max(0.0, min(1.0, frequency_score))
+
     def set_attention(
         self,
         entity_id: int,
@@ -415,10 +579,16 @@ class AttentionMechanism:
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
 
-        # Calculate current attention
+        # Calculate actual recency score based on last access time
+        recency_score = self._calculate_recency_score(cursor, entity_id)
+
+        # Calculate actual frequency score based on access count
+        frequency_score = self._calculate_frequency_score(cursor, entity_id)
+
+        # Calculate current attention using actual metrics
         current_attention = (
-            recency_weight * 0.5 +  # TODO: Calculate from actual recency
-            frequency_weight * 0.5 +  # TODO: Calculate from access count
+            recency_weight * recency_score +
+            frequency_weight * frequency_score +
             emotional_weight * relevance_score
         )
 

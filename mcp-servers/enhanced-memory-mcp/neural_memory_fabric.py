@@ -515,6 +515,75 @@ Importance:"""
             logger.warning("All embedding providers failed")
             return None
 
+    async def _store_to_filesystem(
+        self,
+        memory_id: str,
+        content: str,
+        timestamp: str,
+        agent_id: str,
+        tags: List[str],
+        embedding: Optional[List[float]] = None
+    ) -> bool:
+        """
+        Store memory to filesystem for backup/persistence (Phase 4).
+
+        Uses JSON-Lines format for append-only storage.
+        Enables disaster recovery and cross-system memory sharing.
+
+        Args:
+            memory_id: Unique memory identifier
+            content: Memory content
+            timestamp: ISO timestamp
+            agent_id: Agent that created the memory
+            tags: Memory tags
+            embedding: Optional embedding vector (stored separately)
+
+        Returns:
+            True if stored successfully, False otherwise
+        """
+        try:
+            from pathlib import Path
+
+            # Define storage paths
+            base_dir = Path.home() / ".claude" / "nmf_storage"
+            memories_dir = base_dir / "memories"
+            embeddings_dir = base_dir / "embeddings"
+
+            # Ensure directories exist
+            memories_dir.mkdir(parents=True, exist_ok=True)
+            embeddings_dir.mkdir(parents=True, exist_ok=True)
+
+            # Store memory as JSON-Lines (append-only)
+            memory_file = memories_dir / f"{agent_id}_memories.jsonl"
+            memory_record = {
+                'id': memory_id,
+                'content': content,
+                'timestamp': timestamp,
+                'agent_id': agent_id,
+                'tags': tags,
+                'stored_at': datetime.utcnow().isoformat()
+            }
+
+            with open(memory_file, 'a') as f:
+                f.write(json.dumps(memory_record) + '\n')
+
+            # Store embedding separately (if available) to enable vector reconstruction
+            if embedding:
+                embedding_file = embeddings_dir / f"{memory_id}.json"
+                with open(embedding_file, 'w') as f:
+                    json.dump({
+                        'memory_id': memory_id,
+                        'embedding': embedding,
+                        'dimensions': len(embedding)
+                    }, f)
+
+            logger.debug(f"Stored memory {memory_id} to filesystem")
+            return True
+
+        except Exception as e:
+            logger.warning(f"Filesystem storage failed for {memory_id}: {e}")
+            return False
+
     async def remember(
         self,
         content: str,
@@ -633,7 +702,8 @@ Importance:"""
             except Exception as e:
                 logger.warning(f"Dynamic linking failed: {e}")
 
-        # TODO: Store in file system (Phase 4)
+        # Phase 4: Store in file system for backup/persistence
+        await self._store_to_filesystem(memory_id, content, timestamp, agent_id, tags, embedding)
 
         logger.info(f"Stored memory {memory_id} for agent {agent_id}")
 
@@ -835,8 +905,165 @@ Importance:"""
 
         logger.info(f"Recalled {len(results)} memories for query: {query[:50]}... (mode: {mode})")
 
-        # TODO: Integrate graph traversal
-        # TODO: LLM re-ranking
+        # Graph traversal enhancement: Find related memories through graph connections
+        if self.graph_driver and results and mode in ["graph", "hybrid"]:
+            results = await self._enrich_with_graph_traversal(results, limit)
+
+        # LLM re-ranking: Use LLM to re-rank results based on query relevance
+        if results and len(results) > 1:
+            results = await self._llm_rerank_results(query, results, limit)
+
+        return results
+
+    async def _enrich_with_graph_traversal(
+        self,
+        results: List[Dict[str, Any]],
+        limit: int
+    ) -> List[Dict[str, Any]]:
+        """
+        Enrich recall results with graph-connected memories.
+
+        Uses the existing traverse_graph method to find related memories
+        through the knowledge graph and adds them to results.
+
+        Args:
+            results: Current recall results
+            limit: Maximum total results
+
+        Returns:
+            Enriched results including graph-connected memories
+        """
+        if not self.graph_driver or not results:
+            return results
+
+        try:
+            seen_ids = {r.get('memory_id') for r in results}
+            graph_additions = []
+
+            # Traverse from top results to find connected memories
+            for result in results[:3]:  # Only traverse from top 3 to limit overhead
+                memory_id = result.get('memory_id')
+                if not memory_id:
+                    continue
+
+                connected = await self.traverse_graph(
+                    start_memory_id=memory_id,
+                    max_depth=1,  # Shallow traversal for performance
+                    relationship_types=["RELATES_TO", "REFERENCES"]
+                )
+
+                for conn in connected:
+                    conn_id = conn.get('memory_id')
+                    if conn_id and conn_id not in seen_ids:
+                        seen_ids.add(conn_id)
+                        # Add graph context to the result
+                        conn['source'] = 'graph'
+                        conn['graph_path_from'] = memory_id
+                        conn['rank_score'] = conn.get('importance', 0.5) * 0.5  # Reduced weight for graph results
+                        graph_additions.append(conn)
+
+            if graph_additions:
+                # Merge and re-sort
+                results.extend(graph_additions[:limit - len(results)])
+                results.sort(key=lambda x: x.get('rank_score', x.get('similarity_score', 0)), reverse=True)
+                logger.info(f"Added {len(graph_additions)} graph-connected memories")
+
+            return results[:limit]
+
+        except Exception as e:
+            logger.warning(f"Graph enrichment failed: {e}")
+            return results
+
+    async def _llm_rerank_results(
+        self,
+        query: str,
+        results: List[Dict[str, Any]],
+        limit: int
+    ) -> List[Dict[str, Any]]:
+        """
+        Use LLM to re-rank recall results based on query relevance.
+
+        Applies cross-encoder style re-ranking using an LLM to score
+        each result against the query for improved relevance.
+
+        Args:
+            query: Original search query
+            results: Current recall results
+            limit: Maximum results to return
+
+        Returns:
+            Re-ranked results
+        """
+        # Only re-rank if we have multiple results and LLM is available
+        if len(results) <= 1:
+            return results
+
+        try:
+            # Lazy import to avoid circular dependencies
+            from model_router import chat
+
+            # Prepare results for LLM scoring (limit to avoid token overflow)
+            candidates = results[:min(10, len(results))]
+
+            # Build prompt for re-ranking
+            candidates_text = "\n".join([
+                f"[{i}] {r.get('content', '')[:200]}..."
+                for i, r in enumerate(candidates)
+            ])
+
+            prompt = f"""Rate the relevance of each memory result to the query on a scale of 0-10.
+Return ONLY a comma-separated list of scores in order (e.g., "8,6,9,3,7").
+
+Query: "{query}"
+
+Results:
+{candidates_text}
+
+Scores (comma-separated):"""
+
+            response = await chat(
+                model="gpt-4o-mini",  # Fast model for re-ranking
+                messages=[
+                    {"role": "system", "content": "You are a relevance scoring assistant. Return only comma-separated numbers."},
+                    {"role": "user", "content": prompt}
+                ],
+                max_tokens=100,
+                temperature=0.1  # Low temperature for consistent scoring
+            )
+
+            # Parse scores from response
+            scores_text = ""
+            for block in response.content:
+                if hasattr(block, 'text') and block.text:
+                    scores_text = block.text.strip()
+                    break
+
+            # Parse comma-separated scores
+            try:
+                scores = [float(s.strip()) for s in scores_text.split(',')]
+                if len(scores) == len(candidates):
+                    # Apply LLM scores to results
+                    for i, score in enumerate(scores):
+                        candidates[i]['llm_relevance_score'] = score / 10.0
+                        # Blend LLM score with existing score
+                        existing_score = candidates[i].get('rank_score', candidates[i].get('similarity_score', 0.5))
+                        candidates[i]['rank_score'] = (existing_score * 0.4) + (score / 10.0 * 0.6)
+
+                    # Re-sort by blended score
+                    candidates.sort(key=lambda x: x.get('rank_score', 0), reverse=True)
+                    logger.info(f"LLM re-ranked {len(candidates)} results")
+
+                    # Merge re-ranked candidates back with remaining results
+                    remaining = results[len(candidates):]
+                    return (candidates + remaining)[:limit]
+
+            except (ValueError, AttributeError):
+                logger.warning(f"Failed to parse LLM re-ranking scores: {scores_text}")
+
+        except ImportError:
+            logger.debug("model_router not available for LLM re-ranking")
+        except Exception as e:
+            logger.warning(f"LLM re-ranking failed: {e}")
 
         return results
 

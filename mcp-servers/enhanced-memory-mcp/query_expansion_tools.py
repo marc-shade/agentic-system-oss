@@ -8,6 +8,8 @@ Implements query expansion strategies to improve recall and coverage:
 3. Conceptual expansion (related terms)
 
 Expected improvement: +15-25% recall
+
+LLM Integration: Uses model_router.py for LLM-based query expansion.
 """
 
 import logging
@@ -16,6 +18,27 @@ import asyncio
 from collections import OrderedDict
 
 logger = logging.getLogger(__name__)
+
+# LLM integration imports (lazy loaded to avoid circular imports)
+_model_router_available = False
+_chat_func = None
+
+def _ensure_model_router():
+    """Lazy load model router to avoid circular imports."""
+    global _model_router_available, _chat_func
+    if _chat_func is not None:
+        return _model_router_available
+
+    try:
+        from model_router import chat, ChatParams, Message
+        _chat_func = chat
+        _model_router_available = True
+        logger.info("LLM integration enabled via model_router")
+    except ImportError as e:
+        logger.warning(f"model_router not available for LLM expansion: {e}")
+        _model_router_available = False
+
+    return _model_router_available
 
 
 class QueryExpander:
@@ -118,7 +141,10 @@ class QueryExpander:
 
     async def llm_expand(self, query: str, num_variants: int = 2) -> List[str]:
         """
-        Generate query variations using LLM
+        Generate query variations using LLM via model_router.
+
+        Uses intelligent model routing to select optimal LLM provider.
+        Falls back to pattern-based expansion if LLM unavailable.
 
         Args:
             query: Original query
@@ -127,39 +153,67 @@ class QueryExpander:
         Returns:
             List of reformulated queries
         """
-        if not self.nmf:
-            logger.warning("NMF not available for LLM expansion")
-            return []
-
-        try:
-            # Use NMF's LLM to generate variations
-            prompt = f"""Generate {num_variants} alternative phrasings for this search query.
-Each variation should have the same meaning but use different words.
+        # Try LLM-based expansion first
+        if _ensure_model_router() and _chat_func is not None:
+            try:
+                prompt = f"""Generate exactly {num_variants} alternative phrasings for this search query.
+Each variation should have the same semantic meaning but use different words and structure.
+Focus on:
+- Using synonyms for key terms
+- Restructuring the sentence
+- Adding or removing context words
 
 Original query: "{query}"
 
-Return only the variations, one per line, without numbers or explanations.
-"""
+Return ONLY the variations, one per line, without numbers, bullets, or explanations.
+Do not repeat the original query."""
 
-            # Generate using NMF's LLM (if available)
-            # For now, we'll implement a simple pattern-based approach
-            # TODO: Integrate with actual LLM when NMF LLM access is available
+                # Use a fast, cost-effective model for query expansion
+                response = await _chat_func(
+                    model="gpt-4o-mini",  # Fast and cost-effective
+                    messages=[
+                        {"role": "system", "content": "You are a search query expansion assistant. Generate semantically equivalent query variations."},
+                        {"role": "user", "content": prompt}
+                    ],
+                    max_tokens=200,
+                    temperature=0.7
+                )
 
-            # Pattern-based reformulation (placeholder until LLM integration)
-            variants = []
+                # Extract text from response content blocks
+                variants = []
+                for block in response.content:
+                    if hasattr(block, 'text') and block.text:
+                        # Parse line-separated variants
+                        lines = [line.strip() for line in block.text.strip().split('\n')]
+                        for line in lines:
+                            # Skip empty lines and lines that look like bullets/numbers
+                            if line and not line[0].isdigit() and not line.startswith('-') and not line.startswith('•'):
+                                variants.append(line)
+                            elif line and line[0].isdigit():
+                                # Handle numbered lines like "1. query variation"
+                                parts = line.split('.', 1)
+                                if len(parts) > 1:
+                                    variants.append(parts[1].strip())
 
-            # Add question forms if query is declarative
-            if not query.endswith("?"):
-                if "what" not in query.lower():
-                    variants.append(f"what is {query}")
-                if "how" not in query.lower():
-                    variants.append(f"how does {query} work")
+                if variants:
+                    logger.info(f"LLM generated {len(variants)} query variations")
+                    return variants[:num_variants]
 
-            return variants[:num_variants]
+            except Exception as e:
+                logger.warning(f"LLM expansion failed, falling back to pattern-based: {e}")
 
-        except Exception as e:
-            logger.error(f"LLM expansion failed: {e}")
-            return []
+        # Fallback: Pattern-based reformulation
+        logger.debug("Using pattern-based query expansion (LLM unavailable)")
+        variants = []
+
+        # Add question forms if query is declarative
+        if not query.endswith("?"):
+            if "what" not in query.lower():
+                variants.append(f"what is {query}")
+            if "how" not in query.lower():
+                variants.append(f"how does {query} work")
+
+        return variants[:num_variants]
 
     def synonym_expand(self, query: str, max_variants: int = 1) -> List[str]:
         """
