@@ -708,6 +708,10 @@ class PredictionModel:
         # Observation counts (for confidence)
         self.observation_count = 0
 
+        # Track recent prediction errors for analysis
+        self.recent_predictions: List[float] = []
+        self.max_recent = 100  # Keep last 100 predictions
+
     def _init_security_weights(self) -> List[float]:
         """Initialize weights for security threat detection"""
         return [
@@ -850,6 +854,9 @@ class PredictionModel:
         feature_vector = features.to_vector()
         predictions = self.predict(features)
 
+        total_error = 0.0
+        error_count = 0
+
         for detector, was_triggered in actual.items():
             if detector not in self.detector_weights:
                 continue
@@ -857,6 +864,10 @@ class PredictionModel:
             predicted = predictions.get(detector, 0.5)
             target = 1.0 if was_triggered else 0.0
             error = target - predicted
+
+            # Track error magnitude
+            total_error += abs(error)
+            error_count += 1
 
             # Update weights (gradient descent)
             for i in range(len(self.detector_weights[detector])):
@@ -867,6 +878,13 @@ class PredictionModel:
             self.detector_bias[detector] += self.learning_rate * error
 
         self.observation_count += 1
+
+        # Track recent prediction errors
+        if error_count > 0:
+            avg_error = total_error / error_count
+            self.recent_predictions.append(avg_error)
+            if len(self.recent_predictions) > self.max_recent:
+                self.recent_predictions = self.recent_predictions[-self.max_recent:]
 
     def get_confidence(self) -> float:
         """Get confidence based on training data"""
@@ -1154,11 +1172,13 @@ class ThoughtAssessor:
     def get_learning_summary(self) -> dict:
         """Get summary of learning progress including curriculum status"""
         if not self.prediction_history:
+            curriculum_summary = self.curriculum.get_curriculum_summary()
             return {
                 'total_observations': 0,
                 'average_error': 0.0,
                 'confidence': 0.0,
-                'curriculum': self.curriculum.get_curriculum_summary(),
+                'curriculum': curriculum_summary,
+                'curriculum_stage': curriculum_summary.get('current_stage', 'bootstrap'),
             }
 
         recent = self.prediction_history[-100:]
@@ -1187,6 +1207,7 @@ class ThoughtAssessor:
             'confidence': self.prediction_model.get_confidence(),
             'trend': trend,
             'curriculum': curriculum_summary,
+            'curriculum_stage': curriculum_summary.get('current_stage', 'unknown'),
         }
 
     def get_curriculum_status(self) -> dict:

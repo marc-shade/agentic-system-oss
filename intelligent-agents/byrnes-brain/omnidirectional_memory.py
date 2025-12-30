@@ -92,6 +92,15 @@ class AssociationGraph:
         # Index by association type for faster queries
         self.type_index: Dict[str, Set[str]] = defaultdict(set)
 
+    @property
+    def nodes(self) -> Set[str]:
+        """Get all nodes in the graph"""
+        return set(self.graph.keys())
+
+    def __len__(self) -> int:
+        """Return number of nodes in graph"""
+        return len(self.graph)
+
     def add_association(self, concept_a: str, concept_b: str,
                        assoc_type: str = "related", weight: float = 1.0):
         """Add or strengthen a bidirectional association"""
@@ -323,6 +332,10 @@ class ExperienceStore:
         self.by_context: Dict[str, Set[str]] = defaultdict(set)
         self.by_operation: Dict[str, Set[str]] = defaultdict(set)
 
+    def __len__(self) -> int:
+        """Return number of stored experiences"""
+        return len(self.experiences)
+
     def store(self, experience: Experience):
         """Store an experience with multi-index"""
         self.experiences[experience.id] = experience
@@ -439,6 +452,21 @@ class OmnidirectionalMemory:
             Path.home() / '.claude' / 'omnidirectional_memory.json'
         )
         self._load_state()
+
+    @property
+    def graph(self) -> AssociationGraph:
+        """Alias for associations (for compatibility)"""
+        return self.associations
+
+    @property
+    def experience_count(self) -> int:
+        """Get number of stored experiences"""
+        return len(self.experiences)
+
+    @property
+    def node_count(self) -> int:
+        """Get number of nodes in association graph"""
+        return len(self.associations.nodes)
 
     def store_experience(self, data: Dict[str, Any]) -> str:
         """
