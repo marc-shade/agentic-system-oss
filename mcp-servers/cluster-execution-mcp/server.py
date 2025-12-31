@@ -2,22 +2,31 @@
 """
 Cluster Execution MCP Server
 
-Provides cluster-aware command execution for Claude Code.
+Provides cluster-aware command execution and inter-node communication for Claude Code.
 Automatically routes commands to optimal nodes based on:
 - Current cluster load
 - Command characteristics
 - Node capabilities
 
-Tools:
+Cluster Execution Tools (4):
 - cluster_bash: Execute bash commands across cluster (auto-routing)
 - cluster_status: Get current cluster state
 - offload_to: Explicitly route to specific node
 - parallel_execute: Run commands in parallel across nodes
 
+Node Chat Tools (22 - merged from node-chat-mcp):
+- Messaging: send_message_to_node, get_conversation_history, check_for_new_messages, broadcast_to_cluster
+- Awareness: get_my_awareness, get_cluster_awareness, get_node_status
+- Conversation: watch_cluster_conversations, view_conversations_threaded, prepare_conversation_context
+- AGI: decompose_goal, initiate_research_pipeline, start_improvement_cycle
+- Memory: search_conversation_memory, get_memory_stats, remember_fact_about_node
+
 Usage in Claude Code sessions:
 - "Run tests" → Uses cluster_bash, auto-routes to least loaded node
 - "Build on Linux" → Uses offload_to with node="macpro51"
 - "Check cluster status" → Uses cluster_status
+- "Send message to builder" → Uses send_message_to_node
+- "Decompose goal" → Uses AGI goal decomposition
 """
 
 import os
@@ -33,6 +42,28 @@ sys.path.insert(0, str(CLUSTER_DIR))
 
 from distributed_task_router import DistributedTaskRouter, CLUSTER_NODES
 from performance_optimizer import PerformanceOptimizer
+
+# Import node chat integration
+try:
+    from node_chat_integration import get_node_chat_tools, handle_node_chat_tool
+    NODE_CHAT_AVAILABLE = True
+except ImportError as e:
+    print(f"Warning: Node chat integration not available: {e}", file=sys.stderr)
+    NODE_CHAT_AVAILABLE = False
+
+# Import cluster curriculum sync (Priority 3 AGI Gap Fix)
+HOOKS_DIR = Path.home() / ".claude" / "hooks"
+sys.path.insert(0, str(HOOKS_DIR))
+try:
+    from cluster_curriculum_sync import (
+        push_curriculum_to_cluster,
+        pull_curriculum_from_cluster,
+        get_cluster_curriculum_status
+    )
+    CURRICULUM_SYNC_AVAILABLE = True
+except ImportError as e:
+    print(f"Warning: Cluster curriculum sync not available: {e}", file=sys.stderr)
+    CURRICULUM_SYNC_AVAILABLE = False
 
 # MCP imports
 try:
@@ -128,10 +159,13 @@ class ClusterExecutionServer:
 
                 if result.returncode == 0:
                     lines = result.stdout.strip().split('\n')
-                    if len(lines) >= 3:
-                        cpu = float(lines[0])
-                        memory = float(lines[1])
-                        load = float(lines[2])
+                    # Filter to only numeric lines (skip shell startup messages like "Cluster environment loaded...")
+                    numeric_lines = [l for l in lines if l.replace('.', '').replace('-', '').isdigit() or
+                                     (l.count('.') == 1 and l.replace('.', '').replace('-', '').isdigit())]
+                    if len(numeric_lines) >= 3:
+                        cpu = float(numeric_lines[0])
+                        memory = float(numeric_lines[1])
+                        load = float(numeric_lines[2])
 
                         status["nodes"][node_id] = {
                             "cpu_percent": round(cpu, 1),
@@ -280,8 +314,8 @@ cluster = ClusterExecutionServer()
 
 @app.list_tools()
 async def list_tools() -> list[Tool]:
-    """List available cluster execution tools"""
-    return [
+    """List available cluster execution and node chat tools"""
+    tools = [
         Tool(
             name="cluster_bash",
             description="""Execute bash command with automatic cluster routing.
@@ -416,8 +450,72 @@ Returns list of results, one per command, with execution details.""",
                 },
                 "required": ["commands"]
             }
+        ),
+        Tool(
+            name="curriculum_sync_push",
+            description="""Push local curriculum learning state to cluster shared memory.
+
+Enables federated learning by sharing your node's curriculum progress with
+other cluster nodes. Each node contributes observations and accuracy data
+that gets aggregated across the cluster.
+
+What gets synced:
+- Current curriculum stage (bootstrap/foundation/refinement/mastery/maintenance)
+- Observation count and accuracy
+- Per-detector accuracy (security_threat, production_violation, etc.)
+- Stage transition history
+
+Returns sync status with current local curriculum state.""",
+            inputSchema={
+                "type": "object",
+                "properties": {},
+                "required": []
+            }
+        ),
+        Tool(
+            name="curriculum_sync_pull",
+            description="""Pull and merge curriculum learning from cluster nodes.
+
+Performs federated aggregation of curriculum state from all nodes:
+- Weighted average of detector accuracy (by observation count)
+- Considers stage advancement if cluster is ahead
+- Blends local and cluster values (70% local, 30% cluster)
+
+This enables your node to benefit from learning across the entire cluster.
+
+Returns merge status with contributing nodes and merged accuracy.""",
+            inputSchema={
+                "type": "object",
+                "properties": {},
+                "required": []
+            }
+        ),
+        Tool(
+            name="curriculum_cluster_status",
+            description="""Get cluster-wide curriculum learning status.
+
+Shows aggregated view of curriculum progress across all nodes:
+- Per-node stage, observations, and accuracy
+- Stage distribution across cluster
+- Most advanced node
+- Total observations across cluster
+- Average accuracy
+
+Use this to monitor federated learning progress and identify
+which nodes are contributing most to curriculum advancement.""",
+            inputSchema={
+                "type": "object",
+                "properties": {},
+                "required": []
+            }
         )
     ]
+
+    # Add node chat tools if available
+    if NODE_CHAT_AVAILABLE:
+        tools.extend(get_node_chat_tools())
+
+    return tools
 
 
 @app.call_tool()
@@ -502,6 +600,87 @@ STDERR:
 
             return [TextContent(type="text", text=output)]
 
+        # Curriculum sync tools (Priority 3 AGI Gap Fix)
+        elif name == "curriculum_sync_push":
+            if not CURRICULUM_SYNC_AVAILABLE:
+                return [TextContent(type="text", text="Error: Cluster curriculum sync not available")]
+
+            result = push_curriculum_to_cluster()
+
+            if result.get('success'):
+                output = f"""Curriculum Pushed to Cluster
+
+Node: {result.get('node_id', 'unknown')}
+Stage: {result.get('stage', 'unknown')}
+Observations: {result.get('observations', 0)}
+Accuracy: {result.get('accuracy', 'N/A')}
+
+Local curriculum state has been synced to cluster shared memory."""
+            else:
+                output = f"Push failed: {result.get('error', 'Unknown error')}"
+
+            return [TextContent(type="text", text=output)]
+
+        elif name == "curriculum_sync_pull":
+            if not CURRICULUM_SYNC_AVAILABLE:
+                return [TextContent(type="text", text="Error: Cluster curriculum sync not available")]
+
+            result = pull_curriculum_from_cluster()
+
+            if result.get('success'):
+                output = f"""Curriculum Pulled from Cluster
+
+Merged from {result.get('merged_from_nodes', 0)} nodes
+Contributing nodes: {', '.join(result.get('contributing_nodes', []))}
+Merged accuracy: {result.get('merged_accuracy', 'N/A')}
+Total observations: {result.get('total_observations', 0)}
+Local stage: {result.get('local_stage', 'unknown')}
+
+Federated learning state has been merged into local curriculum."""
+            else:
+                output = f"Pull failed: {result.get('error', 'Unknown error')}"
+
+            return [TextContent(type="text", text=output)]
+
+        elif name == "curriculum_cluster_status":
+            if not CURRICULUM_SYNC_AVAILABLE:
+                return [TextContent(type="text", text="Error: Cluster curriculum sync not available")]
+
+            status = get_cluster_curriculum_status()
+
+            if status.get('cluster_nodes', 0) == 0:
+                return [TextContent(type="text", text="No cluster curriculum data found. Push from nodes first.")]
+
+            output = f"""Cluster Curriculum Status
+
+Total nodes: {status.get('cluster_nodes', 0)}
+Total observations: {status.get('total_observations', 0)}
+Average accuracy: {status.get('average_accuracy', 'N/A')}
+Most advanced node: {status.get('most_advanced_node', 'N/A')}
+Most advanced stage: {status.get('most_advanced_stage', 'N/A')}
+
+Stage distribution: {json.dumps(status.get('stage_distribution', {}), indent=2)}
+
+Node Details:
+"""
+            for node in status.get('nodes', []):
+                output += f"""  {node['node_id']}: {node['stage']}
+    Observations: {node['observations']}
+    Accuracy: {node['accuracy']}
+    Last sync: {node['last_sync']}
+
+"""
+
+            return [TextContent(type="text", text=output)]
+
+        # Check if it's a node chat tool
+        elif NODE_CHAT_AVAILABLE:
+            # Get list of node chat tool names
+            node_chat_tool_names = [t.name for t in get_node_chat_tools()]
+            if name in node_chat_tool_names:
+                return await handle_node_chat_tool(name, arguments)
+            else:
+                return [TextContent(type="text", text=f"Unknown tool: {name}")]
         else:
             return [TextContent(type="text", text=f"Unknown tool: {name}")]
 
