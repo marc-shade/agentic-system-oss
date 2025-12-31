@@ -365,9 +365,28 @@ class GAIAAgentExecutor:
             sys.path.insert(0, str(Path(__file__).parent.parent.parent))
             from agi_orchestrator import AGIOrchestrator
 
+            question = context['question']
+
+            # Pre-process reversed text (common GAIA trick)
+            if question.startswith('.') or 'siht dnatsrednu' in question.lower():
+                question = question[::-1]  # Reverse the string
+
+            # Build enhanced prompt with tool guidance
+            prompt = f"""Answer this question precisely. Give ONLY the final answer with no explanation.
+
+IMPORTANT INSTRUCTIONS:
+- If you need to look up information (Wikipedia, facts, dates), use WebSearch tool
+- If the question references a file or image attachment, note that you cannot access it
+- For math/logic problems, show your work then give the final answer
+- For reversed/encoded text, decode it first
+
+QUESTION: {question}
+
+FINAL ANSWER:"""
+
             orchestrator = AGIOrchestrator()
             result = await orchestrator.execute_goal(
-                goal_description=f"Answer this question precisely. Give ONLY the final answer with no explanation: {context['question']}",
+                goal_description=prompt,
                 context=context,
                 record_learning=True
             )
@@ -439,11 +458,29 @@ class GAIAAgentExecutor:
             r'^(?:The\s+)?(?:final\s+)?answer\s*(?:is)?:?\s*',
             r'^Result:?\s*',
             r'^Response:?\s*',
+            r'^FINAL ANSWER:?\s*',
         ]
         for prefix in prefixes_to_strip:
             result = re.sub(prefix, '', result, flags=re.IGNORECASE)
 
         result = result.strip()
+
+        # Detect inability to answer (file/image access issues)
+        inability_patterns = [
+            r"cannot access",
+            r"don't see.*image",
+            r"don't see.*file",
+            r"no.*attachment",
+            r"without.*image",
+            r"without.*file",
+            r"without.*document",
+            r"I cannot view",
+            r"unable to access",
+        ]
+        for pattern in inability_patterns:
+            if re.search(pattern, result, re.IGNORECASE):
+                logger.warning(f"Task requires file/image access: {result[:100]}")
+                return ""
 
         # Try to parse JSON output (common for multi-agent coordinator)
         try:

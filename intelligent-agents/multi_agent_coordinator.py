@@ -613,7 +613,7 @@ class MultiAgentCoordinator:
             logger.debug(f"EXO cluster inference failed: {e}")
         return None
 
-    def _try_claude_cli_headless(self, prompt: str, timeout: int = 180) -> Optional[Dict]:
+    def _try_claude_cli_headless(self, prompt: str, timeout: int = 300) -> Optional[Dict]:
         """
         Try Claude Code CLI headless with empty API key for Max account access.
 
