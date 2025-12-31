@@ -277,15 +277,17 @@ Given task + context → Predict success probability per tool → Select highest
 
 ## Part 5: Priority Integration Fixes
 
-### Priority 1: Byrnes ↔ Enhanced Memory Bridge
+### Priority 1: Byrnes ↔ Enhanced Memory Bridge ✅ IMPLEMENTED
 **Effort**: Medium (1-2 days)
 **Impact**: High
-**Implementation**: Create `byrnes_memory_bridge.py` hook module
+**Implementation**: Created `byrnes_memory_bridge.py`, integrated into `post-tool-use.py`
+**Status**: COMPLETE - Learning events sync to `~/.claude/byrnes_sync/` for enhanced-memory
 
-### Priority 2: Predictive Ember Consultation
+### Priority 2: Predictive Ember Consultation ✅ IMPLEMENTED
 **Effort**: Low (2-4 hours)
 **Impact**: Medium
-**Implementation**: Modify `ember_violation_check.py`
+**Implementation**: Created `ember_predictive_integration.py`, integrated into `pre-tool-use.py`
+**Status**: COMPLETE - Thought Assessor now feeds predictions to Ember proactively
 
 ### Priority 3: Distributed Curriculum Sync
 **Effort**: High (3-5 days)
