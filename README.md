@@ -1,7 +1,7 @@
 # Agentic System
 
 <div align="center">
-<img width="300" height="300" align="right" alt="agentic-system-oss" src="https://github.com/user-attachments/assets/ac0ba0df-ec74-4aff-a616-e668420b7018" />
+
 **24/7 Autonomous Agentic AI System - Distributed Multi-Node Infrastructure**
 
 [![Status](https://img.shields.io/badge/Status-Operational-brightgreen)]()
@@ -51,7 +51,7 @@ python3 benchmarks/gaia_comparable_benchmarks.py
 ---
 
 ## Overview
-
+<img width="300" height="300" align="right" alt="agentic-system-oss" src="https://github.com/user-attachments/assets/ac0ba0df-ec74-4aff-a616-e668420b7018" />
 A production-ready distributed AI system running 24/7 across multiple nodes with automatic workload distribution, cluster memory, and intelligent task routing.
 
 ### Why Prometheus?
