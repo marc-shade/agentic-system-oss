@@ -2,11 +2,7 @@
 
 <div align="center">
 
-![Corgi Agents](https://images.unsplash.com/photo-1612536057832-2ff7ead58194?w=600&h=300&fit=crop&crop=faces)
-
 **24/7 Autonomous Agentic AI System - Distributed Multi-Node Infrastructure**
-
-*"A pack of AI corgis working together to get things done"* 🐕
 
 [![Status](https://img.shields.io/badge/Status-Operational-brightgreen)]()
 [![GAIA Level 1](https://img.shields.io/badge/GAIA%20L1-87.5%25-success)]()
@@ -223,7 +219,5 @@ MIT License - See [LICENSE](LICENSE) for details.
 <div align="center">
 
 **Built with Claude Code** | [Documentation](CLAUDE.md) | [Benchmarks](intelligent-agents/prometheus/benchmarks/)
-
-*Corgis don't just herd sheep - they herd tasks across distributed clusters* 🐕
 
 </div>
