@@ -1,0 +1,27 @@
+{
+  "discovered_at": "2025-12-30T19:00:09.244846",
+  "note": "CLI tools use their default (latest) models. Use discover_cli_model() for active discovery.",
+  "providers": {
+    "claude": {
+      "version_info": {
+        "cli_version": "2.0.76 (Claude Code)",
+        "discovered_at": "2025-12-30T19:00:08.803439",
+        "provider": "claude"
+      }
+    },
+    "codex": {
+      "version_info": {
+        "cli_version": "codex-cli 0.77.0",
+        "discovered_at": "2025-12-30T19:00:08.378645",
+        "provider": "codex"
+      }
+    },
+    "gemini": {
+      "version_info": {
+        "cli_version": "0.22.4",
+        "discovered_at": "2025-12-30T19:00:09.244784",
+        "provider": "gemini"
+      }
+    }
+  }
+}

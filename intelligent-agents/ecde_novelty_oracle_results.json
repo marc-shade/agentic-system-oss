@@ -1,0 +1,90 @@
+{
+  "total_assessed": 10,
+  "genuinely_novel": 10,
+  "derivable": 0,
+  "derivation_failure_rate": 1.0,
+  "average_novelty_confidence": 1.0,
+  "evidence_summary": "=== NOVELTY ORACLE ASSESSMENT SUMMARY ===\n\nTotal Capabilities Assessed: 10\nGenuinely Novel: 10 (100.0%)\nDerivable from Primitives: 0\nAverage Novelty Confidence: 100.0%\n\n--- Wei et al. Criteria Alignment ---\nSatisfies Wei Novelty (non-derivable): 10/10\nSatisfies Bostrom Novelty (outside design space): 10/10\n\n--- Top Novel Capabilities ---\n  - extension_555b4439: 100.0% novel\n    * 5/5 derivation strategies failed\n    * Capability cannot be expressed as composition of primitives\n  - extension_d5f26ffd: 100.0% novel\n    * 5/5 derivation strategies failed\n    * Capability cannot be expressed as composition of primitives\n  - extension_6b82eb68: 100.0% novel\n    * 5/5 derivation strategies failed\n    * Capability cannot be expressed as composition of primitives\n  - extension_e0453151: 100.0% novel\n    * 5/5 derivation strategies failed\n    * Capability cannot be expressed as composition of primitives\n  - extension_beb1c9ba: 100.0% novel\n    * 5/5 derivation strategies failed\n    * Capability cannot be expressed as composition of primitives\n\n--- Derivation Strategy Results ---\n  direct_composition: 10/10 derivations failed (100.0%)\n  rule_application: 10/10 derivations failed (100.0%)\n  search_based: 10/10 derivations failed (100.0%)\n  analogical: 10/10 derivations failed (100.0%)\n  combinatorial: 10/10 derivations failed (100.0%)",
+  "assessments": [
+    {
+      "id": "emergent_0",
+      "name": "extension_555b4439",
+      "is_novel": true,
+      "novelty_confidence": 1.0,
+      "satisfies_wei": true,
+      "satisfies_bostrom": true
+    },
+    {
+      "id": "emergent_1",
+      "name": "extension_d5f26ffd",
+      "is_novel": true,
+      "novelty_confidence": 1.0,
+      "satisfies_wei": true,
+      "satisfies_bostrom": true
+    },
+    {
+      "id": "emergent_2",
+      "name": "extension_6b82eb68",
+      "is_novel": true,
+      "novelty_confidence": 1.0,
+      "satisfies_wei": true,
+      "satisfies_bostrom": true
+    },
+    {
+      "id": "emergent_3",
+      "name": "extension_e0453151",
+      "is_novel": true,
+      "novelty_confidence": 1.0,
+      "satisfies_wei": true,
+      "satisfies_bostrom": true
+    },
+    {
+      "id": "emergent_4",
+      "name": "extension_beb1c9ba",
+      "is_novel": true,
+      "novelty_confidence": 1.0,
+      "satisfies_wei": true,
+      "satisfies_bostrom": true
+    },
+    {
+      "id": "emergent_5",
+      "name": "extension_10ec90f3",
+      "is_novel": true,
+      "novelty_confidence": 1.0,
+      "satisfies_wei": true,
+      "satisfies_bostrom": true
+    },
+    {
+      "id": "emergent_6",
+      "name": "extension_2148ef94",
+      "is_novel": true,
+      "novelty_confidence": 1.0,
+      "satisfies_wei": true,
+      "satisfies_bostrom": true
+    },
+    {
+      "id": "emergent_7",
+      "name": "extension_98bbc7e5",
+      "is_novel": true,
+      "novelty_confidence": 1.0,
+      "satisfies_wei": true,
+      "satisfies_bostrom": true
+    },
+    {
+      "id": "emergent_8",
+      "name": "extension_9c3cf3d4",
+      "is_novel": true,
+      "novelty_confidence": 1.0,
+      "satisfies_wei": true,
+      "satisfies_bostrom": true
+    },
+    {
+      "id": "emergent_9",
+      "name": "extension_2bed2773",
+      "is_novel": true,
+      "novelty_confidence": 1.0,
+      "satisfies_wei": true,
+      "satisfies_bostrom": true
+    }
+  ]
+}

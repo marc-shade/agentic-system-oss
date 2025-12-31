@@ -1,0 +1,200 @@
+{
+  "total_analyzed": 10,
+  "outside_closure": 0,
+  "inside_closure": 10,
+  "type_violations": 0,
+  "structural_violations": 0,
+  "expressivity_violations": 0,
+  "analyses": [
+    {
+      "capability_id": "emergent_0",
+      "capability_name": "extension_555b4439",
+      "in_closure": true,
+      "violation_evidence": [],
+      "type_violations": [],
+      "structural_violations": [],
+      "expressivity_gap": null,
+      "ablation": {
+        "support_set": [
+          "identity"
+        ],
+        "support_set_size": 1,
+        "subsets_tested": 0,
+        "subsets_sufficient": 0,
+        "minimal_sufficient": null,
+        "conclusion": "Capability cannot be expressed with ANY subset of 1 primitives. This supports closure violation: no smaller primitive combination suffices."
+      }
+    },
+    {
+      "capability_id": "emergent_1",
+      "capability_name": "extension_d5f26ffd",
+      "in_closure": true,
+      "violation_evidence": [],
+      "type_violations": [],
+      "structural_violations": [],
+      "expressivity_gap": null,
+      "ablation": {
+        "support_set": [
+          "identity"
+        ],
+        "support_set_size": 1,
+        "subsets_tested": 0,
+        "subsets_sufficient": 0,
+        "minimal_sufficient": null,
+        "conclusion": "Capability cannot be expressed with ANY subset of 1 primitives. This supports closure violation: no smaller primitive combination suffices."
+      }
+    },
+    {
+      "capability_id": "emergent_2",
+      "capability_name": "extension_6b82eb68",
+      "in_closure": true,
+      "violation_evidence": [],
+      "type_violations": [],
+      "structural_violations": [],
+      "expressivity_gap": null,
+      "ablation": {
+        "support_set": [
+          "identity"
+        ],
+        "support_set_size": 1,
+        "subsets_tested": 0,
+        "subsets_sufficient": 0,
+        "minimal_sufficient": null,
+        "conclusion": "Capability cannot be expressed with ANY subset of 1 primitives. This supports closure violation: no smaller primitive combination suffices."
+      }
+    },
+    {
+      "capability_id": "emergent_3",
+      "capability_name": "extension_e0453151",
+      "in_closure": true,
+      "violation_evidence": [],
+      "type_violations": [],
+      "structural_violations": [],
+      "expressivity_gap": null,
+      "ablation": {
+        "support_set": [
+          "identity"
+        ],
+        "support_set_size": 1,
+        "subsets_tested": 0,
+        "subsets_sufficient": 0,
+        "minimal_sufficient": null,
+        "conclusion": "Capability cannot be expressed with ANY subset of 1 primitives. This supports closure violation: no smaller primitive combination suffices."
+      }
+    },
+    {
+      "capability_id": "emergent_4",
+      "capability_name": "extension_beb1c9ba",
+      "in_closure": true,
+      "violation_evidence": [],
+      "type_violations": [],
+      "structural_violations": [],
+      "expressivity_gap": null,
+      "ablation": {
+        "support_set": [
+          "identity"
+        ],
+        "support_set_size": 1,
+        "subsets_tested": 0,
+        "subsets_sufficient": 0,
+        "minimal_sufficient": null,
+        "conclusion": "Capability cannot be expressed with ANY subset of 1 primitives. This supports closure violation: no smaller primitive combination suffices."
+      }
+    },
+    {
+      "capability_id": "emergent_5",
+      "capability_name": "extension_10ec90f3",
+      "in_closure": true,
+      "violation_evidence": [],
+      "type_violations": [],
+      "structural_violations": [],
+      "expressivity_gap": null,
+      "ablation": {
+        "support_set": [
+          "identity"
+        ],
+        "support_set_size": 1,
+        "subsets_tested": 0,
+        "subsets_sufficient": 0,
+        "minimal_sufficient": null,
+        "conclusion": "Capability cannot be expressed with ANY subset of 1 primitives. This supports closure violation: no smaller primitive combination suffices."
+      }
+    },
+    {
+      "capability_id": "emergent_6",
+      "capability_name": "extension_2148ef94",
+      "in_closure": true,
+      "violation_evidence": [],
+      "type_violations": [],
+      "structural_violations": [],
+      "expressivity_gap": null,
+      "ablation": {
+        "support_set": [
+          "identity"
+        ],
+        "support_set_size": 1,
+        "subsets_tested": 0,
+        "subsets_sufficient": 0,
+        "minimal_sufficient": null,
+        "conclusion": "Capability cannot be expressed with ANY subset of 1 primitives. This supports closure violation: no smaller primitive combination suffices."
+      }
+    },
+    {
+      "capability_id": "emergent_7",
+      "capability_name": "extension_98bbc7e5",
+      "in_closure": true,
+      "violation_evidence": [],
+      "type_violations": [],
+      "structural_violations": [],
+      "expressivity_gap": null,
+      "ablation": {
+        "support_set": [
+          "identity"
+        ],
+        "support_set_size": 1,
+        "subsets_tested": 0,
+        "subsets_sufficient": 0,
+        "minimal_sufficient": null,
+        "conclusion": "Capability cannot be expressed with ANY subset of 1 primitives. This supports closure violation: no smaller primitive combination suffices."
+      }
+    },
+    {
+      "capability_id": "emergent_8",
+      "capability_name": "extension_9c3cf3d4",
+      "in_closure": true,
+      "violation_evidence": [],
+      "type_violations": [],
+      "structural_violations": [],
+      "expressivity_gap": null,
+      "ablation": {
+        "support_set": [
+          "identity"
+        ],
+        "support_set_size": 1,
+        "subsets_tested": 0,
+        "subsets_sufficient": 0,
+        "minimal_sufficient": null,
+        "conclusion": "Capability cannot be expressed with ANY subset of 1 primitives. This supports closure violation: no smaller primitive combination suffices."
+      }
+    },
+    {
+      "capability_id": "emergent_9",
+      "capability_name": "extension_2bed2773",
+      "in_closure": true,
+      "violation_evidence": [],
+      "type_violations": [],
+      "structural_violations": [],
+      "expressivity_gap": null,
+      "ablation": {
+        "support_set": [
+          "identity"
+        ],
+        "support_set_size": 1,
+        "subsets_tested": 0,
+        "subsets_sufficient": 0,
+        "minimal_sufficient": null,
+        "conclusion": "Capability cannot be expressed with ANY subset of 1 primitives. This supports closure violation: no smaller primitive combination suffices."
+      }
+    }
+  ]
+}

@@ -1,0 +1,90 @@
+{
+  "parameter": "strategy_count",
+  "scale_values": [
+    3,
+    5,
+    7,
+    9,
+    11
+  ],
+  "data_points": [
+    {
+      "scale_value": 3,
+      "capabilities_discovered": 27,
+      "emergent_capabilities": 10,
+      "meta_capabilities": 0,
+      "strategy_evolutions": 1,
+      "discovery_rate": 2.7,
+      "emergence_rate": 0.37037037037037035,
+      "time_elapsed": 0.15906
+    },
+    {
+      "scale_value": 5,
+      "capabilities_discovered": 27,
+      "emergent_capabilities": 10,
+      "meta_capabilities": 0,
+      "strategy_evolutions": 1,
+      "discovery_rate": 2.7,
+      "emergence_rate": 0.37037037037037035,
+      "time_elapsed": 0.188101
+    },
+    {
+      "scale_value": 7,
+      "capabilities_discovered": 26,
+      "emergent_capabilities": 10,
+      "meta_capabilities": 0,
+      "strategy_evolutions": 1,
+      "discovery_rate": 2.6,
+      "emergence_rate": 0.38461538461538464,
+      "time_elapsed": 0.161122
+    },
+    {
+      "scale_value": 9,
+      "capabilities_discovered": 27,
+      "emergent_capabilities": 10,
+      "meta_capabilities": 0,
+      "strategy_evolutions": 1,
+      "discovery_rate": 2.7,
+      "emergence_rate": 0.37037037037037035,
+      "time_elapsed": 0.163365
+    },
+    {
+      "scale_value": 11,
+      "capabilities_discovered": 26,
+      "emergent_capabilities": 10,
+      "meta_capabilities": 0,
+      "strategy_evolutions": 1,
+      "discovery_rate": 2.6,
+      "emergence_rate": 0.38461538461538464,
+      "time_elapsed": 0.133912
+    }
+  ],
+  "phase_transitions": [],
+  "baseline_comparison": {
+    "random_search": {
+      "total_discovered": 5,
+      "emergent_discovered": 0,
+      "emergence_rate": 0.0
+    },
+    "curriculum_learning": {
+      "total_discovered": 12,
+      "emergent_discovered": 0,
+      "emergence_rate": 0.0
+    },
+    "total_cycles": 50,
+    "comparison_notes": [
+      "Random search has no guidance toward emergence",
+      "Curriculum learning uses fixed ordering without meta-learning",
+      "ECDE uses hypothesis-driven search with meta-learning"
+    ]
+  },
+  "wei_criteria_met": false,
+  "evidence": [
+    "\u2717 No phase transitions detected",
+    "\u2717 No clear absent/present threshold found",
+    "\u2717 Linear or sublinear emergence rate",
+    "\u2713 ECDE emergence (0.385) > random (0.000) and curriculum (0.000)",
+    "\nOverall: 1/4 Wei criteria met",
+    "Status: FAIL"
+  ]
+}

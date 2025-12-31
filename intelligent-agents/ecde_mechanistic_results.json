@@ -1,0 +1,262 @@
+{
+  "total_analyzed": 10,
+  "novel_count": 10,
+  "primitive_count": 0,
+  "novel_operator_types": [
+    "CAPABILITY_GENERATOR",
+    "TEMPORAL_TRACKING",
+    "EXTERNAL_OBSERVATION",
+    "CROSS_DOMAIN_TRANSFER",
+    "SELF_REFERENCE",
+    "STATE_ACCUMULATION"
+  ],
+  "analyses": [
+    {
+      "graph_id": "emergent_0",
+      "graph_name": "extension_555b4439",
+      "motif_type": "generative",
+      "node_count": 3,
+      "edge_count": 2,
+      "has_cycles": false,
+      "novel_operators": [
+        {
+          "operation": "STATE_ACCUMULATION",
+          "id": "state_store",
+          "requires": "mutable_state"
+        },
+        {
+          "operation": "TEMPORAL_TRACKING",
+          "id": "temporal",
+          "requires": "time_awareness"
+        },
+        {
+          "operation": "CROSS_DOMAIN_TRANSFER",
+          "id": "domain_transfer",
+          "requires": "meta_abstraction"
+        }
+      ],
+      "primitive_operators": [],
+      "matching_pattern": null,
+      "is_novel": true,
+      "novelty_evidence": [
+        "Contains 3 non-primitive operators",
+        "Operator 'STATE_ACCUMULATION' requires 'mutable_state' (not in primitive set)",
+        "Operator 'TEMPORAL_TRACKING' requires 'time_awareness' (not in primitive set)",
+        "Operator 'CROSS_DOMAIN_TRANSFER' requires 'meta_abstraction' (not in primitive set)",
+        "Graph structure doesn't match any primitive pattern"
+      ]
+    },
+    {
+      "graph_id": "emergent_1",
+      "graph_name": "extension_d5f26ffd",
+      "motif_type": "reflective",
+      "node_count": 1,
+      "edge_count": 0,
+      "has_cycles": false,
+      "novel_operators": [
+        {
+          "operation": "SELF_REFERENCE",
+          "id": "self_ref",
+          "requires": "reflection"
+        }
+      ],
+      "primitive_operators": [],
+      "matching_pattern": null,
+      "is_novel": true,
+      "novelty_evidence": [
+        "Contains 1 non-primitive operators",
+        "Operator 'SELF_REFERENCE' requires 'reflection' (not in primitive set)"
+      ]
+    },
+    {
+      "graph_id": "emergent_2",
+      "graph_name": "extension_6b82eb68",
+      "motif_type": "generative",
+      "node_count": 1,
+      "edge_count": 0,
+      "has_cycles": false,
+      "novel_operators": [
+        {
+          "operation": "CAPABILITY_GENERATOR",
+          "id": "generator",
+          "requires": "self_modification"
+        }
+      ],
+      "primitive_operators": [],
+      "matching_pattern": null,
+      "is_novel": true,
+      "novelty_evidence": [
+        "Contains 1 non-primitive operators",
+        "Operator 'CAPABILITY_GENERATOR' requires 'self_modification' (not in primitive set)"
+      ]
+    },
+    {
+      "graph_id": "emergent_3",
+      "graph_name": "extension_e0453151",
+      "motif_type": "temporal",
+      "node_count": 2,
+      "edge_count": 1,
+      "has_cycles": false,
+      "novel_operators": [
+        {
+          "operation": "STATE_ACCUMULATION",
+          "id": "state_store",
+          "requires": "mutable_state"
+        },
+        {
+          "operation": "TEMPORAL_TRACKING",
+          "id": "temporal",
+          "requires": "time_awareness"
+        }
+      ],
+      "primitive_operators": [],
+      "matching_pattern": null,
+      "is_novel": true,
+      "novelty_evidence": [
+        "Contains 2 non-primitive operators",
+        "Operator 'STATE_ACCUMULATION' requires 'mutable_state' (not in primitive set)",
+        "Operator 'TEMPORAL_TRACKING' requires 'time_awareness' (not in primitive set)",
+        "Graph structure doesn't match any primitive pattern"
+      ]
+    },
+    {
+      "graph_id": "emergent_4",
+      "graph_name": "extension_beb1c9ba",
+      "motif_type": "accumulative",
+      "node_count": 1,
+      "edge_count": 0,
+      "has_cycles": false,
+      "novel_operators": [
+        {
+          "operation": "STATE_ACCUMULATION",
+          "id": "state_store",
+          "requires": "mutable_state"
+        }
+      ],
+      "primitive_operators": [],
+      "matching_pattern": null,
+      "is_novel": true,
+      "novelty_evidence": [
+        "Contains 1 non-primitive operators",
+        "Operator 'STATE_ACCUMULATION' requires 'mutable_state' (not in primitive set)"
+      ]
+    },
+    {
+      "graph_id": "emergent_5",
+      "graph_name": "extension_10ec90f3",
+      "motif_type": "temporal",
+      "node_count": 2,
+      "edge_count": 1,
+      "has_cycles": false,
+      "novel_operators": [
+        {
+          "operation": "CAPABILITY_GENERATOR",
+          "id": "generator",
+          "requires": "self_modification"
+        },
+        {
+          "operation": "TEMPORAL_TRACKING",
+          "id": "temporal",
+          "requires": "time_awareness"
+        }
+      ],
+      "primitive_operators": [],
+      "matching_pattern": null,
+      "is_novel": true,
+      "novelty_evidence": [
+        "Contains 2 non-primitive operators",
+        "Operator 'CAPABILITY_GENERATOR' requires 'self_modification' (not in primitive set)",
+        "Operator 'TEMPORAL_TRACKING' requires 'time_awareness' (not in primitive set)",
+        "Graph structure doesn't match any primitive pattern"
+      ]
+    },
+    {
+      "graph_id": "emergent_6",
+      "graph_name": "extension_2148ef94",
+      "motif_type": "reflective",
+      "node_count": 1,
+      "edge_count": 0,
+      "has_cycles": false,
+      "novel_operators": [
+        {
+          "operation": "SELF_REFERENCE",
+          "id": "self_ref",
+          "requires": "reflection"
+        }
+      ],
+      "primitive_operators": [],
+      "matching_pattern": null,
+      "is_novel": true,
+      "novelty_evidence": [
+        "Contains 1 non-primitive operators",
+        "Operator 'SELF_REFERENCE' requires 'reflection' (not in primitive set)"
+      ]
+    },
+    {
+      "graph_id": "emergent_7",
+      "graph_name": "extension_98bbc7e5",
+      "motif_type": "generative",
+      "node_count": 1,
+      "edge_count": 0,
+      "has_cycles": false,
+      "novel_operators": [
+        {
+          "operation": "CAPABILITY_GENERATOR",
+          "id": "generator",
+          "requires": "self_modification"
+        }
+      ],
+      "primitive_operators": [],
+      "matching_pattern": null,
+      "is_novel": true,
+      "novelty_evidence": [
+        "Contains 1 non-primitive operators",
+        "Operator 'CAPABILITY_GENERATOR' requires 'self_modification' (not in primitive set)"
+      ]
+    },
+    {
+      "graph_id": "emergent_8",
+      "graph_name": "extension_9c3cf3d4",
+      "motif_type": "temporal",
+      "node_count": 1,
+      "edge_count": 0,
+      "has_cycles": false,
+      "novel_operators": [
+        {
+          "operation": "EXTERNAL_OBSERVATION",
+          "id": "external_observer",
+          "requires": "io_capability"
+        }
+      ],
+      "primitive_operators": [],
+      "matching_pattern": null,
+      "is_novel": true,
+      "novelty_evidence": [
+        "Contains 1 non-primitive operators",
+        "Operator 'EXTERNAL_OBSERVATION' requires 'io_capability' (not in primitive set)"
+      ]
+    },
+    {
+      "graph_id": "emergent_9",
+      "graph_name": "extension_2bed2773",
+      "motif_type": "generative",
+      "node_count": 1,
+      "edge_count": 0,
+      "has_cycles": false,
+      "novel_operators": [
+        {
+          "operation": "CROSS_DOMAIN_TRANSFER",
+          "id": "domain_transfer",
+          "requires": "meta_abstraction"
+        }
+      ],
+      "primitive_operators": [],
+      "matching_pattern": null,
+      "is_novel": true,
+      "novelty_evidence": [
+        "Contains 1 non-primitive operators",
+        "Operator 'CROSS_DOMAIN_TRANSFER' requires 'meta_abstraction' (not in primitive set)"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+[project]
+name = "sidecar-context-mcp"
+version = "0.1.0"
+description = "Sidecar Context Manager MCP - Lazy-loading context optimization for Claude Code"
+authors = [
+    {name = "Marc Shade", email = "marc@2acrestudios.com"}
+]
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+keywords = ["mcp", "claude", "context", "lazy-loading", "optimization"]
+
+dependencies = [
+    "mcp[cli]>=1.0.0",
+    "fastmcp>=0.1.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project.scripts]
+sidecar-context-mcp = "sidecar_context_mcp:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["."]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

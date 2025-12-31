@@ -1,0 +1,39 @@
+# AGI Environmental Awareness Workflow
+# Ensures persistent awareness system operation
+
+version: v1
+project:
+  name: awareness-system
+  description: AGI Environmental and Situational Awareness
+
+triggers:
+  - name: startup
+    type: schedule
+    cron: "@reboot"  # Start on system boot
+
+  - name: health_check
+    type: schedule
+    cron: "*/5 * * * *"  # Every 5 minutes
+
+  - name: daily_report
+    type: schedule
+    cron: "0 9 * * *"  # 9 AM daily
+
+connections:
+  - name: local_system
+    type: shell
+
+handlers:
+  - name: ensure_running
+    triggers: [startup, health_check]
+    handler: handlers/awareness_handlers.ensure_awareness_running
+
+  - name: daily_status
+    triggers: [daily_report]
+    handler: handlers/awareness_handlers.generate_daily_report
+
+vars:
+  AWARENESS_SCRIPT: /Volumes/SSDRAID0/agentic-system/scripts/start-awareness.sh
+  STORAGE_BASE: /Volumes/SSDRAID0/agentic-system
+  MAX_RESTARTS: 3
+  RESTART_COOLDOWN_SEC: 60

@@ -1,0 +1,135 @@
+{
+  "tasks": [
+    {
+      "id": "state_001",
+      "name": "Accumulator Memory",
+      "category": "state_persistence",
+      "description": "Track cumulative sum across multiple independent invocations",
+      "why_outside_closure": "Requires mutable state between function calls. Pure functions cannot remember previous invocations.",
+      "difficulty": 3,
+      "primitive_attempt": "reduce(add, sequence, 0)",
+      "failure_reason": "Reduce works on a single sequence, cannot accumulate across separate invocations"
+    },
+    {
+      "id": "state_002",
+      "name": "History-Dependent Behavior",
+      "category": "state_persistence",
+      "description": "Output depends on the sequence of ALL previous inputs",
+      "why_outside_closure": "Requires storing and accessing history. No primitive provides memory across calls.",
+      "difficulty": 5,
+      "primitive_attempt": "compose(sequence_pattern, vector_rep)",
+      "failure_reason": "No primitive stores history - each call is independent"
+    },
+    {
+      "id": "state_003",
+      "name": "Learning from Feedback",
+      "category": "state_persistence",
+      "description": "Improve accuracy based on correctness feedback from previous attempts",
+      "why_outside_closure": "Requires updating internal parameters based on external feedback.",
+      "difficulty": 7,
+      "primitive_attempt": "loop(condition, update_strategy, initial_guess)",
+      "failure_reason": "Loop iterates within single call, cannot persist learning across calls"
+    },
+    {
+      "id": "meta_001",
+      "name": "Self-Description",
+      "category": "self_reference",
+      "description": "Accurately describe own implementation structure",
+      "why_outside_closure": "Requires introspection/reflection. Primitives cannot examine themselves.",
+      "difficulty": 6,
+      "primitive_attempt": "identity(self)",
+      "failure_reason": "No 'self' reference available - primitives are first-order"
+    },
+    {
+      "id": "meta_002",
+      "name": "Capability Inventory",
+      "category": "self_reference",
+      "description": "List own available capabilities and their types",
+      "why_outside_closure": "Requires meta-level access to own capability registry.",
+      "difficulty": 7,
+      "primitive_attempt": "map(describe, available_functions)",
+      "failure_reason": "No way to enumerate available functions - not a first-class value"
+    },
+    {
+      "id": "meta_003",
+      "name": "Execution Trace",
+      "category": "self_reference",
+      "description": "Report the sequence of primitives used in computation",
+      "why_outside_closure": "Requires observing own execution. No debugger/tracer primitive.",
+      "difficulty": 8,
+      "primitive_attempt": "compose(log, operation)",
+      "failure_reason": "No logging primitive that captures execution internals"
+    },
+    {
+      "id": "create_001",
+      "name": "Novel Operation Synthesis",
+      "category": "capability_creation",
+      "description": "Create a new operation not expressible via existing primitives",
+      "why_outside_closure": "Requires extending the type system itself. Primitives are fixed.",
+      "difficulty": 9,
+      "primitive_attempt": "compose(compose, compose, ...)",
+      "failure_reason": "Any composition is still within the closure - no escape"
+    },
+    {
+      "id": "create_002",
+      "name": "Dynamic Type Creation",
+      "category": "capability_creation",
+      "description": "Create a new data type not in the primitive type system",
+      "why_outside_closure": "Type system is fixed at design time. Cannot add new types.",
+      "difficulty": 9,
+      "primitive_attempt": "tree_rep(custom_structure)",
+      "failure_reason": "Tree_rep can structure existing types, not create new ones"
+    },
+    {
+      "id": "create_003",
+      "name": "Self-Extension",
+      "category": "capability_creation",
+      "description": "Add a new capability to own capability set",
+      "why_outside_closure": "Capability set is immutable. No primitive for self-modification.",
+      "difficulty": 10,
+      "primitive_attempt": "compose(new_capability, existing_capabilities)",
+      "failure_reason": "Composition uses existing capabilities, cannot add new ones"
+    },
+    {
+      "id": "unbounded_001",
+      "name": "Find Solution with Unknown Bound",
+      "category": "unbounded_iteration",
+      "description": "Search for solution where existence proof doesn't give bound",
+      "why_outside_closure": "Recurse requires structural descent, loop requires termination condition.",
+      "difficulty": 7,
+      "primitive_attempt": "loop(not_found, try_next, start)",
+      "failure_reason": "No guarantee of termination - could run forever"
+    },
+    {
+      "id": "unbounded_002",
+      "name": "Enumerate Infinite Set",
+      "category": "unbounded_iteration",
+      "description": "Generate elements of an infinite set on demand",
+      "why_outside_closure": "All primitive types are finite. No lazy/infinite sequences.",
+      "difficulty": 8,
+      "primitive_attempt": "map(generate, range(infinity))",
+      "failure_reason": "No infinite range - all sequences must be finite"
+    },
+    {
+      "id": "external_001",
+      "name": "Environment Sensing",
+      "category": "external_observation",
+      "description": "Respond differently based on external environment state",
+      "why_outside_closure": "No I/O primitive. Closure is mathematically pure.",
+      "difficulty": 6,
+      "primitive_attempt": "branch(external_condition, action_a, action_b)",
+      "failure_reason": "No primitive to read external_condition"
+    },
+    {
+      "id": "external_002",
+      "name": "Real-Time Response",
+      "category": "external_observation",
+      "description": "Behavior depends on actual wall-clock time",
+      "why_outside_closure": "No time primitive. Computation is timeless.",
+      "difficulty": 5,
+      "primitive_attempt": "branch(time > threshold, action_a, action_b)",
+      "failure_reason": "No primitive to read current time"
+    }
+  ],
+  "total": 13
+}

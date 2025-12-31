@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" width="1200" height="800">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0f0f23"/>
+      <stop offset="100%" style="stop-color:#1a1a3e"/>
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#00d4ff"/>
+      <stop offset="100%" style="stop-color:#00ff88"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="800" fill="url(#bgGrad)"/>
+
+  <!-- Title -->
+  <text x="600" y="60" text-anchor="middle" font-family="Arial, sans-serif" font-size="48" font-weight="bold" fill="url(#accentGrad)" filter="url(#glow)">AVIR PROTOCOL</text>
+  <text x="600" y="95" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" fill="#888">AI-Verified Independent Replication</text>
+
+  <!-- Verification Matrix Section -->
+  <text x="350" y="150" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#fff">Cross-Provider Verification Matrix</text>
+
+  <!-- Matrix Grid -->
+  <g transform="translate(100, 170)">
+    <!-- Header row -->
+    <rect x="100" y="0" width="150" height="50" fill="#1e3a5f" stroke="#00d4ff" stroke-width="1"/>
+    <text x="175" y="32" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#00d4ff">Claude</text>
+
+    <rect x="250" y="0" width="150" height="50" fill="#1e3a5f" stroke="#00d4ff" stroke-width="1"/>
+    <text x="325" y="32" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#00d4ff">GPT-4</text>
+
+    <rect x="400" y="0" width="150" height="50" fill="#1e3a5f" stroke="#00d4ff" stroke-width="1"/>
+    <text x="475" y="32" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#00d4ff">Gemini</text>
+
+    <!-- Row 1: Claude -->
+    <rect x="0" y="50" width="100" height="60" fill="#1e3a5f" stroke="#00d4ff" stroke-width="1"/>
+    <text x="50" y="85" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#00d4ff">Claude</text>
+
+    <rect x="100" y="50" width="150" height="60" fill="#3d1a1a" stroke="#ff4444" stroke-width="2"/>
+    <text x="175" y="88" text-anchor="middle" font-family="Arial, sans-serif" font-size="32" fill="#ff4444">X</text>
+
+    <rect x="250" y="50" width="150" height="60" fill="#1a3d1a" stroke="#44ff44" stroke-width="2"/>
+    <text x="325" y="88" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" fill="#44ff44">&#10003;</text>
+
+    <rect x="400" y="50" width="150" height="60" fill="#1a3d1a" stroke="#44ff44" stroke-width="2"/>
+    <text x="475" y="88" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" fill="#44ff44">&#10003;</text>
+
+    <!-- Row 2: GPT-4 -->
+    <rect x="0" y="110" width="100" height="60" fill="#1e3a5f" stroke="#00d4ff" stroke-width="1"/>
+    <text x="50" y="145" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#00d4ff">GPT-4</text>
+
+    <rect x="100" y="110" width="150" height="60" fill="#1a3d1a" stroke="#44ff44" stroke-width="2"/>
+    <text x="175" y="148" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" fill="#44ff44">&#10003;</text>
+
+    <rect x="250" y="110" width="150" height="60" fill="#3d1a1a" stroke="#ff4444" stroke-width="2"/>
+    <text x="325" y="148" text-anchor="middle" font-family="Arial, sans-serif" font-size="32" fill="#ff4444">X</text>
+
+    <rect x="400" y="110" width="150" height="60" fill="#1a3d1a" stroke="#44ff44" stroke-width="2"/>
+    <text x="475" y="148" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" fill="#44ff44">&#10003;</text>
+
+    <!-- Row 3: Gemini -->
+    <rect x="0" y="170" width="100" height="60" fill="#1e3a5f" stroke="#00d4ff" stroke-width="1"/>
+    <text x="50" y="205" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#00d4ff">Gemini</text>
+
+    <rect x="100" y="170" width="150" height="60" fill="#1a3d1a" stroke="#44ff44" stroke-width="2"/>
+    <text x="175" y="208" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" fill="#44ff44">&#10003;</text>
+
+    <rect x="250" y="170" width="150" height="60" fill="#1a3d1a" stroke="#44ff44" stroke-width="2"/>
+    <text x="325" y="208" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" fill="#44ff44">&#10003;</text>
+
+    <rect x="400" y="170" width="150" height="60" fill="#3d1a1a" stroke="#ff4444" stroke-width="2"/>
+    <text x="475" y="208" text-anchor="middle" font-family="Arial, sans-serif" font-size="32" fill="#ff4444">X</text>
+  </g>
+
+  <!-- Legend -->
+  <g transform="translate(100, 430)">
+    <rect x="0" y="0" width="30" height="30" fill="#3d1a1a" stroke="#ff4444" stroke-width="2"/>
+    <text x="10" y="22" font-family="Arial, sans-serif" font-size="20" fill="#ff4444">X</text>
+    <text x="45" y="22" font-family="Arial, sans-serif" font-size="14" fill="#aaa">No Self-Grading</text>
+
+    <rect x="200" y="0" width="30" height="30" fill="#1a3d1a" stroke="#44ff44" stroke-width="2"/>
+    <text x="207" y="22" font-family="Arial, sans-serif" font-size="18" fill="#44ff44">&#10003;</text>
+    <text x="245" y="22" font-family="Arial, sans-serif" font-size="14" fill="#aaa">Cross-Verification</text>
+  </g>
+
+  <!-- Verification Levels -->
+  <g transform="translate(700, 170)">
+    <text x="200" y="0" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#fff">Verification Levels</text>
+
+    <!-- L4 -->
+    <rect x="50" y="30" width="300" height="55" rx="8" fill="#1e3a5f" stroke="#00ff88" stroke-width="2"/>
+    <text x="80" y="62" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#00ff88">L4</text>
+    <text x="120" y="55" font-family="Arial, sans-serif" font-size="13" fill="#fff">3+ Providers</text>
+    <text x="120" y="72" font-family="Arial, sans-serif" font-size="11" fill="#888">Double-Blind + TEE Isolation</text>
+    <text x="300" y="62" font-family="Arial, sans-serif" font-size="12" fill="#00ff88">MAXIMUM</text>
+
+    <!-- L3 -->
+    <rect x="50" y="95" width="300" height="55" rx="8" fill="#1e3a5f" stroke="#00d4ff" stroke-width="2"/>
+    <text x="80" y="127" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#00d4ff">L3</text>
+    <text x="120" y="120" font-family="Arial, sans-serif" font-size="13" fill="#fff">2+ Providers</text>
+    <text x="120" y="137" font-family="Arial, sans-serif" font-size="11" fill="#888">Single-Blind Verification</text>
+    <text x="300" y="127" font-family="Arial, sans-serif" font-size="12" fill="#00d4ff">HIGH</text>
+
+    <!-- L2 -->
+    <rect x="50" y="160" width="300" height="55" rx="8" fill="#1e3a5f" stroke="#ffaa00" stroke-width="2"/>
+    <text x="80" y="192" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#ffaa00">L2</text>
+    <text x="120" y="185" font-family="Arial, sans-serif" font-size="13" fill="#fff">Single Provider</text>
+    <text x="120" y="202" font-family="Arial, sans-serif" font-size="11" fill="#888">5 Runs in Container</text>
+    <text x="300" y="192" font-family="Arial, sans-serif" font-size="12" fill="#ffaa00">MEDIUM</text>
+
+    <!-- L1 -->
+    <rect x="50" y="225" width="300" height="55" rx="8" fill="#1e3a5f" stroke="#888" stroke-width="2"/>
+    <text x="80" y="257" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#888">L1</text>
+    <text x="120" y="250" font-family="Arial, sans-serif" font-size="13" fill="#fff">Single Provider</text>
+    <text x="120" y="267" font-family="Arial, sans-serif" font-size="11" fill="#888">Single Run</text>
+    <text x="300" y="257" font-family="Arial, sans-serif" font-size="12" fill="#888">BASIC</text>
+  </g>
+
+  <!-- Flow Diagram -->
+  <text x="600" y="520" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#fff">Verification Pipeline</text>
+
+  <g transform="translate(60, 550)">
+    <!-- Step 1: Output -->
+    <rect x="0" y="0" width="180" height="80" rx="10" fill="#1e3a5f" stroke="#00d4ff" stroke-width="2"/>
+    <text x="90" y="35" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" fill="#00d4ff">1</text>
+    <text x="90" y="60" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#fff">OUTPUT</text>
+
+    <!-- Arrow 1 -->
+    <polygon points="190,40 210,40 210,35 225,45 210,55 210,50 190,50" fill="#00d4ff"/>
+
+    <!-- Step 2: Isolation -->
+    <rect x="230" y="0" width="180" height="80" rx="10" fill="#1e3a5f" stroke="#00d4ff" stroke-width="2"/>
+    <text x="320" y="35" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" fill="#00d4ff">2</text>
+    <text x="320" y="60" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#fff">ISOLATION</text>
+
+    <!-- Arrow 2 -->
+    <polygon points="420,40 440,40 440,35 455,45 440,55 440,50 420,50" fill="#00d4ff"/>
+
+    <!-- Step 3: Cross-Verify -->
+    <rect x="460" y="0" width="180" height="80" rx="10" fill="#1e3a5f" stroke="#00d4ff" stroke-width="2"/>
+    <text x="550" y="35" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" fill="#00d4ff">3</text>
+    <text x="550" y="60" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#fff">CROSS-VERIFY</text>
+
+    <!-- Arrow 3 -->
+    <polygon points="650,40 670,40 670,35 685,45 670,55 670,50 650,50" fill="#00d4ff"/>
+
+    <!-- Step 4: Consensus -->
+    <rect x="690" y="0" width="180" height="80" rx="10" fill="#1e3a5f" stroke="#00ff88" stroke-width="2"/>
+    <text x="780" y="35" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" fill="#00ff88">4</text>
+    <text x="780" y="60" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#fff">CONSENSUS 80%+</text>
+
+    <!-- Arrow 4 -->
+    <polygon points="880,40 900,40 900,35 915,45 900,55 900,50 880,50" fill="#00ff88"/>
+
+    <!-- Step 5: Attestation -->
+    <rect x="920" y="0" width="180" height="80" rx="10" fill="#1e3a5f" stroke="#00ff88" stroke-width="2"/>
+    <text x="1010" y="35" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" fill="#00ff88">5</text>
+    <text x="1010" y="60" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#fff">ATTESTATION</text>
+  </g>
+
+  <!-- Key Features -->
+  <g transform="translate(60, 680)">
+    <rect x="0" y="0" width="260" height="40" rx="5" fill="transparent" stroke="#00d4ff" stroke-width="1"/>
+    <text x="130" y="26" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#00d4ff">Double-Blind Protocol</text>
+
+    <rect x="280" y="0" width="260" height="40" rx="5" fill="transparent" stroke="#00d4ff" stroke-width="1"/>
+    <text x="410" y="26" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#00d4ff">Ed25519 Cryptographic Signing</text>
+
+    <rect x="560" y="0" width="260" height="40" rx="5" fill="transparent" stroke="#00d4ff" stroke-width="1"/>
+    <text x="690" y="26" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#00d4ff">FAIR Compliant</text>
+
+    <rect x="840" y="0" width="260" height="40" rx="5" fill="transparent" stroke="#00d4ff" stroke-width="1"/>
+    <text x="970" y="26" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#00d4ff">MIT Licensed</text>
+  </g>
+
+  <!-- Tagline -->
+  <text x="600" y="770" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" fill="#888">Eliminating Self-Verification Bias in AI Evaluation</text>
+
+  <!-- URL -->
+  <text x="600" y="795" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#00d4ff">github.com/marc-shade/avir-protocol</text>
+</svg>

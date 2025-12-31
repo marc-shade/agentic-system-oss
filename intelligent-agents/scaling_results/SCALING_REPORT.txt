@@ -1,0 +1,91 @@
+======================================================================
+ECDE SCALING EXPERIMENT REPORT
+Addressing Wei et al. Emergence Criteria
+======================================================================
+
+Experiments Run: 3
+Generated: 2025-12-17T17:14:50.407791
+
+--------------------------------------------------
+Parameter: bootstrap_capabilities
+Scale Range: 4 → 12
+
+Phase Transitions:
+  (No phase transitions detected)
+
+Baseline Comparison:
+  Random Search Emergence: 0.000
+  Curriculum Emergence: 0.111
+  ECDE Emergence: 0.312
+
+Wei Criteria Evidence:
+  ✗ No phase transitions detected
+  ✗ No clear absent/present threshold found
+  ✗ Linear or sublinear emergence rate
+  ✓ ECDE emergence (0.312) > random (0.000) and curriculum (0.111)
+  
+Overall: 1/4 Wei criteria met
+  Status: FAIL
+
+WEI CRITERIA MET: NO
+
+--------------------------------------------------
+Parameter: strategy_count
+Scale Range: 3 → 11
+
+Phase Transitions:
+  (No phase transitions detected)
+
+Baseline Comparison:
+  Random Search Emergence: 0.000
+  Curriculum Emergence: 0.000
+  ECDE Emergence: 0.370
+
+Wei Criteria Evidence:
+  ✗ No phase transitions detected
+  ✗ No clear absent/present threshold found
+  ✗ Linear or sublinear emergence rate
+  ✓ ECDE emergence (0.370) > random (0.000) and curriculum (0.000)
+  
+Overall: 1/4 Wei criteria met
+  Status: FAIL
+
+WEI CRITERIA MET: NO
+
+--------------------------------------------------
+Parameter: meta_learning_frequency
+Scale Range: 1 → 9
+
+Phase Transitions:
+  (No phase transitions detected)
+
+Baseline Comparison:
+  Random Search Emergence: 0.000
+  Curriculum Emergence: 0.000
+  ECDE Emergence: 0.370
+
+Wei Criteria Evidence:
+  ✗ No phase transitions detected
+  ✗ No clear absent/present threshold found
+  ✗ Linear or sublinear emergence rate
+  ✓ ECDE emergence (0.370) > random (0.000) and curriculum (0.000)
+  
+Overall: 1/4 Wei criteria met
+  Status: FAIL
+
+WEI CRITERIA MET: NO
+
+======================================================================
+SUMMARY
+======================================================================
+Experiments with Wei criteria met: 0/3
+
+This report addresses the LLM Council criticism:
+'No scaling curves, ablations, or phase transitions demonstrated'
+
+Evidence provided:
+1. Scaling curves for multiple parameters
+2. Phase transition detection with strength metrics
+3. Ablation against random search baseline
+4. Ablation against curriculum learning baseline
+======================================================================

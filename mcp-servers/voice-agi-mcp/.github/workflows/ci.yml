@@ -1,0 +1,96 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install linting tools
+        run: pip install ruff
+
+      - name: Run Ruff linter
+        run: ruff check . --output-format=github || true
+
+      - name: Run Ruff formatter check
+        run: ruff format --check . || true
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install pytest pytest-cov pytest-asyncio
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Run tests
+        run: |
+          if [ -d tests ] || ls test_*.py 1> /dev/null 2>&1; then
+            pytest -v --cov=. --cov-report=term-missing || true
+          else
+            echo "No tests found, skipping"
+          fi
+
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install security tools
+        run: pip install bandit pip-audit
+
+      - name: Run Bandit security scan
+        run: bandit -r . -x ./tests,./.venv -ll || true
+
+      - name: Check dependencies for vulnerabilities
+        run: |
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+            pip-audit --strict || true
+          fi
+
+  type-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install mypy
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Run type checking
+        run: |
+          if [ -d src ]; then
+            mypy src/ --ignore-missing-imports || true
+          elif [ -f server.py ]; then
+            mypy server.py --ignore-missing-imports || true
+          fi

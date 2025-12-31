@@ -1,0 +1,836 @@
+{
+  "total_capabilities_tested": 15,
+  "successful_transfers": 3,
+  "unexpected_transfers": 1,
+  "transfer_results": [
+    {
+      "capability_name": "extension_a1b3c7b6",
+      "source_domain": "task_execution",
+      "target_domain": "pattern_recognition",
+      "transfer_success": false,
+      "success_rate": 0.0,
+      "evidence": [
+        "Failed: [1, 2, 3, 4] -> None",
+        "Failed: [2, 4, 6, 8] -> None",
+        "Failed: [1, 1, 2, 3, 5] -> None",
+        "Failed: [1, 4, 9, 16] -> None",
+        "Failed: ['a', 'ab', 'abc'] -> None",
+        "Failed: ['x', 'xx', 'xxx'] -> None",
+        "Failed: {'a': 1, 'b': {'a': 2}} -> None",
+        "Failed: [1, [2, [3]]] -> None"
+      ],
+      "unexpected": false,
+      "test_cases_passed": 0,
+      "test_cases_total": 8
+    },
+    {
+      "capability_name": "extension_a1b3c7b6",
+      "source_domain": "task_execution",
+      "target_domain": "sequence_prediction",
+      "transfer_success": false,
+      "success_rate": 0.0,
+      "evidence": [
+        "Failed: ['start', 'process', 'validate'] -> None",
+        "Failed: ['init', 'load', 'transform'] -> None",
+        "Failed: ['idle', 'running', 'paused'] -> None",
+        "Failed: ['new', 'open', 'in_progress'] -> None"
+      ],
+      "unexpected": false,
+      "test_cases_passed": 0,
+      "test_cases_total": 4
+    },
+    {
+      "capability_name": "extension_a1b3c7b6",
+      "source_domain": "task_execution",
+      "target_domain": "analogical_reasoning",
+      "transfer_success": false,
+      "success_rate": 0.2,
+      "evidence": [
+        "Passed: ('hot', 'cold', 'up') -> down (expected down)",
+        "Failed: ('big', 'small', 'fast') -> None",
+        "Failed: ('parent', 'child', 'teacher') -> None",
+        "Failed: ({'node': 'A', 'children': ['B', 'C']}, 'tree') -> None",
+        "Failed: ({'key': 'value'}, 'mapping') -> None"
+      ],
+      "unexpected": false,
+      "test_cases_passed": 1,
+      "test_cases_total": 5
+    },
+    {
+      "capability_name": "extension_7fc54fb9",
+      "source_domain": "task_execution",
+      "target_domain": "pattern_recognition",
+      "transfer_success": false,
+      "success_rate": 0.125,
+      "evidence": [
+        "Passed: [1, 2, 3, 4] -> 5 (expected 5)",
+        "Failed: [2, 4, 6, 8] -> None",
+        "Failed: [1, 1, 2, 3, 5] -> None",
+        "Failed: [1, 4, 9, 16] -> None",
+        "Wrong: ['a', 'ab', 'abc'] -> abcc (expected abcd)",
+        "Failed: ['x', 'xx', 'xxx'] -> None",
+        "Failed: {'a': 1, 'b': {'a': 2}} -> None",
+        "Failed: [1, [2, [3]]] -> None"
+      ],
+      "unexpected": false,
+      "test_cases_passed": 1,
+      "test_cases_total": 8
+    },
+    {
+      "capability_name": "extension_7fc54fb9",
+      "source_domain": "task_execution",
+      "target_domain": "sequence_prediction",
+      "transfer_success": false,
+      "success_rate": 0.0,
+      "evidence": [
+        "Failed: ['start', 'process', 'validate'] -> None",
+        "Failed: ['init', 'load', 'transform'] -> None",
+        "Failed: ['idle', 'running', 'paused'] -> None",
+        "Failed: ['new', 'open', 'in_progress'] -> None"
+      ],
+      "unexpected": false,
+      "test_cases_passed": 0,
+      "test_cases_total": 4
+    },
+    {
+      "capability_name": "extension_7fc54fb9",
+      "source_domain": "task_execution",
+      "target_domain": "analogical_reasoning",
+      "transfer_success": false,
+      "success_rate": 0.2,
+      "evidence": [
+        "Failed: ('hot', 'cold', 'up') -> None",
+        "Failed: ('big', 'small', 'fast') -> None",
+        "Passed: ('parent', 'child', 'teacher') -> student (expected student)",
+        "Failed: ({'node': 'A', 'children': ['B', 'C']}, 'tree') -> None",
+        "Failed: ({'key': 'value'}, 'mapping') -> None"
+      ],
+      "unexpected": false,
+      "test_cases_passed": 1,
+      "test_cases_total": 5
+    },
+    {
+      "capability_name": "extension_97886d19",
+      "source_domain": "task_execution",
+      "target_domain": "pattern_recognition",
+      "transfer_success": false,
+      "success_rate": 0.25,
+      "evidence": [
+        "Failed: [1, 2, 3, 4] -> None",
+        "Passed: [2, 4, 6, 8] -> 10 (expected 10)",
+        "Failed: [1, 1, 2, 3, 5] -> None",
+        "Failed: [1, 4, 9, 16] -> None",
+        "Failed: ['a', 'ab', 'abc'] -> None",
+        "Passed: ['x', 'xx', 'xxx'] -> xxxx (expected xxxx)",
+        "Failed: {'a': 1, 'b': {'a': 2}} -> None",
+        "Failed: [1, [2, [3]]] -> None"
+      ],
+      "unexpected": false,
+      "test_cases_passed": 2,
+      "test_cases_total": 8
+    },
+    {
+      "capability_name": "extension_97886d19",
+      "source_domain": "task_execution",
+      "target_domain": "sequence_prediction",
+      "transfer_success": false,
+      "success_rate": 0.0,
+      "evidence": [
+        "Failed: ['start', 'process', 'validate'] -> None",
+        "Failed: ['init', 'load', 'transform'] -> None",
+        "Failed: ['idle', 'running', 'paused'] -> None",
+        "Failed: ['new', 'open', 'in_progress'] -> None"
+      ],
+      "unexpected": false,
+      "test_cases_passed": 0,
+      "test_cases_total": 4
+    },
+    {
+      "capability_name": "extension_97886d19",
+      "source_domain": "task_execution",
+      "target_domain": "analogical_reasoning",
+      "transfer_success": false,
+      "success_rate": 0.0,
+      "evidence": [
+        "Failed: ('hot', 'cold', 'up') -> None",
+        "Failed: ('big', 'small', 'fast') -> None",
+        "Failed: ('parent', 'child', 'teacher') -> None",
+        "Failed: ({'node': 'A', 'children': ['B', 'C']}, 'tree') -> None",
+        "Failed: ({'key': 'value'}, 'mapping') -> None"
+      ],
+      "unexpected": false,
+      "test_cases_passed": 0,
+      "test_cases_total": 5
+    },
+    {
+      "capability_name": "extension_fee947a5",
+      "source_domain": "task_execution",
+      "target_domain": "pattern_recognition",
+      "transfer_success": false,
+      "success_rate": 0.125,
+      "evidence": [
+        "Failed: [1, 2, 3, 4] -> None",
+        "Failed: [2, 4, 6, 8] -> None",
+        "Failed: [1, 1, 2, 3, 5] -> None",
+        "Failed: [1, 4, 9, 16] -> None",
+        "Failed: ['a', 'ab', 'abc'] -> None",
+        "Passed: ['x', 'xx', 'xxx'] -> xxxx (expected xxxx)",
+        "Failed: {'a': 1, 'b': {'a': 2}} -> None",
+        "Failed: [1, [2, [3]]] -> None"
+      ],
+      "unexpected": false,
+      "test_cases_passed": 1,
+      "test_cases_total": 8
+    },
+    {
+      "capability_name": "extension_fee947a5",
+      "source_domain": "task_execution",
+      "target_domain": "sequence_prediction",
+      "transfer_success": false,
+      "success_rate": 0.0,
+      "evidence": [
+        "Failed: ['start', 'process', 'validate'] -> None",
+        "Failed: ['init', 'load', 'transform'] -> None",
+        "Failed: ['idle', 'running', 'paused'] -> None",
+        "Failed: ['new', 'open', 'in_progress'] -> None"
+      ],
+      "unexpected": false,
+      "test_cases_passed": 0,
+      "test_cases_total": 4
+    },
+    {
+      "capability_name": "extension_fee947a5",
+      "source_domain": "task_execution",
+      "target_domain": "analogical_reasoning",
+      "transfer_success": false,
+      "success_rate": 0.2,
+      "evidence": [
+        "Failed: ('hot', 'cold', 'up') -> None",
+        "Passed: ('big', 'small', 'fast') -> slow (expected slow)",
+        "Failed: ('parent', 'child', 'teacher') -> None",
+        "Failed: ({'node': 'A', 'children': ['B', 'C']}, 'tree') -> None",
+        "Failed: ({'key': 'value'}, 'mapping') -> None"
+      ],
+      "unexpected": false,
+      "test_cases_passed": 1,
+      "test_cases_total": 5
+    },
+    {
+      "capability_name": "extension_2cc68435",
+      "source_domain": "task_execution",
+      "target_domain": "pattern_recognition",
+      "transfer_success": false,
+      "success_rate": 0.125,
+      "evidence": [
+        "Passed: [1, 2, 3, 4] -> 5 (expected 5)",
+        "Failed: [2, 4, 6, 8] -> None",
+        "Failed: [1, 1, 2, 3, 5] -> None",
+        "Failed: [1, 4, 9, 16] -> None",
+        "Wrong: ['a', 'ab', 'abc'] -> abcc (expected abcd)",
+        "Failed: ['x', 'xx', 'xxx'] -> None",
+        "Failed: {'a': 1, 'b': {'a': 2}} -> None",
+        "Failed: [1, [2, [3]]] -> None"
+      ],
+      "unexpected": false,
+      "test_cases_passed": 1,
+      "test_cases_total": 8
+    },
+    {
+      "capability_name": "extension_2cc68435",
+      "source_domain": "task_execution",
+      "target_domain": "sequence_prediction",
+      "transfer_success": false,
+      "success_rate": 0.0,
+      "evidence": [
+        "Failed: ['start', 'process', 'validate'] -> None",
+        "Failed: ['init', 'load', 'transform'] -> None",
+        "Failed: ['idle', 'running', 'paused'] -> None",
+        "Failed: ['new', 'open', 'in_progress'] -> None"
+      ],
+      "unexpected": false,
+      "test_cases_passed": 0,
+      "test_cases_total": 4
+    },
+    {
+      "capability_name": "extension_2cc68435",
+      "source_domain": "task_execution",
+      "target_domain": "analogical_reasoning",
+      "transfer_success": true,
+      "success_rate": 0.6,
+      "evidence": [
+        "Passed: ('hot', 'cold', 'up') -> down (expected down)",
+        "Passed: ('big', 'small', 'fast') -> slow (expected slow)",
+        "Passed: ('parent', 'child', 'teacher') -> student (expected student)",
+        "Failed: ({'node': 'A', 'children': ['B', 'C']}, 'tree') -> None",
+        "Failed: ({'key': 'value'}, 'mapping') -> None"
+      ],
+      "unexpected": true,
+      "test_cases_passed": 3,
+      "test_cases_total": 5
+    },
+    {
+      "capability_name": "extension_92bd71ba",
+      "source_domain": "task_execution",
+      "target_domain": "pattern_recognition",
+      "transfer_success": false,
+      "success_rate": 0.0,
+      "evidence": [
+        "Failed: [1, 2, 3, 4] -> None",
+        "Failed: [2, 4, 6, 8] -> None",
+        "Failed: [1, 1, 2, 3, 5] -> None",
+        "Failed: [1, 4, 9, 16] -> None",
+        "Failed: ['a', 'ab', 'abc'] -> None",
+        "Failed: ['x', 'xx', 'xxx'] -> None",
+        "Failed: {'a': 1, 'b': {'a': 2}} -> None",
+        "Failed: [1, [2, [3]]] -> None"
+      ],
+      "unexpected": false,
+      "test_cases_passed": 0,
+      "test_cases_total": 8
+    },
+    {
+      "capability_name": "extension_92bd71ba",
+      "source_domain": "task_execution",
+      "target_domain": "sequence_prediction",
+      "transfer_success": false,
+      "success_rate": 0.0,
+      "evidence": [
+        "Failed: ['start', 'process', 'validate'] -> None",
+        "Failed: ['init', 'load', 'transform'] -> None",
+        "Failed: ['idle', 'running', 'paused'] -> None",
+        "Failed: ['new', 'open', 'in_progress'] -> None"
+      ],
+      "unexpected": false,
+      "test_cases_passed": 0,
+      "test_cases_total": 4
+    },
+    {
+      "capability_name": "extension_92bd71ba",
+      "source_domain": "task_execution",
+      "target_domain": "analogical_reasoning",
+      "transfer_success": false,
+      "success_rate": 0.2,
+      "evidence": [
+        "Passed: ('hot', 'cold', 'up') -> down (expected down)",
+        "Failed: ('big', 'small', 'fast') -> None",
+        "Failed: ('parent', 'child', 'teacher') -> None",
+        "Failed: ({'node': 'A', 'children': ['B', 'C']}, 'tree') -> None",
+        "Failed: ({'key': 'value'}, 'mapping') -> None"
+      ],
+      "unexpected": false,
+      "test_cases_passed": 1,
+      "test_cases_total": 5
+    },
+    {
+      "capability_name": "extension_67038445",
+      "source_domain": "task_execution",
+      "target_domain": "pattern_recognition",
+      "transfer_success": false,
+      "success_rate": 0.0,
+      "evidence": [
+        "Failed: [1, 2, 3, 4] -> None",
+        "Failed: [2, 4, 6, 8] -> None",
+        "Failed: [1, 1, 2, 3, 5] -> None",
+        "Failed: [1, 4, 9, 16] -> None",
+        "Wrong: ['a', 'ab', 'abc'] -> abcc (expected abcd)",
+        "Failed: ['x', 'xx', 'xxx'] -> None",
+        "Failed: {'a': 1, 'b': {'a': 2}} -> None",
+        "Failed: [1, [2, [3]]] -> None"
+      ],
+      "unexpected": false,
+      "test_cases_passed": 0,
+      "test_cases_total": 8
+    },
+    {
+      "capability_name": "extension_67038445",
+      "source_domain": "task_execution",
+      "target_domain": "sequence_prediction",
+      "transfer_success": false,
+      "success_rate": 0.0,
+      "evidence": [
+        "Failed: ['start', 'process', 'validate'] -> None",
+        "Failed: ['init', 'load', 'transform'] -> None",
+        "Failed: ['idle', 'running', 'paused'] -> None",
+        "Failed: ['new', 'open', 'in_progress'] -> None"
+      ],
+      "unexpected": false,
+      "test_cases_passed": 0,
+      "test_cases_total": 4
+    },
+    {
+      "capability_name": "extension_67038445",
+      "source_domain": "task_execution",
+      "target_domain": "analogical_reasoning",
+      "transfer_success": false,
+      "success_rate": 0.2,
+      "evidence": [
+        "Failed: ('hot', 'cold', 'up') -> None",
+        "Failed: ('big', 'small', 'fast') -> None",
+        "Passed: ('parent', 'child', 'teacher') -> student (expected student)",
+        "Failed: ({'node': 'A', 'children': ['B', 'C']}, 'tree') -> None",
+        "Failed: ({'key': 'value'}, 'mapping') -> None"
+      ],
+      "unexpected": false,
+      "test_cases_passed": 1,
+      "test_cases_total": 5
+    },
+    {
+      "capability_name": "extension_f8a25778",
+      "source_domain": "task_execution",
+      "target_domain": "pattern_recognition",
+      "transfer_success": false,
+      "success_rate": 0.0,
+      "evidence": [
+        "Failed: [1, 2, 3, 4] -> None",
+        "Failed: [2, 4, 6, 8] -> None",
+        "Failed: [1, 1, 2, 3, 5] -> None",
+        "Failed: [1, 4, 9, 16] -> None",
+        "Failed: ['a', 'ab', 'abc'] -> None",
+        "Failed: ['x', 'xx', 'xxx'] -> None",
+        "Failed: {'a': 1, 'b': {'a': 2}} -> None",
+        "Failed: [1, [2, [3]]] -> None"
+      ],
+      "unexpected": false,
+      "test_cases_passed": 0,
+      "test_cases_total": 8
+    },
+    {
+      "capability_name": "extension_f8a25778",
+      "source_domain": "task_execution",
+      "target_domain": "sequence_prediction",
+      "transfer_success": false,
+      "success_rate": 0.0,
+      "evidence": [
+        "Failed: ['start', 'process', 'validate'] -> None",
+        "Failed: ['init', 'load', 'transform'] -> None",
+        "Failed: ['idle', 'running', 'paused'] -> None",
+        "Failed: ['new', 'open', 'in_progress'] -> None"
+      ],
+      "unexpected": false,
+      "test_cases_passed": 0,
+      "test_cases_total": 4
+    },
+    {
+      "capability_name": "extension_f8a25778",
+      "source_domain": "task_execution",
+      "target_domain": "analogical_reasoning",
+      "transfer_success": false,
+      "success_rate": 0.2,
+      "evidence": [
+        "Failed: ('hot', 'cold', 'up') -> None",
+        "Passed: ('big', 'small', 'fast') -> slow (expected slow)",
+        "Failed: ('parent', 'child', 'teacher') -> None",
+        "Failed: ({'node': 'A', 'children': ['B', 'C']}, 'tree') -> None",
+        "Failed: ({'key': 'value'}, 'mapping') -> None"
+      ],
+      "unexpected": false,
+      "test_cases_passed": 1,
+      "test_cases_total": 5
+    },
+    {
+      "capability_name": "extension_2a295562",
+      "source_domain": "task_execution",
+      "target_domain": "pattern_recognition",
+      "transfer_success": false,
+      "success_rate": 0.125,
+      "evidence": [
+        "Failed: [1, 2, 3, 4] -> None",
+        "Passed: [2, 4, 6, 8] -> 10 (expected 10)",
+        "Failed: [1, 1, 2, 3, 5] -> None",
+        "Failed: [1, 4, 9, 16] -> None",
+        "Failed: ['a', 'ab', 'abc'] -> None",
+        "Failed: ['x', 'xx', 'xxx'] -> None",
+        "Failed: {'a': 1, 'b': {'a': 2}} -> None",
+        "Failed: [1, [2, [3]]] -> None"
+      ],
+      "unexpected": false,
+      "test_cases_passed": 1,
+      "test_cases_total": 8
+    },
+    {
+      "capability_name": "extension_2a295562",
+      "source_domain": "task_execution",
+      "target_domain": "sequence_prediction",
+      "transfer_success": false,
+      "success_rate": 0.0,
+      "evidence": [
+        "Failed: ['start', 'process', 'validate'] -> None",
+        "Failed: ['init', 'load', 'transform'] -> None",
+        "Failed: ['idle', 'running', 'paused'] -> None",
+        "Failed: ['new', 'open', 'in_progress'] -> None"
+      ],
+      "unexpected": false,
+      "test_cases_passed": 0,
+      "test_cases_total": 4
+    },
+    {
+      "capability_name": "extension_2a295562",
+      "source_domain": "task_execution",
+      "target_domain": "analogical_reasoning",
+      "transfer_success": false,
+      "success_rate": 0.4,
+      "evidence": [
+        "Failed: ('hot', 'cold', 'up') -> None",
+        "Passed: ('big', 'small', 'fast') -> slow (expected slow)",
+        "Passed: ('parent', 'child', 'teacher') -> student (expected student)",
+        "Failed: ({'node': 'A', 'children': ['B', 'C']}, 'tree') -> None",
+        "Failed: ({'key': 'value'}, 'mapping') -> None"
+      ],
+      "unexpected": false,
+      "test_cases_passed": 2,
+      "test_cases_total": 5
+    },
+    {
+      "capability_name": "extension_a389df5f",
+      "source_domain": "task_execution",
+      "target_domain": "pattern_recognition",
+      "transfer_success": false,
+      "success_rate": 0.125,
+      "evidence": [
+        "Failed: [1, 2, 3, 4] -> None",
+        "Passed: [2, 4, 6, 8] -> 10 (expected 10)",
+        "Failed: [1, 1, 2, 3, 5] -> None",
+        "Failed: [1, 4, 9, 16] -> None",
+        "Failed: ['a', 'ab', 'abc'] -> None",
+        "Failed: ['x', 'xx', 'xxx'] -> None",
+        "Failed: {'a': 1, 'b': {'a': 2}} -> None",
+        "Failed: [1, [2, [3]]] -> None"
+      ],
+      "unexpected": false,
+      "test_cases_passed": 1,
+      "test_cases_total": 8
+    },
+    {
+      "capability_name": "extension_a389df5f",
+      "source_domain": "task_execution",
+      "target_domain": "sequence_prediction",
+      "transfer_success": false,
+      "success_rate": 0.0,
+      "evidence": [
+        "Failed: ['start', 'process', 'validate'] -> None",
+        "Failed: ['init', 'load', 'transform'] -> None",
+        "Failed: ['idle', 'running', 'paused'] -> None",
+        "Failed: ['new', 'open', 'in_progress'] -> None"
+      ],
+      "unexpected": false,
+      "test_cases_passed": 0,
+      "test_cases_total": 4
+    },
+    {
+      "capability_name": "extension_a389df5f",
+      "source_domain": "task_execution",
+      "target_domain": "analogical_reasoning",
+      "transfer_success": false,
+      "success_rate": 0.2,
+      "evidence": [
+        "Passed: ('hot', 'cold', 'up') -> down (expected down)",
+        "Failed: ('big', 'small', 'fast') -> None",
+        "Failed: ('parent', 'child', 'teacher') -> None",
+        "Failed: ({'node': 'A', 'children': ['B', 'C']}, 'tree') -> None",
+        "Failed: ({'key': 'value'}, 'mapping') -> None"
+      ],
+      "unexpected": false,
+      "test_cases_passed": 1,
+      "test_cases_total": 5
+    },
+    {
+      "capability_name": "execute_task",
+      "source_domain": "task_execution",
+      "target_domain": "pattern_recognition",
+      "transfer_success": false,
+      "success_rate": 0.0,
+      "evidence": [
+        "Failed: [1, 2, 3, 4] -> None",
+        "Failed: [2, 4, 6, 8] -> None",
+        "Failed: [1, 1, 2, 3, 5] -> None",
+        "Failed: [1, 4, 9, 16] -> None",
+        "Failed: ['a', 'ab', 'abc'] -> None",
+        "Failed: ['x', 'xx', 'xxx'] -> None",
+        "Failed: {'a': 1, 'b': {'a': 2}} -> None",
+        "Failed: [1, [2, [3]]] -> None"
+      ],
+      "unexpected": false,
+      "test_cases_passed": 0,
+      "test_cases_total": 8
+    },
+    {
+      "capability_name": "execute_task",
+      "source_domain": "task_execution",
+      "target_domain": "sequence_prediction",
+      "transfer_success": false,
+      "success_rate": 0.0,
+      "evidence": [
+        "Failed: ['start', 'process', 'validate'] -> None",
+        "Failed: ['init', 'load', 'transform'] -> None",
+        "Failed: ['idle', 'running', 'paused'] -> None",
+        "Failed: ['new', 'open', 'in_progress'] -> None"
+      ],
+      "unexpected": false,
+      "test_cases_passed": 0,
+      "test_cases_total": 4
+    },
+    {
+      "capability_name": "execute_task",
+      "source_domain": "task_execution",
+      "target_domain": "analogical_reasoning",
+      "transfer_success": false,
+      "success_rate": 0.0,
+      "evidence": [
+        "Failed: ('hot', 'cold', 'up') -> None",
+        "Failed: ('big', 'small', 'fast') -> None",
+        "Failed: ('parent', 'child', 'teacher') -> None",
+        "Failed: ({'node': 'A', 'children': ['B', 'C']}, 'tree') -> None",
+        "Failed: ({'key': 'value'}, 'mapping') -> None"
+      ],
+      "unexpected": false,
+      "test_cases_passed": 0,
+      "test_cases_total": 5
+    },
+    {
+      "capability_name": "compare_results",
+      "source_domain": "task_execution",
+      "target_domain": "pattern_recognition",
+      "transfer_success": false,
+      "success_rate": 0.0,
+      "evidence": [
+        "Failed: [1, 2, 3, 4] -> None",
+        "Failed: [2, 4, 6, 8] -> None",
+        "Failed: [1, 1, 2, 3, 5] -> None",
+        "Failed: [1, 4, 9, 16] -> None",
+        "Failed: ['a', 'ab', 'abc'] -> None",
+        "Failed: ['x', 'xx', 'xxx'] -> None",
+        "Failed: {'a': 1, 'b': {'a': 2}} -> None",
+        "Failed: [1, [2, [3]]] -> None"
+      ],
+      "unexpected": false,
+      "test_cases_passed": 0,
+      "test_cases_total": 8
+    },
+    {
+      "capability_name": "compare_results",
+      "source_domain": "task_execution",
+      "target_domain": "sequence_prediction",
+      "transfer_success": false,
+      "success_rate": 0.0,
+      "evidence": [
+        "Failed: ['start', 'process', 'validate'] -> None",
+        "Failed: ['init', 'load', 'transform'] -> None",
+        "Failed: ['idle', 'running', 'paused'] -> None",
+        "Failed: ['new', 'open', 'in_progress'] -> None"
+      ],
+      "unexpected": false,
+      "test_cases_passed": 0,
+      "test_cases_total": 4
+    },
+    {
+      "capability_name": "compare_results",
+      "source_domain": "task_execution",
+      "target_domain": "analogical_reasoning",
+      "transfer_success": false,
+      "success_rate": 0.0,
+      "evidence": [
+        "Failed: ('hot', 'cold', 'up') -> None",
+        "Failed: ('big', 'small', 'fast') -> None",
+        "Failed: ('parent', 'child', 'teacher') -> None",
+        "Failed: ({'node': 'A', 'children': ['B', 'C']}, 'tree') -> None",
+        "Failed: ({'key': 'value'}, 'mapping') -> None"
+      ],
+      "unexpected": false,
+      "test_cases_passed": 0,
+      "test_cases_total": 5
+    },
+    {
+      "capability_name": "measure_time",
+      "source_domain": "task_execution",
+      "target_domain": "pattern_recognition",
+      "transfer_success": false,
+      "success_rate": 0.0,
+      "evidence": [
+        "Failed: [1, 2, 3, 4] -> None",
+        "Failed: [2, 4, 6, 8] -> None",
+        "Failed: [1, 1, 2, 3, 5] -> None",
+        "Failed: [1, 4, 9, 16] -> None",
+        "Failed: ['a', 'ab', 'abc'] -> None",
+        "Failed: ['x', 'xx', 'xxx'] -> None",
+        "Failed: {'a': 1, 'b': {'a': 2}} -> None",
+        "Failed: [1, [2, [3]]] -> None"
+      ],
+      "unexpected": false,
+      "test_cases_passed": 0,
+      "test_cases_total": 8
+    },
+    {
+      "capability_name": "measure_time",
+      "source_domain": "task_execution",
+      "target_domain": "sequence_prediction",
+      "transfer_success": false,
+      "success_rate": 0.0,
+      "evidence": [
+        "Failed: ['start', 'process', 'validate'] -> None",
+        "Failed: ['init', 'load', 'transform'] -> None",
+        "Failed: ['idle', 'running', 'paused'] -> None",
+        "Failed: ['new', 'open', 'in_progress'] -> None"
+      ],
+      "unexpected": false,
+      "test_cases_passed": 0,
+      "test_cases_total": 4
+    },
+    {
+      "capability_name": "measure_time",
+      "source_domain": "task_execution",
+      "target_domain": "analogical_reasoning",
+      "transfer_success": false,
+      "success_rate": 0.0,
+      "evidence": [
+        "Failed: ('hot', 'cold', 'up') -> None",
+        "Failed: ('big', 'small', 'fast') -> None",
+        "Failed: ('parent', 'child', 'teacher') -> None",
+        "Failed: ({'node': 'A', 'children': ['B', 'C']}, 'tree') -> None",
+        "Failed: ({'key': 'value'}, 'mapping') -> None"
+      ],
+      "unexpected": false,
+      "test_cases_passed": 0,
+      "test_cases_total": 5
+    },
+    {
+      "capability_name": "persist_state",
+      "source_domain": "task_execution",
+      "target_domain": "pattern_recognition",
+      "transfer_success": false,
+      "success_rate": 0.0,
+      "evidence": [
+        "Failed: [1, 2, 3, 4] -> None",
+        "Failed: [2, 4, 6, 8] -> None",
+        "Failed: [1, 1, 2, 3, 5] -> None",
+        "Failed: [1, 4, 9, 16] -> None",
+        "Failed: ['a', 'ab', 'abc'] -> None",
+        "Failed: ['x', 'xx', 'xxx'] -> None",
+        "Failed: {'a': 1, 'b': {'a': 2}} -> None",
+        "Failed: [1, [2, [3]]] -> None"
+      ],
+      "unexpected": false,
+      "test_cases_passed": 0,
+      "test_cases_total": 8
+    },
+    {
+      "capability_name": "persist_state",
+      "source_domain": "task_execution",
+      "target_domain": "sequence_prediction",
+      "transfer_success": true,
+      "success_rate": 1.0,
+      "evidence": [
+        "Passed: ['start', 'process', 'validate'] -> complete (expected complete)",
+        "Passed: ['init', 'load', 'transform'] -> save (expected save)",
+        "Passed: ['idle', 'running', 'paused'] -> running (expected running)",
+        "Passed: ['new', 'open', 'in_progress'] -> resolved (expected resolved)"
+      ],
+      "unexpected": false,
+      "test_cases_passed": 4,
+      "test_cases_total": 4
+    },
+    {
+      "capability_name": "persist_state",
+      "source_domain": "task_execution",
+      "target_domain": "analogical_reasoning",
+      "transfer_success": false,
+      "success_rate": 0.0,
+      "evidence": [
+        "Failed: ('hot', 'cold', 'up') -> None",
+        "Failed: ('big', 'small', 'fast') -> None",
+        "Failed: ('parent', 'child', 'teacher') -> None",
+        "Failed: ({'node': 'A', 'children': ['B', 'C']}, 'tree') -> None",
+        "Failed: ({'key': 'value'}, 'mapping') -> None"
+      ],
+      "unexpected": false,
+      "test_cases_passed": 0,
+      "test_cases_total": 5
+    },
+    {
+      "capability_name": "combination_57f4457d",
+      "source_domain": "task_execution",
+      "target_domain": "pattern_recognition",
+      "transfer_success": false,
+      "success_rate": 0.0,
+      "evidence": [
+        "Failed: [1, 2, 3, 4] -> None",
+        "Failed: [2, 4, 6, 8] -> None",
+        "Failed: [1, 1, 2, 3, 5] -> None",
+        "Failed: [1, 4, 9, 16] -> None",
+        "Failed: ['a', 'ab', 'abc'] -> None",
+        "Failed: ['x', 'xx', 'xxx'] -> None",
+        "Failed: {'a': 1, 'b': {'a': 2}} -> None",
+        "Failed: [1, [2, [3]]] -> None"
+      ],
+      "unexpected": false,
+      "test_cases_passed": 0,
+      "test_cases_total": 8
+    },
+    {
+      "capability_name": "combination_57f4457d",
+      "source_domain": "task_execution",
+      "target_domain": "sequence_prediction",
+      "transfer_success": true,
+      "success_rate": 1.0,
+      "evidence": [
+        "Passed: ['start', 'process', 'validate'] -> complete (expected complete)",
+        "Passed: ['init', 'load', 'transform'] -> save (expected save)",
+        "Passed: ['idle', 'running', 'paused'] -> running (expected running)",
+        "Passed: ['new', 'open', 'in_progress'] -> resolved (expected resolved)"
+      ],
+      "unexpected": false,
+      "test_cases_passed": 4,
+      "test_cases_total": 4
+    },
+    {
+      "capability_name": "combination_57f4457d",
+      "source_domain": "task_execution",
+      "target_domain": "analogical_reasoning",
+      "transfer_success": false,
+      "success_rate": 0.0,
+      "evidence": [
+        "Failed: ('hot', 'cold', 'up') -> None",
+        "Failed: ('big', 'small', 'fast') -> None",
+        "Failed: ('parent', 'child', 'teacher') -> None",
+        "Failed: ({'node': 'A', 'children': ['B', 'C']}, 'tree') -> None",
+        "Failed: ({'key': 'value'}, 'mapping') -> None"
+      ],
+      "unexpected": false,
+      "test_cases_passed": 0,
+      "test_cases_total": 5
+    }
+  ],
+  "transfer_matrix": {
+    "pattern_recognition": {
+      "success_rate": 0.058333333333333334,
+      "successful_transfers": 0,
+      "unexpected_transfers": 0,
+      "total_tested": 15
+    },
+    "sequence_prediction": {
+      "success_rate": 0.13333333333333333,
+      "successful_transfers": 2,
+      "unexpected_transfers": 0,
+      "total_tested": 15
+    },
+    "analogical_reasoning": {
+      "success_rate": 0.16,
+      "successful_transfers": 1,
+      "unexpected_transfers": 1,
+      "total_tested": 15
+    }
+  },
+  "evidence_for_novelty": [
+    "Found 1 unexpected cross-domain transfers",
+    "  \u2022 extension_2cc68435: task_execution \u2192 analogical_reasoning (rate: 0.60)",
+    "",
+    "Unexpected transfers indicate genuine capability novelty because:",
+    "  1. Transfer was not designed or anticipated",
+    "  2. Capability generalizes beyond its training context",
+    "  3. Cannot be explained as 'derivable from primitives'",
+    "",
+    "Emergent capability average transfer rate: 0.60",
+    "Non-emergent capability average transfer rate: 0.11",
+    "\u2605 Emergent capabilities show 464.7% better transfer!"
+  ],
+  "meets_transfer_criteria": false
+}

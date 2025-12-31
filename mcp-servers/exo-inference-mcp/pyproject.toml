@@ -1,0 +1,21 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "exo-inference-mcp"
+version = "1.0.0"
+description = "MCP server for Exo distributed LLM inference"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "mcp>=1.0.0",
+    "httpx>=0.25.0",
+    "pydantic>=2.0.0",
+]
+
+[project.scripts]
+exo-inference-mcp = "server:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["."]
