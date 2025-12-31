@@ -819,6 +819,16 @@ Extract:
             result["success"] = execution_result.get("success", False)
             result["overall_status"] = "success" if result["success"] else "partial"
 
+            # Include execution results with actual outputs for downstream consumers
+            result["results"] = execution_result.get("results", [])
+
+            # Extract primary output for convenience (first result's output)
+            primary_outputs = [
+                r.get("output", "") for r in execution_result.get("results", [])
+                if r.get("output")
+            ]
+            result["output"] = primary_outputs[0] if primary_outputs else ""
+
             logger.info(f"=== AGI EXECUTION COMPLETE: {execution_id} ===")
             logger.info(f"Duration: {total_duration:.2f}s, Success: {result['success']}")
 
