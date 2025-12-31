@@ -13,7 +13,7 @@
 [![AVIR Verified](https://img.shields.io/badge/AVIR-VERIFIED-brightgreen)]()
 
 </div>
-<img width="1024" height="1024" alt="agentic-system-oss" src="https://github.com/user-attachments/assets/ac0ba0df-ec74-4aff-a616-e668420b7018" />
+<img width="300" height="300" align="right" alt="agentic-system-oss" src="https://github.com/user-attachments/assets/ac0ba0df-ec74-4aff-a616-e668420b7018" />
 
 ---
 
