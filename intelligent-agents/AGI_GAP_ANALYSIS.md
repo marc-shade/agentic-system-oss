@@ -268,8 +268,8 @@ Given task + context → Predict success probability per tool → Select highest
 - ✓ Actual self-modification of prompts (agentic_self_modification.py)
 - ✓ A/B testing of improvements with rollback
 
-### Level 6: Emergent (Not Achieved)
-- ✗ Novel capability discovery
+### Level 6: Emergent (In Progress)
+- ✓ Novel capability discovery (ECDE integration - ecde_integration.py)
 - ✗ Cross-domain transfer
 - ✗ Autonomous goal generation
 
