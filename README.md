@@ -1,7 +1,7 @@
 # Agentic System
 
 <div align="center">
-
+<img width="300" height="300" align="right" alt="agentic-system-oss" src="https://github.com/user-attachments/assets/ac0ba0df-ec74-4aff-a616-e668420b7018" />
 **24/7 Autonomous Agentic AI System - Distributed Multi-Node Infrastructure**
 
 [![Status](https://img.shields.io/badge/Status-Operational-brightgreen)]()
@@ -17,7 +17,7 @@
 ---
 
 ## 🏆 Performance Benchmarks
-<img width="300" height="300" align="right" alt="agentic-system-oss" src="https://github.com/user-attachments/assets/ac0ba0df-ec74-4aff-a616-e668420b7018" />
+
 We run the same **GAIA benchmark** that [Manus AI](https://manus.im) uses to promote their capabilities. Here are the head-to-head results:
 
 ### GAIA Benchmark Comparison
