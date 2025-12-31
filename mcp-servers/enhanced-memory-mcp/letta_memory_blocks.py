@@ -414,6 +414,53 @@ class MemoryBlockManager:
             "chars_remaining": block.limit - len(block.value)
         }
 
+    def update_block(
+        self,
+        agent_id: str,
+        label: str,
+        new_value: str
+    ) -> Dict[str, Any]:
+        """
+        Set entire block value (like Librarian synthesis - replace, not append).
+
+        Use for structured state updates where the new value completely replaces
+        the old one (e.g., Librarian-style memory synthesis).
+        """
+        block = self.get_block(agent_id, label)
+
+        if not block:
+            return {
+                "success": False,
+                "error": f"Block '{label}' not found for agent '{agent_id}'"
+            }
+
+        success, message = block.set_value(new_value)
+
+        if not success:
+            return {"success": False, "error": message}
+
+        # Update in database
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+
+        cursor.execute('''
+            UPDATE memory_blocks
+            SET value = ?, updated_at = CURRENT_TIMESTAMP
+            WHERE agent_id = ? AND label = ?
+        ''', (new_value, agent_id, label))
+
+        conn.commit()
+        conn.close()
+
+        return {
+            "success": True,
+            "message": message,
+            "label": label,
+            "chars_current": len(new_value),
+            "chars_limit": block.limit,
+            "chars_remaining": block.limit - len(new_value)
+        }
+
     def render_blocks(self, agent_id: str, use_line_numbers: bool = False) -> str:
         """
         Render all blocks for an agent as XML (like Letta).

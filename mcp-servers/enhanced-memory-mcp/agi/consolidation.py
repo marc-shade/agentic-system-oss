@@ -6,8 +6,13 @@ Implements sleep-like consolidation for AGI memory.
 Key Features:
 - Background pattern extraction from episodic to semantic memory
 - Causal link discovery and strengthening
-- Memory compression and optimization
+- Memory compression and optimization (PTM-inspired trajectory encoding)
 - Scheduled consolidation jobs
+
+Phase 2 Enhancement (2024):
+- Trajectory compression using PTM (Phonetic Trajectory Memory) concepts
+- 8D hyper-torus manifold encoding for bridge tokens
+- Anchor/bridge bifurcation for optimal precision vs compression
 """
 
 import sqlite3
@@ -17,6 +22,15 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, List, Any, Optional, Set
 from collections import Counter
+
+# Try to import trajectory compression (PTM-inspired)
+try:
+    import sys
+    sys.path.insert(0, str(Path(__file__).parent.parent))
+    from trajectory_compression import compress_for_archive, decompress_from_archive, get_stats as get_trajectory_stats
+    TRAJECTORY_COMPRESSION_AVAILABLE = True
+except ImportError:
+    TRAJECTORY_COMPRESSION_AVAILABLE = False
 
 logger = logging.getLogger("consolidation")
 
@@ -482,7 +496,13 @@ class ConsolidationEngine:
         time_window_hours: int = 168  # 7 days
     ) -> Dict[str, Any]:
         """
-        Compress old low-importance memories
+        Compress old low-importance memories using PTM-inspired trajectory encoding.
+
+        Phase 2 Enhancement:
+        - Uses trajectory compression from PTM paper concepts
+        - Anchor tokens (proper nouns, numbers, code) stored precisely
+        - Bridge tokens (common words) encoded as manifold trajectories
+        - 8D hyper-torus with golden ratio rotation matrices
 
         Args:
             time_window_hours: Only compress memories older than this
@@ -490,7 +510,8 @@ class ConsolidationEngine:
         Returns:
             {
                 "memories_compressed": int,
-                "space_saved_bytes": int
+                "space_saved_bytes": int,
+                "trajectory_stats": {...}  # If trajectory compression available
             }
         """
         job_id = self.schedule_consolidation("memory_compression", time_window_hours)
@@ -510,7 +531,7 @@ class ConsolidationEngine:
             # Get old, low-importance memories that aren't already compressed
             cursor.execute(
                 '''
-                SELECT id, name
+                SELECT id, name, entity_type
                 FROM entities
                 WHERE created_at < ?
                 AND salience_score < 0.5
@@ -521,10 +542,81 @@ class ConsolidationEngine:
             )
 
             memories_to_compress = cursor.fetchall()
-            memories_compressed = len(memories_to_compress)
+            memories_compressed = 0
+            total_original_bytes = 0
+            total_compressed_bytes = 0
 
-            # In real implementation, would compress observations
-            # For now, just mark them as candidates
+            if TRAJECTORY_COMPRESSION_AVAILABLE and memories_to_compress:
+                logger.info(f"Using PTM trajectory compression for {len(memories_to_compress)} memories")
+
+                for entity_id, name, entity_type in memories_to_compress:
+                    # Get observations for this entity
+                    cursor.execute(
+                        'SELECT content FROM observations WHERE entity_id = ?',
+                        (entity_id,)
+                    )
+                    observations = [row[0] for row in cursor.fetchall()]
+
+                    if not observations:
+                        continue
+
+                    # Calculate original size
+                    original_text = ' '.join(observations)
+                    original_bytes = len(original_text.encode('utf-8'))
+                    total_original_bytes += original_bytes
+
+                    try:
+                        # Compress using PTM-inspired trajectory encoding
+                        compressed = compress_for_archive(
+                            name=name,
+                            observations=observations,
+                            entity_type=entity_type or 'general'
+                        )
+
+                        compressed_data = json.dumps(compressed)
+                        compressed_bytes = len(compressed_data.encode('utf-8'))
+                        total_compressed_bytes += compressed_bytes
+
+                        # Store compressed data and update tier to archive
+                        cursor.execute(
+                            '''
+                            UPDATE entities
+                            SET compressed_data = ?,
+                                tier = 'archive',
+                                updated_at = CURRENT_TIMESTAMP
+                            WHERE id = ?
+                            ''',
+                            (compressed_data, entity_id)
+                        )
+
+                        memories_compressed += 1
+
+                        if memories_compressed % 10 == 0:
+                            conn.commit()  # Periodic commit for large batches
+
+                    except Exception as e:
+                        logger.warning(f"Failed to compress entity {entity_id}: {e}")
+                        continue
+
+                conn.commit()
+
+            else:
+                # Fallback: just count candidates (no actual compression)
+                memories_compressed = len(memories_to_compress)
+                total_original_bytes = memories_compressed * 1024  # Estimate
+                total_compressed_bytes = total_original_bytes
+                logger.info("Trajectory compression not available, counting candidates only")
+
+            # Calculate space saved
+            space_saved = max(0, total_original_bytes - total_compressed_bytes)
+
+            # Get trajectory stats if available
+            trajectory_stats = {}
+            if TRAJECTORY_COMPRESSION_AVAILABLE:
+                try:
+                    trajectory_stats = get_trajectory_stats()
+                except Exception:
+                    pass
 
             # Update job
             duration = (datetime.now() - datetime.fromisoformat(
@@ -538,25 +630,38 @@ class ConsolidationEngine:
                     status = 'completed',
                     completed_at = ?,
                     duration_seconds = ?,
-                    memories_compressed = ?
+                    memories_compressed = ?,
+                    results_summary = ?
                 WHERE job_id = ?
                 ''',
                 (
                     datetime.now().isoformat(),
                     duration,
                     memories_compressed,
+                    json.dumps({
+                        "original_bytes": total_original_bytes,
+                        "compressed_bytes": total_compressed_bytes,
+                        "space_saved_bytes": space_saved,
+                        "trajectory_compression_used": TRAJECTORY_COMPRESSION_AVAILABLE,
+                        "trajectory_stats": trajectory_stats
+                    }),
                     job_id
                 )
             )
 
             conn.commit()
 
-            logger.info(f"Memory compression complete: {memories_compressed} memories processed")
+            logger.info(f"Memory compression complete: {memories_compressed} memories, "
+                       f"{space_saved} bytes saved, trajectory={TRAJECTORY_COMPRESSION_AVAILABLE}")
 
             return {
                 "job_id": job_id,
                 "memories_compressed": memories_compressed,
-                "space_saved_bytes": memories_compressed * 1024  # Estimate
+                "space_saved_bytes": space_saved,
+                "original_bytes": total_original_bytes,
+                "compressed_bytes": total_compressed_bytes,
+                "trajectory_compression_available": TRAJECTORY_COMPRESSION_AVAILABLE,
+                "trajectory_stats": trajectory_stats
             }
 
         except Exception as e:

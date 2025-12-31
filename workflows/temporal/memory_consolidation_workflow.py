@@ -22,8 +22,11 @@ from temporalio.worker import Worker
 import sys
 import os
 
-# Add MCP path for memory functions
-sys.path.insert(0, '/home/marc/agentic-system/mcp-servers/enhanced-memory-mcp')
+# Auto-detect storage path for cross-platform compatibility
+STORAGE_BASE = os.environ.get('STORAGE_BASE', '/Volumes/SSDRAID0/agentic-system')
+if not os.path.exists(STORAGE_BASE):
+    STORAGE_BASE = '/home/marc/agentic-system'  # Linux fallback
+sys.path.insert(0, f'{STORAGE_BASE}/mcp-servers/enhanced-memory-mcp')
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -33,17 +36,11 @@ logger = logging.getLogger(__name__)
 async def run_pattern_extraction(time_window_hours: int = 24) -> dict:
     """Extract patterns from recent memories"""
     try:
-        # Import here to avoid issues if MCP not loaded
-        from server import (
-            run_pattern_extraction as extract_patterns,
-            get_consolidation_stats
-        )
-        
-        result = await extract_patterns(
-            time_window_hours=time_window_hours,
-            min_pattern_frequency=2
-        )
-        
+        from agi.consolidation import ConsolidationEngine
+
+        engine = ConsolidationEngine()
+        result = engine.run_pattern_extraction(time_window_hours)
+
         logger.info(f"Pattern extraction: {result}")
         return result
     except Exception as e:
@@ -55,13 +52,11 @@ async def run_pattern_extraction(time_window_hours: int = 24) -> dict:
 async def run_causal_discovery(time_window_hours: int = 24) -> dict:
     """Discover causal relationships from action outcomes"""
     try:
-        from server import run_causal_discovery as discover_causal
-        
-        result = await discover_causal(
-            time_window_hours=time_window_hours,
-            min_confidence=0.6
-        )
-        
+        from agi.consolidation import ConsolidationEngine
+
+        engine = ConsolidationEngine()
+        result = engine.run_causal_discovery(time_window_hours)
+
         logger.info(f"Causal discovery: {result}")
         return result
     except Exception as e:
@@ -73,12 +68,11 @@ async def run_causal_discovery(time_window_hours: int = 24) -> dict:
 async def run_memory_compression(time_window_hours: int = 168) -> dict:
     """Compress old memories (older than 7 days)"""
     try:
-        from server import run_memory_compression as compress_memories
-        
-        result = await compress_memories(
-            time_window_hours=time_window_hours
-        )
-        
+        from agi.consolidation import ConsolidationEngine
+
+        engine = ConsolidationEngine()
+        result = engine.run_memory_compression(time_window_hours)
+
         logger.info(f"Memory compression: {result}")
         return result
     except Exception as e:
@@ -90,10 +84,17 @@ async def run_memory_compression(time_window_hours: int = 168) -> dict:
 async def run_memory_curation() -> dict:
     """Promote memories between tiers"""
     try:
-        from server import autonomous_memory_curation
-        
-        result = await autonomous_memory_curation()
-        
+        from safla_orchestrator import SAFLAOrchestrator
+        from pathlib import Path
+
+        # Get the primary memory database
+        db_path = Path.home() / ".claude" / "enhanced_memories" / "memory.db"
+        if not db_path.exists():
+            db_path = Path(STORAGE_BASE) / "databases" / "mcp" / "enhanced_memories.db"
+
+        safla = SAFLAOrchestrator(db_path=db_path)
+        result = await safla.autonomous_memory_curation()
+
         logger.info(f"Memory curation: {result}")
         return result
     except Exception as e:
@@ -105,9 +106,11 @@ async def run_memory_curation() -> dict:
 async def get_consolidation_statistics() -> dict:
     """Get consolidation stats for monitoring"""
     try:
-        from server import get_consolidation_stats
-        
-        stats = await get_consolidation_stats()
+        from agi.consolidation import ConsolidationEngine
+
+        engine = ConsolidationEngine()
+        stats = engine.get_consolidation_stats()
+
         logger.info(f"Consolidation stats: {stats}")
         return stats
     except Exception as e:
@@ -132,7 +135,7 @@ class MemoryConsolidationWorkflow:
         workflow.logger.info(f"Starting memory consolidation - mode: {mode}")
         
         results = {
-            "start_time": datetime.now().isoformat(),
+            "start_time": workflow.now().isoformat(),
             "mode": mode,
             "steps": {}
         }
@@ -184,9 +187,9 @@ class MemoryConsolidationWorkflow:
             )
             results["final_stats"] = stats
             
-            results["end_time"] = datetime.now().isoformat()
+            results["end_time"] = workflow.now().isoformat()
             results["status"] = "success"
-            
+
             workflow.logger.info(f"Memory consolidation complete: {results}")
             return results
             

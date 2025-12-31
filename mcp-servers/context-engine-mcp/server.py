@@ -292,7 +292,21 @@ class ContextEngine:
             )
             for hit in hits:
                 payload = hit.payload
-                results.append(ToolInfo(**payload))
+                # Handle missing fields gracefully
+                try:
+                    results.append(ToolInfo(
+                        name=payload.get("name", "unknown"),
+                        server=payload.get("server", "unknown"),
+                        description=payload.get("description", ""),
+                        parameters=payload.get("parameters", {}),
+                        usage_count=payload.get("usage_count", 0),
+                        success_rate=payload.get("success_rate", 1.0),
+                        avg_latency_ms=payload.get("avg_latency_ms", 0.0),
+                        last_used=payload.get("last_used"),
+                        tags=payload.get("tags", [])
+                    ))
+                except Exception as e:
+                    logger.warning(f"Failed to parse tool from Qdrant: {e}")
         else:
             # Fallback to keyword search
             query_lower = query.lower()
@@ -594,6 +608,57 @@ def suggest_next_tools(current_tool: str, limit: int = 3) -> str:
             for s in suggestions
         ]
     })
+
+
+@mcp.tool()
+def reconnect_qdrant() -> str:
+    """
+    Reconnect to Qdrant vector store if not connected.
+    Use this if Qdrant was started after the Context Engine.
+
+    Returns:
+        Connection status and stats
+    """
+    global engine
+
+    if engine.qdrant and engine.embedder:
+        # Already connected, verify
+        try:
+            info = engine.qdrant.get_collection(COLLECTION_NAME)
+            return json.dumps({
+                "status": "already_connected",
+                "collection": COLLECTION_NAME,
+                "points": info.points_count
+            })
+        except Exception as e:
+            engine.qdrant = None
+            engine.embedder = None
+
+    # Try to connect
+    if not QDRANT_AVAILABLE:
+        return json.dumps({"status": "error", "message": "Qdrant client not installed"})
+
+    if not EMBEDDINGS_AVAILABLE:
+        return json.dumps({"status": "error", "message": "sentence-transformers not installed"})
+
+    try:
+        engine.qdrant = QdrantClient(host=QDRANT_HOST, port=QDRANT_PORT)
+        engine.embedder = SentenceTransformer(EMBEDDING_MODEL)
+
+        # Verify connection
+        info = engine.qdrant.get_collection(COLLECTION_NAME)
+
+        return json.dumps({
+            "status": "connected",
+            "collection": COLLECTION_NAME,
+            "points": info.points_count,
+            "embedding_model": EMBEDDING_MODEL
+        })
+    except Exception as e:
+        return json.dumps({
+            "status": "error",
+            "message": str(e)
+        })
 
 
 # =============================================================================

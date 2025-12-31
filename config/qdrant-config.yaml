@@ -1,13 +1,12 @@
 service:
-  host: 127.0.0.1
+  host: 0.0.0.0
   http_port: 6333
   grpc_port: 6334
 
 storage:
-  # Storage path - OVERRIDDEN at runtime by start-qdrant.sh --storage argument
-  # This default is only used if qdrant is started directly without the script
+  # Storage path - absolute path required for launchd startup
   # Platform paths: macOS=/Volumes/SSDRAID0, Linux=/home/marc/agentic-system
-  storage_path: databases/qdrant
+  storage_path: /Volumes/SSDRAID0/agentic-system/databases/qdrant
 
   # Performance optimizations for SSD
   performance:
@@ -18,6 +17,9 @@ storage:
 
 # Logging configuration
 log_level: INFO
+
+# Disable telemetry to prevent crashes at boot (network not ready)
+telemetry_disabled: true
 
 # Enable service API for health checks
 service_api:

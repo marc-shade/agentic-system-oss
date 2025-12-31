@@ -56,6 +56,10 @@ from .providers import (
     ReplicateProvider,
 )
 
+# Latent manipulation imports
+from .latent_hacker import DiffusionLatentHacker
+from .latent_tools import create_latent_tools, handle_latent_tool, is_latent_tool
+
 
 # Configure logging
 logging.basicConfig(
@@ -74,6 +78,9 @@ server = Server("image-gen-mcp")
 # Initialize providers
 PROVIDERS: Dict[str, ImageProvider] = {}
 
+# Initialize latent hacker (mathematical hacking module)
+LATENT_HACKER: Optional[DiffusionLatentHacker] = None
+
 
 def init_providers():
     """Initialize all image providers."""
@@ -88,14 +95,27 @@ def init_providers():
     logger.info(f"Initialized {len(PROVIDERS)} image providers")
 
 
+def init_latent_hacker():
+    """Initialize latent manipulation module."""
+    global LATENT_HACKER
+    try:
+        LATENT_HACKER = DiffusionLatentHacker()
+        logger.info("Initialized DiffusionLatentHacker for mathematical hacking")
+    except Exception as e:
+        logger.warning(f"Failed to initialize latent hacker: {e}")
+        LATENT_HACKER = None
+
+
 # Initialize on module load
 init_providers()
+init_latent_hacker()
 
 
 @server.list_tools()
 async def handle_list_tools() -> list[types.Tool]:
     """List available image generation tools."""
-    return [
+    # Base image generation tools
+    tools = [
         types.Tool(
             name="generate_image",
             description="""Generate an image from a text prompt using AI.
@@ -257,6 +277,14 @@ Uses pixel-art specialized models when available.""",
         ),
     ]
 
+    # Add latent manipulation tools if initialized
+    if LATENT_HACKER is not None:
+        latent_tools = create_latent_tools(LATENT_HACKER)
+        tools.extend(latent_tools)
+        logger.debug(f"Added {len(latent_tools)} latent manipulation tools")
+
+    return tools
+
 
 @server.call_tool()
 async def handle_call_tool(
@@ -276,6 +304,18 @@ async def handle_call_tool(
         return await get_provider_status(arguments or {})
     elif name == "save_image":
         return await save_image(arguments or {})
+    elif is_latent_tool(name):
+        # Handle latent manipulation tools
+        if LATENT_HACKER is None:
+            return [types.TextContent(
+                type="text",
+                text=json.dumps({
+                    "success": False,
+                    "error": "Latent manipulation module not initialized"
+                })
+            )]
+        result = await handle_latent_tool(name, arguments or {}, LATENT_HACKER)
+        return [types.TextContent(type="text", text=json.dumps(result, indent=2))]
     else:
         raise ValueError(f"Unknown tool: {name}")
 

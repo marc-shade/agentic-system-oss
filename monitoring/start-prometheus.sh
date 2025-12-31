@@ -1,31 +1,52 @@
 #!/bin/bash
-# Start Prometheus for Claude Code monitoring
+# Start Prometheus for Claude Code monitoring (Native - No Docker)
 
-PROMETHEUS_DIR="$(cd "$(dirname "$0")/prometheus" && pwd)"
-PROMETHEUS_DATA="$(cd "$(dirname "$0")" && pwd)/prometheus-data"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PROMETHEUS_CONFIG="$SCRIPT_DIR/prometheus/prometheus.yml"
+PROMETHEUS_DATA="$SCRIPT_DIR/prometheus-data"
+LOG_DIR="/Volumes/SSDRAID0/agentic-system/logs"
+PORT=9700
 
-# Create data directory
+# Create directories
 mkdir -p "$PROMETHEUS_DATA"
+mkdir -p "$LOG_DIR"
 
-# Stop existing Prometheus container if running
-podman stop claude-prometheus 2>/dev/null
-podman rm claude-prometheus 2>/dev/null
+# Check if already running via launchd
+if launchctl list | grep -q "com.agentic.prometheus"; then
+    echo "Prometheus is managed by launchd"
+    if curl -s "http://localhost:$PORT/-/healthy" >/dev/null 2>&1; then
+        echo "✓ Prometheus healthy on http://localhost:$PORT"
+        exit 0
+    else
+        echo "Restarting via launchctl..."
+        launchctl stop com.agentic.prometheus
+        sleep 2
+        launchctl start com.agentic.prometheus
+        sleep 3
+    fi
+else
+    # Manual start (fallback)
+    echo "Starting Prometheus manually..."
+    pkill -f "prometheus.*config" 2>/dev/null
+    sleep 1
 
-# Start Prometheus with :z flag for SELinux
-podman run -d \
-  --name claude-prometheus \
-  --network host \
-  -v "$PROMETHEUS_DIR/prometheus.yml:/etc/prometheus/prometheus.yml:ro,z" \
-  -v "$PROMETHEUS_DATA:/prometheus:z" \
-  --add-host=host.containers.internal:host-gateway \
-  prom/prometheus:latest \
-  --config.file=/etc/prometheus/prometheus.yml \
-  --storage.tsdb.path=/prometheus \
-  --web.listen-address=127.0.0.1:9090 \
-  --storage.tsdb.retention.time=7d
+    nohup /opt/homebrew/bin/prometheus \
+        --config.file="$PROMETHEUS_CONFIG" \
+        --storage.tsdb.path="$PROMETHEUS_DATA" \
+        --web.listen-address=":$PORT" \
+        --storage.tsdb.retention.time=30d \
+        > "$LOG_DIR/prometheus.log" 2>&1 &
 
-echo "Prometheus started on http://127.0.0.1:9090"
-echo "Metrics endpoint: http://127.0.0.1:9090/metrics"
-echo ""
-echo "To view metrics: podman logs -f claude-prometheus"
-echo "To stop: podman stop claude-prometheus"
+    sleep 3
+fi
+
+# Verify
+if curl -s "http://localhost:$PORT/-/healthy" >/dev/null 2>&1; then
+    echo "✓ Prometheus running on http://localhost:$PORT"
+    echo "  Metrics: http://localhost:$PORT/metrics"
+    echo "  Targets: http://localhost:$PORT/targets"
+else
+    echo "✗ Prometheus failed to start"
+    tail -10 "$LOG_DIR/prometheus.log" 2>/dev/null
+    exit 1
+fi

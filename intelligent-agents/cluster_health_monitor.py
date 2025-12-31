@@ -33,11 +33,16 @@ from pathlib import Path
 from typing import Dict, List, Optional, Any
 from enum import Enum
 
+import os
+STORAGE_BASE = os.environ.get('STORAGE_BASE', '/Volumes/SSDRAID0/agentic-system' if os.path.exists('/Volumes/SSDRAID0') else '/home/marc/agentic-system')
+LOG_DIR = os.path.join(STORAGE_BASE, 'logs')
+os.makedirs(LOG_DIR, exist_ok=True)
+
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler('/mnt/agentic-system/logs/cluster_health.log'),
+        logging.FileHandler(os.path.join(LOG_DIR, 'cluster_health.log')),
         logging.StreamHandler()
     ]
 )
@@ -136,29 +141,29 @@ class ClusterHealthMonitor:
         self.heartbeat_interval = heartbeat_interval
         self.running = False
 
-        # Node definitions
+        # Node definitions (IPs updated 2025-12-20)
         self.nodes = {
             "mac-studio": {
-                "hostname": "Marcs-Mac-Studio.local",
-                "ip": "192.168.1.79",
+                "hostname": "MarcsMacStudio.fios-router.home",
+                "ip": "192.168.1.16",
                 "role": NodeRole.ORCHESTRATOR,
                 "capabilities": ["orchestration", "coordination", "temporal", "mlx-gpu"]
             },
             "macbook-air": {
-                "hostname": "Marcs-MacBook-Air.local",
+                "hostname": "Mac.fios-router.home",
                 "ip": "192.168.1.55",
                 "role": NodeRole.COORDINATOR,
                 "capabilities": ["research", "documentation", "analysis"]
             },
             "macpro51": {
-                "hostname": "macpro51.local",
-                "ip": "192.168.1.183",
+                "hostname": "macpro51.fios-router.home",
+                "ip": "192.168.1.27",
                 "role": NodeRole.BUILDER,
                 "capabilities": ["compilation", "testing", "docker", "podman", "tpu"]
             },
-            "completeu-server": {
-                "hostname": "completeu-server.local",
-                "ip": "192.168.1.186",
+            "macmini": {
+                "hostname": "macmini.fios-router.home",
+                "ip": "192.168.1.36",
                 "role": NodeRole.INFERENCE,
                 "capabilities": ["ollama", "inference", "model-serving", "llm-api"]
             }
@@ -170,10 +175,10 @@ class ClusterHealthMonitor:
         # SLA tracking
         self.sla_target = 0.99  # 99% availability
         self.sla_history = []
-        self.sla_file = Path("/mnt/agentic-system/databases/cluster_sla.json")
+        self.sla_file = Path(os.path.join(STORAGE_BASE, "databases/cluster_sla.json"))
 
         # Health history for trending
-        self.health_history_file = Path("/mnt/agentic-system/databases/cluster_health_history.json")
+        self.health_history_file = Path(os.path.join(STORAGE_BASE, "databases/cluster_health_history.json"))
         self.health_history = []
 
         # Alert thresholds
@@ -687,7 +692,7 @@ class ClusterHealthMonitor:
 
         # TODO: Integrate with alerting system (email, Slack, PagerDuty, etc.)
         # For now, just log to file
-        alert_file = Path("/mnt/agentic-system/logs/cluster_alerts.json")
+        alert_file = Path(os.path.join(LOG_DIR, "cluster_alerts.json"))
         try:
             alerts = []
             if alert_file.exists():

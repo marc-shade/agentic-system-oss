@@ -59,3 +59,82 @@ project:
       event_type: schedule
       schedule: "0 */6 * * *"
       call: handlers/claude_monitor_handlers.py:deep_learning
+
+    # === Autonomous Improvement Cycles ===
+    - name: improvement_cycle_4h
+      event_type: schedule
+      schedule: "0 */4 * * *"
+      call: handlers/improvement_cycle_handlers.py:run_improvement_cycle
+
+    - name: consolidation_12h
+      event_type: schedule
+      schedule: "0 6,18 * * *"
+      call: handlers/improvement_cycle_handlers.py:run_consolidation
+
+    # === Research Pipeline ===
+    - name: research_discovery_daily
+      event_type: schedule
+      schedule: "0 2 * * *"
+      call: handlers/research_pipeline_handlers.py:run_research_discovery
+
+    - name: video_learning_weekly
+      event_type: schedule
+      schedule: "0 3 * * 0"
+      call: handlers/research_pipeline_handlers.py:run_video_learning
+
+    # === Manual Triggers (Webhooks) ===
+    - name: manual_improvement
+      event_type: webhook
+      call: handlers/improvement_cycle_handlers.py:run_improvement_cycle
+      webhook:
+        path: /improve
+
+    - name: manual_research
+      event_type: webhook
+      call: handlers/research_pipeline_handlers.py:run_research_discovery
+      webhook:
+        path: /research
+
+    # === Feedback Loop (Closes the Learning Loop) ===
+    - name: feedback_evaluation_daily
+      event_type: schedule
+      schedule: "0 8 * * *"
+      call: handlers/feedback_loop_handlers.py:evaluate_recent_learnings
+
+    - name: knowledge_gap_analysis_12h
+      event_type: schedule
+      schedule: "0 0,12 * * *"
+      call: handlers/feedback_loop_handlers.py:identify_knowledge_gaps
+
+    - name: adaptive_schedule_6h
+      event_type: schedule
+      schedule: "0 */6 * * *"
+      call: handlers/feedback_loop_handlers.py:adaptive_schedule_check
+
+    - name: cross_cycle_sync
+      event_type: schedule
+      schedule: "30 */4 * * *"
+      call: handlers/feedback_loop_handlers.py:cross_cycle_context_sync
+
+    # === Environmental Awareness System ===
+    - name: awareness_health_5m
+      event_type: schedule
+      schedule: "*/5 * * * *"
+      call: handlers/awareness_handlers.py:ensure_awareness_running
+
+    - name: awareness_daily_report
+      event_type: schedule
+      schedule: "0 9 * * *"
+      call: handlers/awareness_handlers.py:generate_daily_report
+
+    - name: manual_awareness_restart
+      event_type: webhook
+      call: handlers/awareness_handlers.py:manual_restart
+      webhook:
+        path: /awareness/restart
+
+    - name: awareness_status
+      event_type: webhook
+      call: handlers/awareness_handlers.py:get_status
+      webhook:
+        path: /awareness/status

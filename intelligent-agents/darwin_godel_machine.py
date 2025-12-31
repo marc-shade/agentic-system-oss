@@ -45,6 +45,19 @@ import sys
 
 from storage_path_utils import get_database_path
 
+# GEPA Integration (optional - graceful degradation if not available)
+try:
+    from gepa_reflection_engine import (
+        GEPADGMIntegration,
+        ReflectionEngine,
+        PromptEvolutionTree,
+        ParetoFrontier,
+        ReflectionType
+    )
+    GEPA_AVAILABLE = True
+except ImportError:
+    GEPA_AVAILABLE = False
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -118,8 +131,13 @@ class DarwinGodelMachine:
     - Safety Constraints: Invariants that must be preserved
     """
 
-    def __init__(self, db_path: Path = DB_PATH):
-        """Initialize Darwin Gödel Machine"""
+    def __init__(self, db_path: Path = DB_PATH, enable_gepa: bool = True):
+        """Initialize Darwin Gödel Machine
+
+        Args:
+            db_path: Path to database file
+            enable_gepa: Enable GEPA reflection engine integration (default True)
+        """
         self.db_path = db_path
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self._init_database()
@@ -133,6 +151,18 @@ class DarwinGodelMachine:
 
         # Modification history
         self.modification_stack: List[Modification] = []
+
+        # GEPA Integration - Natural Language Reflection Engine
+        self.gepa_enabled = enable_gepa and GEPA_AVAILABLE
+        self.gepa_integration: Optional[GEPADGMIntegration] = None
+
+        if self.gepa_enabled:
+            try:
+                self.gepa_integration = GEPADGMIntegration(db_path)
+                logger.info("GEPA Reflection Engine initialized successfully")
+            except Exception as e:
+                logger.warning(f"Failed to initialize GEPA: {e}")
+                self.gepa_enabled = False
 
     def _init_database(self):
         """Initialize Darwin Gödel database"""
@@ -402,6 +432,133 @@ class DarwinGodelMachine:
 
         proof = "\n".join(proof_components)
         return proof
+
+    async def _generate_gepa_proof(
+        self,
+        code_before: str,
+        code_after: str,
+        modification_id: str,
+        execution_result: Optional[Dict] = None
+    ) -> Dict[str, Any]:
+        """
+        Generate enhanced proof using GEPA natural language reflection.
+
+        Uses LLM-style reflection to produce richer, more actionable proofs
+        with multi-dimensional analysis across performance, safety, correctness,
+        robustness, readability, and generalization.
+
+        Returns:
+            Dict containing:
+            - proof: Natural language proof text
+            - reflections: List of reflection details
+            - dimension_scores: Scores per dimension
+            - overall_confidence: Aggregated confidence
+            - lessons_learned: Key takeaways
+            - improvement_directions: Suggested next steps
+        """
+        if not self.gepa_enabled or not self.gepa_integration:
+            # Fallback to basic proof
+            return {
+                "proof": self._generate_proof(
+                    code_before, code_after,
+                    ModificationType.ALGORITHM_IMPROVE
+                ),
+                "reflections": [],
+                "dimension_scores": {},
+                "overall_confidence": 0.5,
+                "lessons_learned": [],
+                "improvement_directions": []
+            }
+
+        try:
+            result = await self.gepa_integration.enhance_proof_with_reflection(
+                modification_id=modification_id,
+                code_before=code_before,
+                code_after=code_after,
+                execution_result=execution_result
+            )
+            return result
+        except Exception as e:
+            logger.warning(f"GEPA proof generation failed, using fallback: {e}")
+            return {
+                "proof": self._generate_proof(
+                    code_before, code_after,
+                    ModificationType.ALGORITHM_IMPROVE
+                ),
+                "reflections": [],
+                "dimension_scores": {},
+                "overall_confidence": 0.5,
+                "lessons_learned": [],
+                "improvement_directions": []
+            }
+
+    async def track_modification_evolution(
+        self,
+        modification: Modification,
+        parent_modification_id: Optional[str] = None,
+        execution_result: Optional[Dict] = None
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Track modification in GEPA evolution tree.
+
+        Creates evolution nodes that accumulate lessons from ancestors,
+        enabling learning from the entire modification history.
+
+        Returns:
+            Evolution node info or None if GEPA not available
+        """
+        if not self.gepa_enabled or not self.gepa_integration:
+            return None
+
+        try:
+            node = await self.gepa_integration.track_modification_evolution(
+                modification_id=modification.modification_id,
+                code_content=modification.code_after,
+                parent_modification_id=parent_modification_id,
+                execution_result=execution_result
+            )
+
+            return {
+                "node_id": node.node_id,
+                "depth": node.depth,
+                "is_pareto_optimal": node.is_pareto_optimal,
+                "pareto_scores": node.pareto_scores,
+                "accumulated_lessons": node.accumulated_lessons[:10]
+            }
+        except Exception as e:
+            logger.warning(f"Failed to track evolution: {e}")
+            return None
+
+    def get_evolution_summary(self) -> Optional[Dict[str, Any]]:
+        """
+        Get summary of modification evolution progress.
+
+        Returns:
+            Evolution summary or None if GEPA not available
+        """
+        if not self.gepa_enabled or not self.gepa_integration:
+            return None
+
+        try:
+            return self.gepa_integration.get_evolution_summary()
+        except Exception as e:
+            logger.warning(f"Failed to get evolution summary: {e}")
+            return None
+
+    def get_best_evolution_path(self) -> Optional[List[Dict]]:
+        """
+        Get the best evolution path based on Pareto frontier.
+
+        Returns path from root to best current solution.
+        """
+        if not self.gepa_enabled or not self.gepa_integration:
+            return None
+
+        try:
+            return self.gepa_integration.get_best_evolution_path()
+        except Exception as e:
+            logger.warning(f"Failed to get evolution path: {e}")
+            return None
 
     def _calculate_complexity(self, tree: ast.AST) -> int:
         """Calculate code complexity (simplified cyclomatic complexity)"""
@@ -757,8 +914,14 @@ class DarwinGodelMachine:
 
 
 async def main():
-    """Demo of Darwin Gödel Machine"""
+    """Demo of Darwin Gödel Machine with GEPA Integration"""
+    print("=" * 70)
+    print("Darwin Gödel Machine with GEPA Reflection Engine")
+    print("=" * 70)
+
     machine = DarwinGodelMachine()
+
+    print(f"\nGEPA Integration: {'Enabled' if machine.gepa_enabled else 'Disabled'}")
 
     # Set baseline
     machine.set_baseline()
@@ -774,7 +937,8 @@ def process_data(data):
 """
 
     code_after = """
-def process_data(data):
+def process_data(data: list[int]) -> list[int]:
+    '''Process data by filtering positive values and doubling.'''
     return [item * 2 for item in data if item > 0]
 """
 
@@ -782,25 +946,84 @@ def process_data(data):
         code_before=code_before,
         code_after=code_after,
         modification_type=ModificationType.ALGORITHM_IMPROVE,
-        description="Optimize data processing with list comprehension"
+        description="Optimize data processing with list comprehension and type hints"
     )
 
-    print(f"\nProposed Modification:")
+    print(f"\n1. Proposed Modification")
+    print("-" * 50)
     print(f"  Expected improvement: {modification.expected_improvement:.1%}")
     print(f"  Safety score: {modification.safety_score:.2f}")
-    print(f"\nProof:")
-    print(modification.proof)
+
+    # Generate GEPA-enhanced proof
+    if machine.gepa_enabled:
+        print(f"\n2. GEPA Enhanced Proof Generation")
+        print("-" * 50)
+
+        gepa_proof = await machine._generate_gepa_proof(
+            code_before=code_before,
+            code_after=code_after,
+            modification_id=modification.modification_id
+        )
+
+        print(f"  Overall Confidence: {gepa_proof['overall_confidence']:.2%}")
+        print(f"\n  Dimension Scores:")
+        for dim, score in gepa_proof['dimension_scores'].items():
+            print(f"    {dim}: {score:.2%}")
+
+        print(f"\n  Lessons Learned:")
+        for lesson in gepa_proof['lessons_learned'][:3]:
+            print(f"    - {lesson}")
+
+        print(f"\n  Improvement Directions:")
+        for direction in gepa_proof['improvement_directions'][:2]:
+            print(f"    - {direction}")
+
+        # Track in evolution tree
+        print(f"\n3. Evolution Tree Tracking")
+        print("-" * 50)
+
+        evolution_info = await machine.track_modification_evolution(modification)
+        if evolution_info:
+            print(f"  Node ID: {evolution_info['node_id'][:12]}...")
+            print(f"  Depth: {evolution_info['depth']}")
+            print(f"  Pareto Optimal: {evolution_info['is_pareto_optimal']}")
+            print(f"  Accumulated Lessons: {len(evolution_info['accumulated_lessons'])}")
+    else:
+        print(f"\n  Basic Proof:")
+        print(modification.proof)
 
     # Apply modification
+    print(f"\n4. Applying Modification")
+    print("-" * 50)
+
     success = await machine.apply_modification(modification)
-    print(f"\nModification applied: {success}")
+    print(f"  Applied: {success}")
+
+    # Show evolution summary if available
+    if machine.gepa_enabled:
+        print(f"\n5. Evolution Summary")
+        print("-" * 50)
+
+        summary = machine.get_evolution_summary()
+        if summary:
+            tree_stats = summary['tree_statistics']
+            print(f"  Total Nodes: {tree_stats.get('total_nodes', 0)}")
+            print(f"  Max Depth: {tree_stats.get('max_depth', 0)}")
+            print(f"  Pareto Frontier Size: {summary.get('pareto_frontier_size', 0)}")
 
     # Show improvement history
     history = machine.get_improvement_history()
-    print(f"\nImprovement History ({len(history)} modifications):")
-    for item in history[:5]:
-        print(f"  - {item['type']}: {item['description']}")
-        print(f"    Applied: {item['applied']}, Reverted: {item['reverted']}")
+    print(f"\n6. Improvement History ({len(history)} modifications)")
+    print("-" * 50)
+    for item in history[:3]:
+        status = "Applied" if item['applied'] else "Proposed"
+        if item['reverted']:
+            status = "Reverted"
+        print(f"  - [{status}] {item['type']}: {item['description']}")
+
+    print("\n" + "=" * 70)
+    print("Darwin Gödel Machine Demo Complete!")
+    print("=" * 70)
 
 
 if __name__ == "__main__":

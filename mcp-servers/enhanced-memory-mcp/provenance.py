@@ -229,11 +229,160 @@ def init_provenance_schema(db_path: Path) -> None:
 class ProvenanceManager:
     """
     Manages provenance tracking and L-Score calculations for entities.
+
+    ANTI-GAMING PROTECTIONS (Stage 3.1 Hardening):
+    - Citation cycle detection: Blocks A→B→A mutual boosting
+    - Source laundering detection: Flags chains with circular source references
+    - Confidence decay: Deeper chains get compounding penalties
+    - External source requirement: Root entities need ground_truth flag
     """
 
     def __init__(self, db_path: Path):
         self.db_path = db_path
         init_provenance_schema(db_path)
+
+    def _detect_citation_cycle(
+        self,
+        entity_id: int,
+        source_ids: List[int],
+        max_depth: int = 10
+    ) -> Tuple[bool, Optional[List[int]]]:
+        """
+        ANTI-GAMING: Detect if adding these sources would create a citation cycle.
+
+        A citation cycle exists when:
+        - Source A derives from entity B
+        - Entity B is deriving from Source A (directly or transitively)
+
+        This prevents mutual boosting where A cites B and B cites A.
+
+        Args:
+            entity_id: Entity being created/updated
+            source_ids: Proposed source entity IDs
+            max_depth: Maximum depth to search for cycles
+
+        Returns:
+            (has_cycle, cycle_path) - True if cycle detected with path
+        """
+        if not source_ids:
+            return False, None
+
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+
+        try:
+            for source_id in source_ids:
+                # Check if this source (or any of its sources) eventually cites entity_id
+                visited = set()
+                stack = [(source_id, [source_id])]
+
+                while stack:
+                    current_id, path = stack.pop()
+
+                    if current_id == entity_id:
+                        # Found cycle: source chain leads back to entity
+                        conn.close()
+                        return True, path + [entity_id]
+
+                    if current_id in visited or len(path) > max_depth:
+                        continue
+
+                    visited.add(current_id)
+
+                    # Get this entity's sources
+                    cursor.execute("""
+                        SELECT source_chain FROM entities WHERE id = ?
+                    """, (current_id,))
+
+                    row = cursor.fetchone()
+                    if row and row[0]:
+                        try:
+                            chain_data = json.loads(row[0])
+                            for src_id in chain_data.get("source_ids", []):
+                                if src_id not in visited:
+                                    stack.append((src_id, path + [src_id]))
+                        except json.JSONDecodeError:
+                            pass
+
+            conn.close()
+            return False, None
+
+        except Exception as e:
+            conn.close()
+            logger.error(f"Error in citation cycle detection: {e}")
+            return False, None
+
+    def _calculate_source_quality_penalty(
+        self,
+        source_ids: List[int]
+    ) -> float:
+        """
+        ANTI-GAMING: Calculate penalty for source chain quality issues.
+
+        Detects:
+        - Sources with low L-Scores passing through (source laundering)
+        - Sources that are themselves poorly sourced
+        - Chains that concentrate derivations (single source amplification)
+
+        Returns:
+            Penalty factor (1.0 = no penalty, 0.5 = 50% penalty, etc.)
+        """
+        if not source_ids:
+            return 1.0
+
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+
+        penalties = []
+
+        for source_id in source_ids:
+            cursor.execute("""
+                SELECT l_score, derivation_depth, source_chain
+                FROM entities WHERE id = ?
+            """, (source_id,))
+
+            row = cursor.fetchone()
+            if not row:
+                # Unknown source - heavy penalty
+                penalties.append(0.5)
+                continue
+
+            source_l_score, source_depth, source_chain_json = row
+            source_l_score = source_l_score or 0.5
+            source_depth = source_depth or 0
+
+            # Penalty 1: Low L-Score sources shouldn't boost derived entities
+            if source_l_score < 0.3:
+                penalties.append(0.6)  # 40% penalty for low-quality source
+            elif source_l_score < 0.5:
+                penalties.append(0.8)  # 20% penalty for medium-quality source
+            else:
+                penalties.append(1.0)  # No penalty for good sources
+
+            # Penalty 2: Deep derivation chains get compounding penalty
+            if source_depth > 3:
+                depth_penalty = 1.0 - (source_depth - 3) * 0.1
+                penalties.append(max(0.5, depth_penalty))
+
+            # Penalty 3: Check for concentrated single-source derivation
+            if source_chain_json:
+                try:
+                    chain_data = json.loads(source_chain_json)
+                    source_sources = chain_data.get("source_ids", [])
+                    if len(set(source_sources)) < len(source_sources) * 0.5:
+                        # More than half the sources are duplicates - suspicious
+                        penalties.append(0.7)
+                except json.JSONDecodeError:
+                    pass
+
+        conn.close()
+
+        # Return geometric mean of all penalty factors
+        if not penalties:
+            return 1.0
+
+        product = math.prod(penalties)
+        return product ** (1 / len(penalties))
 
     def create_entity_with_provenance(
         self,
@@ -246,6 +395,11 @@ class ProvenanceManager:
         """
         Set provenance for an entity based on its source entities.
 
+        ANTI-GAMING (Stage 3.1):
+        - Checks for citation cycles (A→B→A mutual boosting)
+        - Applies quality penalty for low-quality source chains
+        - Blocks gaming attempts with warnings
+
         Args:
             entity_id: The entity being created/updated
             source_entity_ids: List of entity IDs this derives from
@@ -255,7 +409,26 @@ class ProvenanceManager:
 
         Returns:
             LScoreResult with calculated L-Score
+
+        Raises:
+            ValueError: If citation cycle detected (anti-gaming)
         """
+        # ANTI-GAMING: Check for citation cycles before proceeding
+        has_cycle, cycle_path = self._detect_citation_cycle(entity_id, source_entity_ids)
+        if has_cycle:
+            path_str = " → ".join(str(e) for e in cycle_path)
+            logger.warning(f"GAMING ATTEMPT: Citation cycle detected for entity {entity_id}: {path_str}")
+            raise ValueError(
+                f"Citation cycle detected. Entity {entity_id} cannot derive from sources "
+                f"that themselves derive from entity {entity_id}. Cycle: {path_str}. "
+                f"This is an anti-gaming protection against mutual L-Score boosting."
+            )
+
+        # ANTI-GAMING: Calculate source quality penalty
+        quality_penalty = self._calculate_source_quality_penalty(source_entity_ids)
+        if quality_penalty < 0.8:
+            logger.info(f"Source quality penalty applied to entity {entity_id}: {quality_penalty:.2f}")
+
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
 
@@ -299,6 +472,25 @@ class ProvenanceManager:
             relevance_scores=chain.relevance_scores,
             depth=derivation_depth
         )
+
+        # ANTI-GAMING: Apply source quality penalty to final L-Score
+        # This prevents source laundering and low-quality source amplification
+        if quality_penalty < 1.0:
+            penalized_l_score = l_score_result.l_score * quality_penalty
+            logger.info(
+                f"Entity {entity_id}: L-Score {l_score_result.l_score:.3f} → {penalized_l_score:.3f} "
+                f"(quality penalty: {quality_penalty:.2f})"
+            )
+            # Create new result with penalized score
+            l_score_result = LScoreResult(
+                l_score=penalized_l_score,
+                geometric_mean_confidence=l_score_result.geometric_mean_confidence,
+                average_relevance=l_score_result.average_relevance,
+                depth_penalty=l_score_result.depth_penalty * (1 / quality_penalty),  # Record effective penalty
+                derivation_depth=l_score_result.derivation_depth,
+                is_acceptable=penalized_l_score >= 0.3,
+                reasoning_quality=l_score_result.reasoning_quality * quality_penalty
+            )
 
         # Update entity with provenance data
         cursor.execute("""

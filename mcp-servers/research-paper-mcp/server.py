@@ -3,7 +3,8 @@
 Research Paper Ingestion MCP Server
 ====================================
 
-Autonomous knowledge acquisition from academic research papers.
+Autonomous knowledge acquisition from academic research papers
+AND video content (YouTube transcripts).
 
 Provides tools for:
 - arXiv paper search and download
@@ -12,17 +13,28 @@ Provides tools for:
 - Key insight extraction
 - Citation graph analysis
 - Knowledge integration with enhanced-memory
+- YouTube transcript extraction (merged from video-transcript-mcp)
+- Video concept and methodology extraction
 
 This enables the AGI system to autonomously learn from the latest
-AI research papers and integrate findings into its knowledge base.
+AI research papers AND video content, integrating findings into
+its knowledge base.
 
-MCP Tools:
+MCP Tools (Research Papers - 6):
 - search_arxiv: Search arXiv for papers
 - search_semantic_scholar: Search Semantic Scholar
 - download_paper: Download PDF from URL
 - extract_insights: Extract key findings from paper
 - analyze_citations: Analyze citation relationships
 - store_paper_knowledge: Store extracted knowledge in memory
+
+MCP Tools (Video Transcripts - 6, merged from video-transcript-mcp):
+- fetch_youtube_transcript: Extract transcript from YouTube video
+- clean_transcript: Clean and structure transcript text
+- extract_concepts: Extract technical concepts from transcript
+- extract_methodologies: Extract techniques and methods
+- analyze_speakers: Identify multiple speakers
+- store_video_knowledge: Store video knowledge in enhanced-memory
 """
 
 import asyncio
@@ -43,6 +55,21 @@ from mcp.server.models import InitializationOptions
 from mcp.server import NotificationOptions, Server
 import mcp.server.stdio
 import mcp.types as types
+
+# Import video transcript integration (merged from video-transcript-mcp)
+try:
+    from video_transcript_integration import (
+        get_video_transcript_tools,
+        handle_video_transcript_tool,
+        VIDEO_TRANSCRIPT_AVAILABLE
+    )
+    logger_temp = None
+except ImportError:
+    VIDEO_TRANSCRIPT_AVAILABLE = False
+    def get_video_transcript_tools():
+        return []
+    async def handle_video_transcript_tool(name, arguments):
+        return [types.TextContent(type="text", text='{"error": "Video transcript tools not available"}')]
 
 
 # Configure logging
@@ -65,8 +92,8 @@ server = Server("research-paper-mcp")
 
 @server.list_tools()
 async def handle_list_tools() -> list[types.Tool]:
-    """List available research paper ingestion tools."""
-    return [
+    """List available research paper and video transcript tools."""
+    tools = [
         types.Tool(
             name="search_arxiv",
             description="Search arXiv for research papers by query. Returns paper metadata including title, authors, abstract, PDF URL, and publication date.",
@@ -200,6 +227,13 @@ async def handle_list_tools() -> list[types.Tool]:
         )
     ]
 
+    # Add video transcript tools if available
+    if VIDEO_TRANSCRIPT_AVAILABLE:
+        tools.extend(get_video_transcript_tools())
+        logger.info(f"Video transcript tools available: {len(get_video_transcript_tools())} tools")
+
+    return tools
+
 
 @server.call_tool()
 async def handle_call_tool(
@@ -225,6 +259,13 @@ async def handle_call_tool(
     elif name == "store_paper_knowledge":
         return await store_paper_knowledge(arguments or {})
 
+    # Check if it's a video transcript tool
+    elif VIDEO_TRANSCRIPT_AVAILABLE:
+        video_tool_names = [t.name for t in get_video_transcript_tools()]
+        if name in video_tool_names:
+            return await handle_video_transcript_tool(name, arguments or {})
+        else:
+            raise ValueError(f"Unknown tool: {name}")
     else:
         raise ValueError(f"Unknown tool: {name}")
 

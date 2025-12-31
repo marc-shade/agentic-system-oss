@@ -17,7 +17,15 @@ from pathlib import Path
 from typing import Dict, Any, Optional, List
 
 # Add scripts path to access semantic cache module
-SCRIPTS_PATH = Path("/mnt/agentic-system/scripts")
+# Auto-detect storage base for cross-platform compatibility
+import platform
+if platform.system() == "Darwin":  # macOS
+    SCRIPTS_PATH = Path("/Volumes/SSDRAID0/agentic-system/scripts")
+else:  # Linux
+    SCRIPTS_PATH = Path("/mnt/agentic-system/scripts")
+    if not SCRIPTS_PATH.exists():
+        SCRIPTS_PATH = Path("/home/marc/agentic-system/scripts")
+
 if str(SCRIPTS_PATH) not in sys.path:
     sys.path.insert(0, str(SCRIPTS_PATH))
 

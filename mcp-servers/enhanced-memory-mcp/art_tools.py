@@ -136,7 +136,7 @@ def register_art_tools(app, nmf_instance=None, db_path: str = None) -> None:
                 "match_score": float(match_score),
                 "vigilance_used": art.vigilance,
                 "total_categories": len(art.categories),
-                "total_patterns_learned": art.stats.get("total_patterns_learned", 0)
+                "total_patterns_learned": art.get_statistics().get("total_patterns_learned", 0)
             }
         finally:
             if original_vigilance is not None:
@@ -290,7 +290,7 @@ def register_art_tools(app, nmf_instance=None, db_path: str = None) -> None:
             "total_categories": len(categories),
             "categories": categories,
             "vigilance": art.vigilance,
-            "stats": art.get_stats()
+            "stats": art.get_statistics()
         }
 
 
@@ -418,11 +418,11 @@ def register_art_tools(app, nmf_instance=None, db_path: str = None) -> None:
         if _art_instance is not None:
             stats["instances"]["main"] = {
                 "initialized": True,
-                "name": _art_instance.name,
+                "name": getattr(_art_instance, 'name', 'fuzzy_art'),
                 "vigilance": _art_instance.vigilance,
                 "learning_rate": _art_instance.learning_rate,
                 "total_categories": len(_art_instance.categories),
-                "stats": _art_instance.stats
+                "stats": _art_instance.get_statistics()
             }
         else:
             state_file = ART_STORAGE_DIR / 'fuzzy_art_state.json'
@@ -435,10 +435,10 @@ def register_art_tools(app, nmf_instance=None, db_path: str = None) -> None:
         if _art_hybrid_instance is not None:
             stats["instances"]["hybrid"] = {
                 "initialized": True,
-                "name": _art_hybrid_instance.name,
+                "name": getattr(_art_hybrid_instance, 'name', 'art_hybrid'),
                 "vigilance": _art_hybrid_instance.art.vigilance,
                 "total_categories": len(_art_hybrid_instance.art.categories),
-                "stats": _art_hybrid_instance.art.stats
+                "stats": _art_hybrid_instance.get_statistics()
             }
         else:
             state_file = ART_STORAGE_DIR / 'art_hybrid_state.json'

@@ -499,6 +499,63 @@ class ARTHybrid:
             return category.metadata["content_ids"]
         return []
 
+    def get_statistics(self) -> Dict[str, Any]:
+        """Get hybrid network statistics"""
+        art_stats = self.art.get_statistics()
+        return {
+            **art_stats,
+            "embedding_dim": self.embedding_dim,
+            "cached_embeddings": len(self.embedding_cache)
+        }
+
+    def save(self, filepath: str) -> None:
+        """Save hybrid network state to file"""
+        state = {
+            "embedding_dim": self.embedding_dim,
+            "embedding_cache": {k: v.tolist() for k, v in self.embedding_cache.items()},
+            "art_state": {
+                "vigilance": self.art.vigilance,
+                "learning_rate": self.art.learning_rate,
+                "choice_param": self.art.choice_param,
+                "complement_coding": self.art.complement_coding,
+                "max_categories": self.art.max_categories,
+                "input_dim": self.art.input_dim,
+                "total_inputs": self.art.total_inputs,
+                "resonance_count": self.art.resonance_count,
+                "new_category_count": self.art.new_category_count,
+                "categories": [cat.to_dict() for cat in self.art.categories]
+            }
+        }
+        with open(filepath, 'w') as f:
+            json.dump(state, f, indent=2)
+        logger.info(f"Saved ART Hybrid network to {filepath}")
+
+    @classmethod
+    def load(cls, filepath: str) -> "ARTHybrid":
+        """Load hybrid network state from file"""
+        with open(filepath, 'r') as f:
+            state = json.load(f)
+
+        art_state = state["art_state"]
+        art_network = FuzzyART(
+            vigilance=art_state["vigilance"],
+            learning_rate=art_state["learning_rate"],
+            choice_param=art_state["choice_param"],
+            complement_coding=art_state["complement_coding"],
+            max_categories=art_state["max_categories"]
+        )
+        art_network.input_dim = art_state["input_dim"]
+        art_network.total_inputs = art_state["total_inputs"]
+        art_network.resonance_count = art_state["resonance_count"]
+        art_network.new_category_count = art_state["new_category_count"]
+        art_network.categories = [ARTCategory.from_dict(c) for c in art_state["categories"]]
+
+        hybrid = cls(art_network=art_network, embedding_dim=state["embedding_dim"])
+        hybrid.embedding_cache = {k: np.array(v) for k, v in state.get("embedding_cache", {}).items()}
+
+        logger.info(f"Loaded ART Hybrid network from {filepath}")
+        return hybrid
+
 
 # Example usage and testing
 if __name__ == "__main__":

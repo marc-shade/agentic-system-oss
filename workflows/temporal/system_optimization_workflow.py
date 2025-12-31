@@ -39,7 +39,8 @@ async def collect_performance_metrics() -> dict:
         memory = psutil.virtual_memory()
         cpu_percent = psutil.cpu_percent(interval=2)
         load_avg = psutil.getloadavg()
-        disk = psutil.disk_usage(str(_STORAGE_BASE))
+        storage_base = _get_storage_base()
+        disk = psutil.disk_usage(str(storage_base))
         
         metrics = {
             "timestamp": datetime.now().isoformat(),
@@ -169,6 +170,27 @@ async def record_optimization_outcome(optimization: dict, metrics_before: dict, 
         # Store outcome in memory system for future learning
         from server import create_entities
 
+        outcome = {
+            "optimization": optimization,
+            "metrics_before": metrics_before,
+            "metrics_after": metrics_after,
+            "improvement": {}
+        }
+
+        # Calculate improvements
+        for key in metrics_after:
+            if key in metrics_before:
+                before = metrics_before[key]
+                after = metrics_after[key]
+                if isinstance(before, (int, float)) and isinstance(after, (int, float)) and before != 0:
+                    outcome["improvement"][key] = ((after - before) / before) * 100
+
+        return {"status": "recorded", "outcome": outcome}
+    except Exception as e:
+        logger.error(f"Failed to record optimization outcome: {e}")
+        return {"error": str(e)}
+
+
 def _get_storage_base() -> Path:
     """Detect storage base path based on platform."""
     env_path = os.environ.get("AGENTIC_SYSTEM_PATH")
@@ -177,44 +199,14 @@ def _get_storage_base() -> Path:
 
     system = platform.system()
     if system == "Darwin":  # macOS
-        if Path(str(_STORAGE_BASE)).exists():
-            return Path(str(_STORAGE_BASE))
-        elif Path(str(_STORAGE_BASE)).exists():
-            return Path(str(_STORAGE_BASE))
+        macos_path = Path("/Volumes/SSDRAID0/agentic-system")
+        if macos_path.exists():
+            return macos_path
     elif system == "Linux":
-        if Path(str(_STORAGE_BASE)).exists():
-            return Path(str(_STORAGE_BASE))
-        elif Path(str(_STORAGE_BASE)).exists():
-            return Path(str(_STORAGE_BASE))
+        linux_path = Path("/home/marc/agentic-system")
+        if linux_path.exists():
+            return linux_path
     return Path(__file__).parent.parent
-
-
-_STORAGE_BASE = _get_storage_base()
-
-        
-        memory_improvement = metrics_before["memory"]["percent"] - metrics_after["memory"]["percent"]
-        cpu_improvement = metrics_before["cpu"]["percent"] - metrics_after["cpu"]["percent"]
-        
-        observations = [
-            f"Applied optimizations: {', '.join(optimization.get('applied_optimizations', []))}",
-            f"Memory improvement: {memory_improvement:.1f}%",
-            f"CPU improvement: {cpu_improvement:.1f}%",
-            f"Effectiveness: {'high' if memory_improvement > 5 or cpu_improvement > 10 else 'moderate' if memory_improvement > 2 or cpu_improvement > 5 else 'low'}"
-        ]
-        
-        entities = [{
-            "name": f"optimization_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
-            "entityType": "system_optimization",
-            "observations": observations
-        }]
-        
-        result = await create_entities(entities=entities)
-        logger.info(f"Recorded optimization outcome: {result}")
-        return result
-        
-    except Exception as e:
-        logger.error(f"Failed to record outcome: {e}")
-        return {"error": str(e)}
 
 
 @workflow.defn
@@ -229,7 +221,7 @@ class SystemOptimizationWorkflow:
         workflow.logger.info(f"Starting system optimization (dry_run: {dry_run})")
         
         results = {
-            "start_time": datetime.now().isoformat(),
+            "start_time": workflow.now().isoformat(),
             "dry_run": dry_run,
             "steps": {}
         }
@@ -285,9 +277,9 @@ class SystemOptimizationWorkflow:
             else:
                 workflow.logger.info("No optimizations needed - system running optimally")
             
-            results["end_time"] = datetime.now().isoformat()
+            results["end_time"] = workflow.now().isoformat()
             results["status"] = "success"
-            
+
             workflow.logger.info(f"System optimization complete: {results}")
             return results
             

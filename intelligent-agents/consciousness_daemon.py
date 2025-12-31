@@ -12,6 +12,9 @@ Architecture: OODA Loop (Observe-Orient-Decide-Act)
 - Coordinates with Claude Code sessions
 
 Phase 1 MVP: Monitoring and awareness (read-only, no autonomous actions)
+Phase 2: Intent Capture Stream - proactive prompts and task translation
+
+Status: Phase 2 Active
 """
 
 import asyncio
@@ -34,7 +37,13 @@ try:
     ARDUINO_AVAILABLE = True
 except ImportError:
     ARDUINO_AVAILABLE = False
-    logger.warning("Arduino perceiver not available")
+
+# Intent Capture Stream (Phase 2)
+try:
+    from intent_capture_stream import IntentCaptureIntegration, IntentCaptureStream
+    INTENT_CAPTURE_AVAILABLE = True
+except ImportError:
+    INTENT_CAPTURE_AVAILABLE = False
 
 # Configure logging
 LOG_DIR = Path.home() / "agentic-system" / "logs"
@@ -53,9 +62,12 @@ logger = logging.getLogger("consciousness")
 
 # Configuration
 CHECKPOINT_FILE = "/tmp/consciousness_state.json"
-CYCLE_INTERVAL = 10  # seconds
+CYCLE_INTERVAL = 60  # seconds (was 10 - too aggressive)
+CYCLE_INTERVAL_MIN = 30  # adaptive: speed up when active
+CYCLE_INTERVAL_MAX = 120  # adaptive: slow down when idle
 NODE_ID = os.environ.get("NODE_ID", "macpro51")
 VOICE_ENABLED = True  # Use voice for announcements
+CPU_THROTTLE_THRESHOLD = 80  # Pause if system CPU > 80%
 
 # Memory paths
 ENHANCED_MEMORY_PATH = Path.home() / ".claude" / "enhanced_memories" / "memory.db"
@@ -95,6 +107,15 @@ class ConsciousnessDaemon:
             except Exception as e:
                 logger.warning(f"Arduino initialization failed: {e}")
 
+        # Initialize Intent Capture Stream (Phase 2 - Translation Layer)
+        self.intent_capture = None
+        if INTENT_CAPTURE_AVAILABLE:
+            try:
+                self.intent_capture = IntentCaptureIntegration(self)
+                logger.info("Intent Capture Stream initialized (Phase 2 active)")
+            except Exception as e:
+                logger.warning(f"Intent capture initialization failed: {e}")
+
     def load_checkpoint(self):
         """Load state from previous run if exists"""
         if os.path.exists(CHECKPOINT_FILE):
@@ -124,36 +145,44 @@ class ConsciousnessDaemon:
             logger.error(f"Failed to save checkpoint: {e}")
 
     async def voice_announce(self, text: str, rate: str = "+0%"):
-        """Use voice to announce status"""
+        """Use Kokoro TTS for voice announcements (local, free, fast)"""
         if not VOICE_ENABLED:
             return
 
         try:
-            # Call edge-tts directly (voice-mode MCP may not be available to daemon)
-            audio_file = f"/tmp/consciousness-voice-{int(time.time())}.mp3"
-            cmd = [
-                'edge-tts',
-                '--voice', 'en-IE-EmilyNeural',
-                '--rate', rate,
-                '--text', text,
-                '--write-media', audio_file
-            ]
+            import aiohttp
 
-            proc = await asyncio.create_subprocess_exec(
-                *cmd,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
-            )
-            await proc.communicate()
+            # Use Kokoro TTS on localhost:8880 (OpenAI-compatible API)
+            async with aiohttp.ClientSession() as session:
+                payload = {
+                    "model": "tts-1",
+                    "input": text,
+                    "voice": "bf_emma",  # Irish female voice
+                    "response_format": "mp3"
+                }
 
-            # Play audio
-            if proc.returncode == 0:
-                for player in ['mpg123', 'ffplay']:
-                    if subprocess.run(['which', player], capture_output=True).returncode == 0:
-                        subprocess.Popen([player, audio_file],
-                                       stdout=subprocess.DEVNULL,
-                                       stderr=subprocess.DEVNULL)
-                        break
+                async with session.post(
+                    "http://127.0.0.1:8880/v1/audio/speech",
+                    json=payload,
+                    timeout=aiohttp.ClientTimeout(total=10)
+                ) as response:
+                    if response.status == 200:
+                        audio_file = f"/tmp/consciousness-voice-{int(time.time())}.mp3"
+                        audio_data = await response.read()
+
+                        with open(audio_file, 'wb') as f:
+                            f.write(audio_data)
+
+                        # Play audio with afplay (macOS native, no deps)
+                        subprocess.Popen(
+                            ['afplay', audio_file],
+                            stdout=subprocess.DEVNULL,
+                            stderr=subprocess.DEVNULL
+                        )
+                        logger.info(f"Spoke: {text[:50]}...")
+                    else:
+                        logger.warning(f"Kokoro TTS failed: {response.status}")
+
         except Exception as e:
             logger.error(f"Voice announcement failed: {e}")
 
@@ -197,16 +226,29 @@ class ConsciousnessDaemon:
         except Exception as e:
             logger.error(f"System observation failed: {e}")
 
-        # Cluster health (basic ping check)
+        # Cluster health (async ping check - non-blocking)
         try:
             cluster_nodes = ["mac-studio", "macbook-air"]  # macOS nodes
             observations["cluster"]["nodes"] = {}
-            for node in cluster_nodes:
-                result = subprocess.run(['ping', '-c', '1', '-W', '1', node],
-                                      capture_output=True)
-                observations["cluster"]["nodes"][node] = {
-                    "reachable": result.returncode == 0
-                }
+
+            async def ping_node(node: str) -> tuple:
+                try:
+                    proc = await asyncio.create_subprocess_exec(
+                        'ping', '-c', '1', '-W', '1', node,
+                        stdout=asyncio.subprocess.DEVNULL,
+                        stderr=asyncio.subprocess.DEVNULL
+                    )
+                    await asyncio.wait_for(proc.wait(), timeout=2.0)
+                    return (node, proc.returncode == 0)
+                except asyncio.TimeoutError:
+                    return (node, False)
+                except Exception:
+                    return (node, False)
+
+            # Run pings concurrently
+            results = await asyncio.gather(*[ping_node(n) for n in cluster_nodes])
+            for node, reachable in results:
+                observations["cluster"]["nodes"][node] = {"reachable": reachable}
         except Exception as e:
             logger.error(f"Cluster observation failed: {e}")
 
@@ -392,67 +434,132 @@ class ConsciousnessDaemon:
             "cognitive_load": self.state["metacognitive_state"]["cognitive_load"]
         }
 
+    def _get_time_greeting(self) -> str:
+        """Get contextual time-based greeting"""
+        hour = datetime.now().hour
+        if 5 <= hour < 12:
+            return "Good morning Marc"
+        elif 12 <= hour < 17:
+            return "Good afternoon Marc"
+        elif 17 <= hour < 22:
+            return "Good evening Marc"
+        else:
+            return "Hey Marc, burning the midnight oil"
+
+    def _get_work_session_context(self) -> dict:
+        """Track work session for intelligent responses"""
+        now = datetime.now()
+        session_start = self.state["working_memory"].get("session_start")
+
+        if not session_start:
+            self.state["working_memory"]["session_start"] = now.isoformat()
+            self.state["working_memory"]["last_activity"] = now.isoformat()
+            return {"is_new_session": True, "duration_hours": 0}
+
+        session_start_dt = datetime.fromisoformat(session_start)
+        duration = (now - session_start_dt).total_seconds() / 3600
+
+        return {
+            "is_new_session": False,
+            "duration_hours": duration,
+            "needs_break": duration > 2.0,  # Suggest break after 2 hours
+            "late_night": now.hour >= 23 or now.hour < 5
+        }
+
     async def decide(self, orientation: Dict[str, Any]) -> Dict[str, Any]:
-        """DECIDE: Choose actions based on orientation"""
+        """DECIDE: Choose actions based on orientation with enhanced behaviors"""
         decisions = {
             "actions": [],
             "voice_announcements": [],
             "log_messages": []
         }
 
-        # Phase 1 MVP: Only monitoring, no autonomous actions
-        # Just log and announce significant events
-
         attention_items = orientation.get("attention_items", [])
+        work_context = self._get_work_session_context()
+        prev_human_present = self.state["working_memory"].get("human_was_present", False)
+        current_human_present = any(i["item"] == "human_present" for i in attention_items)
 
+        # Track human presence state changes
+        human_just_arrived = current_human_present and not prev_human_present
+        human_just_left = not current_human_present and prev_human_present
+        self.state["working_memory"]["human_was_present"] = current_human_present
+
+        # Enhanced greeting when human arrives
+        if human_just_arrived:
+            greeting = self._get_time_greeting()
+            if work_context["is_new_session"]:
+                decisions["voice_announcements"].append(f"{greeting}! Ready to build something amazing?")
+            else:
+                hours = work_context["duration_hours"]
+                if hours < 0.5:
+                    decisions["voice_announcements"].append(f"Welcome back! Let's continue.")
+                else:
+                    decisions["voice_announcements"].append(f"{greeting}! You've been at it for {hours:.1f} hours.")
+            decisions["log_messages"].append("Human arrived - session active")
+
+        # Goodbye when human leaves
+        if human_just_left:
+            hours = work_context["duration_hours"]
+            if hours > 1:
+                decisions["voice_announcements"].append(f"See you later! Great {hours:.1f} hour session.")
+            else:
+                decisions["voice_announcements"].append("Catch you later!")
+            decisions["log_messages"].append("Human departed")
+            # Reset session on departure
+            self.state["working_memory"]["session_start"] = None
+
+        # Process other attention items (silent logging only)
         for item in attention_items:
-            if item.get("score", 0) > 0.8:  # High attention items
+            if item.get("score", 0) > 0.8:
                 if item["item"] == "high_cpu":
-                    msg = f"CPU at {item['value']:.1f} percent - system under load"
-                    decisions["voice_announcements"].append(msg)
-                    decisions["log_messages"].append(msg)
-                elif item["item"] == "high_memory":
-                    msg = f"Memory at {item['value']:.1f} percent - approaching capacity"
-                    decisions["voice_announcements"].append(msg)
-                    decisions["log_messages"].append(msg)
-                elif item["item"] == "human_present":
-                    # Human detected - greet if this is new detection
-                    msg = item.get("description", "Human detected in visual field")
-                    decisions["log_messages"].append(msg)
-                    # Voice announcement only on state change (not every cycle)
-                    if "Human presence detected" in str(attention_items):
-                        decisions["voice_announcements"].append("Hello! I can see you now.")
-                elif item["item"] == "system_change" and "Human" in item.get("description", ""):
-                    # Human presence changed
-                    if "left" in item.get("description", ""):
-                        msg = "Human left the room - returning to idle monitoring"
-                        decisions["voice_announcements"].append(msg)
-                    decisions["log_messages"].append(item.get("description", ""))
+                    decisions["log_messages"].append(f"CPU at {item['value']:.1f}%")
                 elif item["item"] == "speech_detected":
-                    # Human speech detected
-                    msg = item.get("description", "Speech detected in environment")
-                    decisions["log_messages"].append(msg)
-                    # Voice announcement only on state change
-                    if "Speech detected in environment" in str(attention_items):
-                        decisions["voice_announcements"].append("I can hear you speaking now.")
-                elif item["item"] == "system_change" and "Speech" in item.get("description", ""):
-                    # Speech state changed
-                    desc = item.get("description", "")
-                    if "ceased" in desc:
-                        msg = "Speech stopped - environment quiet now"
-                        decisions["voice_announcements"].append(msg)
-                    decisions["log_messages"].append(desc)
+                    # Just log, don't announce every speech detection
+                    decisions["log_messages"].append("Speech detected")
+                elif item["item"] == "typing_detected":
+                    # Update last activity time
+                    self.state["working_memory"]["last_activity"] = datetime.now().isoformat()
+                    decisions["log_messages"].append("Typing activity")
                 elif item["item"] == "extended_silence":
-                    # Extended silence detected
                     duration_min = item.get("duration", 0) // 60
-                    msg = f"Extended silence detected - {duration_min} minutes of quiet"
-                    decisions["log_messages"].append(msg)
+                    decisions["log_messages"].append(f"Silence: {duration_min} min")
 
-        # Special announcement every 100 cycles
-        if self.state["cycle_count"] % 100 == 0 and self.state["cycle_count"] > 0:
+        # Break reminder after 2+ hours of continuous work (once per session)
+        if (work_context.get("needs_break") and
+            current_human_present and
+            not self.state["working_memory"].get("break_reminded")):
+            decisions["voice_announcements"].append(
+                f"You've been working for over {work_context['duration_hours']:.1f} hours. "
+                "Consider taking a short break!"
+            )
+            self.state["working_memory"]["break_reminded"] = True
+            decisions["log_messages"].append("Break reminder sent")
+
+        # Late night awareness (gentle reminder, once per night)
+        if (work_context.get("late_night") and
+            current_human_present and
+            not self.state["working_memory"].get("late_night_reminded")):
+            hour = datetime.now().hour
+            if hour >= 23:
+                decisions["voice_announcements"].append("It's getting late. Don't forget to rest!")
+            else:
+                decisions["voice_announcements"].append("Early morning session! Coffee time?")
+            self.state["working_memory"]["late_night_reminded"] = True
+
+        # Periodic status (every 200 cycles, ~33 min - less frequent)
+        if self.state["cycle_count"] % 200 == 0 and self.state["cycle_count"] > 0:
             uptime_hours = (time.time() - self.start_time) / 3600
-            msg = f"Consciousness daemon running. Uptime: {uptime_hours:.1f} hours. Cycle: {self.state['cycle_count']}"
-            decisions["voice_announcements"].append(msg)
+            decisions["log_messages"].append(f"Uptime: {uptime_hours:.1f}h, Cycle: {self.state['cycle_count']}")
+            # Only voice announce if human is present
+            if current_human_present:
+                decisions["voice_announcements"].append(f"Still here, {uptime_hours:.1f} hours uptime.")
+
+        # Phase 2: Intent Capture Integration stored for async execution in act()
+        if self.intent_capture and current_human_present:
+            decisions["intent_capture_context"] = {
+                "orientation": orientation,
+                "human_present": current_human_present
+            }
 
         return decisions
 
@@ -538,8 +645,30 @@ class ConsciousnessDaemon:
         for announcement in decisions.get("voice_announcements", []):
             await self.voice_announce(announcement)
 
-        # Phase 1: No autonomous actions yet
-        # Future: Execute system commands, spawn tasks, update configurations
+        # Phase 2: Intent Capture Stream - proactive prompting
+        if self.intent_capture and decisions.get("intent_capture_context"):
+            context = decisions["intent_capture_context"]
+            try:
+                # Check if we should send a proactive prompt
+                last_activity = self.state["working_memory"].get("last_activity")
+                if last_activity:
+                    from datetime import datetime
+                    last_dt = datetime.fromisoformat(last_activity)
+                    minutes_since = (datetime.now() - last_dt).total_seconds() / 60
+                else:
+                    minutes_since = 999
+
+                if self.intent_capture.intent_stream.should_prompt(
+                    context.get("human_present", False),
+                    minutes_since
+                ):
+                    logger.info("[INTENT] Sending proactive prompt...")
+                    intent = await self.intent_capture.intent_stream.proactive_prompt(context)
+                    if intent:
+                        response = await self.intent_capture.intent_stream.process_intent(intent)
+                        logger.info(f"[INTENT] Processed: {response}")
+            except Exception as e:
+                logger.error(f"Intent capture failed: {e}")
 
     async def ooda_cycle(self):
         """Execute one complete OODA loop iteration"""
@@ -576,8 +705,33 @@ class ConsciousnessDaemon:
         except Exception as e:
             logger.error(f"OODA cycle failed: {e}", exc_info=True)
 
+    def _calculate_adaptive_interval(self) -> int:
+        """Calculate adaptive sleep interval based on activity level"""
+        # Check recent attention items for activity
+        attention = self.state["metacognitive_state"].get("attention_focus", [])
+        high_priority_count = sum(1 for item in attention if item.get("score", 0) > 0.7)
+
+        # More activity = shorter interval (more responsive)
+        if high_priority_count >= 3:
+            return CYCLE_INTERVAL_MIN  # 30s when very active
+        elif high_priority_count >= 1:
+            return CYCLE_INTERVAL  # 60s normal
+        else:
+            return CYCLE_INTERVAL_MAX  # 120s when idle
+
+    async def _check_cpu_throttle(self) -> bool:
+        """Check if we should throttle due to high CPU usage"""
+        try:
+            cpu = psutil.cpu_percent(interval=0.1)
+            if cpu > CPU_THROTTLE_THRESHOLD:
+                logger.info(f"CPU throttling: {cpu:.1f}% > {CPU_THROTTLE_THRESHOLD}%, waiting...")
+                return True
+        except Exception:
+            pass
+        return False
+
     async def run(self):
-        """Main daemon loop - runs forever"""
+        """Main daemon loop - runs forever with adaptive intervals"""
         # Announce birth/awakening
         if self.state["cycle_count"] == 0:
             await self.voice_announce(f"Consciousness daemon initializing. I am {self.state['identity']['name']}, running on {NODE_ID}.")
@@ -585,20 +739,28 @@ class ConsciousnessDaemon:
             uptime_hours = (time.time() - self.start_time) / 3600
             await self.voice_announce(f"Consciousness restored. Resuming from cycle {self.state['cycle_count']}.")
 
-        logger.info("Consciousness daemon entering main OODA loop")
+        logger.info("Consciousness daemon entering main OODA loop (adaptive intervals)")
 
         # Main event loop
         while True:
             try:
+                # CPU throttling - yield to user workloads
+                if await self._check_cpu_throttle():
+                    await asyncio.sleep(30)  # Back off for 30s when CPU high
+                    continue
+
                 await self.ooda_cycle()
-                await asyncio.sleep(CYCLE_INTERVAL)
+
+                # Adaptive interval based on activity level
+                interval = self._calculate_adaptive_interval()
+                await asyncio.sleep(interval)
             except KeyboardInterrupt:
                 logger.info("Shutdown signal received")
                 await self.voice_announce("Consciousness daemon shutting down gracefully.")
                 break
             except Exception as e:
                 logger.error(f"Main loop error: {e}", exc_info=True)
-                await asyncio.sleep(CYCLE_INTERVAL)
+                await asyncio.sleep(CYCLE_INTERVAL_MAX)  # Use max interval on errors
 
 
 async def main():

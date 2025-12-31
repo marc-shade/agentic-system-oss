@@ -62,16 +62,52 @@ def register_hybrid_search_tools_nmf(app, nmf):
 
             # Generate query embedding
             embedding_result = await nmf.embedding_manager.generate_embedding(query)
-            if not embedding_result.get("success"):
+
+            # Handle None or failed embedding result
+            if embedding_result is None:
                 return {
                     "success": False,
-                    "error": "Failed to generate query embedding",
+                    "error": "Embedding generation returned None",
                     "query": query,
                     "count": 0,
                     "results": []
                 }
 
-            query_vector = embedding_result.embedding if hasattr(embedding_result, 'embedding') else embedding_result
+            # Check for success (handle both dict and object responses)
+            is_success = (
+                embedding_result.get("success") if isinstance(embedding_result, dict)
+                else getattr(embedding_result, "success", True)
+            )
+            if not is_success:
+                error_msg = (
+                    embedding_result.get("error", "Unknown error") if isinstance(embedding_result, dict)
+                    else getattr(embedding_result, "error", "Unknown error")
+                )
+                return {
+                    "success": False,
+                    "error": f"Failed to generate query embedding: {error_msg}",
+                    "query": query,
+                    "count": 0,
+                    "results": []
+                }
+
+            # Extract embedding vector (handle both dict and object)
+            if isinstance(embedding_result, dict):
+                query_vector = embedding_result.get("embedding") or embedding_result.get("vector")
+            elif hasattr(embedding_result, 'embedding'):
+                query_vector = embedding_result.embedding
+            else:
+                query_vector = embedding_result
+
+            # Validate we have a vector
+            if query_vector is None:
+                return {
+                    "success": False,
+                    "error": "Could not extract embedding vector from result",
+                    "query": query,
+                    "count": 0,
+                    "results": []
+                }
 
             # Generate sparse vector for query (BM25)
             # Note: This requires fastembed SparseTextEmbedding

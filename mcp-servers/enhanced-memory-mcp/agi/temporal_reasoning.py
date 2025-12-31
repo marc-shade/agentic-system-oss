@@ -31,6 +31,58 @@ class TemporalReasoning:
     def __init__(self):
         pass
 
+    def _would_create_cycle(
+        self,
+        cause_entity_id: int,
+        effect_entity_id: int,
+        max_depth: int = 10
+    ) -> Tuple[bool, Optional[List[int]]]:
+        """
+        Check if creating a link from cause to effect would create a cycle.
+        Uses DFS to check if effect can already reach cause.
+
+        Args:
+            cause_entity_id: Proposed cause entity
+            effect_entity_id: Proposed effect entity
+            max_depth: Maximum depth to search (prevents infinite loops)
+
+        Returns:
+            Tuple of (would_create_cycle, cycle_path_if_found)
+        """
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+
+        # DFS from effect to see if we can reach cause
+        visited = set()
+        stack = [(effect_entity_id, [effect_entity_id])]
+
+        while stack:
+            current_id, path = stack.pop()
+
+            if current_id == cause_entity_id:
+                # Found a path from effect back to cause - this would be a cycle
+                conn.close()
+                return True, path + [cause_entity_id]
+
+            if current_id in visited or len(path) > max_depth:
+                continue
+
+            visited.add(current_id)
+
+            # Get all entities that this entity causes (forward links)
+            cursor.execute(
+                'SELECT effect_entity_id FROM causal_links WHERE cause_entity_id = ?',
+                (current_id,)
+            )
+
+            for row in cursor.fetchall():
+                next_id = row[0]
+                if next_id not in visited:
+                    stack.append((next_id, path + [next_id]))
+
+        conn.close()
+        return False, None
+
     def create_causal_link(
         self,
         cause_entity_id: int,
@@ -53,7 +105,32 @@ class TemporalReasoning:
 
         Returns:
             link_id
+
+        Raises:
+            ValueError: If cause and effect are the same entity (circular reasoning)
+            ValueError: If creating link would form a multi-hop cycle (A→B→...→A)
         """
+        # ANTI-GAMING: Block self-referential causal links (circular reasoning)
+        if cause_entity_id == effect_entity_id:
+            logger.warning(f"Blocked self-referential causal link attempt: entity {cause_entity_id} → {cause_entity_id}")
+            raise ValueError(
+                f"Cannot create self-referential causal link. "
+                f"Entity {cause_entity_id} cannot cause itself. "
+                f"This would enable circular reasoning which is logically invalid."
+            )
+
+        # ANTI-GAMING: Block multi-hop cycles (A→B→C→A)
+        # Check if effect already has a path back to cause
+        would_cycle, cycle_path = self._would_create_cycle(cause_entity_id, effect_entity_id)
+        if would_cycle:
+            path_str = " → ".join(str(e) for e in cycle_path)
+            logger.warning(f"Blocked circular causal chain attempt: {cause_entity_id} → {effect_entity_id} would create cycle: {path_str}")
+            raise ValueError(
+                f"Cannot create causal link that would form a cycle. "
+                f"Adding {cause_entity_id} → {effect_entity_id} would create circular chain: {path_str}. "
+                f"Circular causation is logically invalid."
+            )
+
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
 

@@ -287,6 +287,26 @@ CLUSTER_NODES = {
         "specialties": ["ollama-inference", "model-serving", "api-endpoints"],
         "max_tasks": 8,
         "priority": 2
+    },
+    "macmini": {
+        "ip": "192.168.1.2",  # small-inference node
+        "hostname": "macmini.local",
+        "os": "macos",
+        "arch": "arm64",
+        "capabilities": ["inference", "lightweight-tasks", "edge-computing"],
+        "specialties": ["small-inference", "lightweight-models", "edge-tasks"],
+        "max_tasks": 4,
+        "priority": 2
+    },
+    "bpi-sentinel": {
+        "ip": "192.168.1.234",  # sentinel/watchdog node
+        "hostname": "bpi-sentinel.local",
+        "os": "linux",
+        "arch": "arm64",
+        "capabilities": ["monitoring", "alerting", "watchdog", "health-checks"],
+        "specialties": ["sentinel", "cluster-monitoring", "health-watchdog"],
+        "max_tasks": 2,
+        "priority": 4  # Low priority - dedicated to monitoring
     }
 }
 
@@ -318,19 +338,36 @@ class DistributedTaskRouter:
         self._init_database()
 
     def _detect_local_node(self) -> str:
-        """Detect which node we're running on"""
+        """Detect which node we're running on - returns CLUSTER_NODES key"""
         hostname = socket.gethostname().lower()
 
-        # Check against known node IDs
-        for node_id in ["builder", "orchestrator", "researcher", "inference"]:
+        # Check against CLUSTER_NODES keys (the actual node identifiers)
+        for node_id, node_info in CLUSTER_NODES.items():
+            # Direct match on node_id
             if node_id in hostname:
                 return node_id
+            # Match on configured hostname (normalize for comparison)
+            config_host = node_info.get("hostname", "").lower()
+            # Handle variations: "Marcs-Mac-Studio.local" -> "macsstudio"
+            normalized_config = config_host.replace(".local", "").replace("-", "").replace("marcs", "")
+            normalized_host = hostname.replace("-", "").replace("marcs", "")
+            if normalized_config and normalized_config in normalized_host:
+                return node_id
 
-        # Check if it's a macOS system
+        # Fallback: detect by IP address
+        try:
+            local_ip = socket.gethostbyname(socket.gethostname())
+            for node_id, node_info in CLUSTER_NODES.items():
+                if node_info.get("ip") == local_ip:
+                    return node_id
+        except:
+            pass
+
+        # Final fallback based on OS - use CLUSTER_NODES keys, not role names
         if os.path.exists("/Users"):
-            return "orchestrator"  # Default macOS node
+            return "mac-studio"  # Default macOS node (orchestrator)
         else:
-            return "builder"  # Default Linux node
+            return "macpro51"  # Default Linux node (builder)
 
     def _get_db_path(self) -> Path:
         """Get path to task queue database"""

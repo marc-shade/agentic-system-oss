@@ -22,6 +22,7 @@ Usage:
 import sqlite3
 import json
 import time
+import platform
 from datetime import datetime, timedelta
 from pathlib import Path
 from sentence_transformers import SentenceTransformer
@@ -29,11 +30,20 @@ import numpy as np
 from typing import Optional, Tuple, Dict, List
 import hashlib
 
+
+def _get_default_cache_path() -> str:
+    """Get platform-appropriate default cache path."""
+    if platform.system() == "Darwin":  # macOS
+        return str(Path.home() / ".claude/enhanced_memories/semantic_cache.db")
+    else:  # Linux
+        return "/home/marc/.claude/enhanced_memories/semantic_cache.db"
+
+
 class SemanticCache:
     """Semantic cache for LLM query-response pairs using embedding similarity"""
 
     def __init__(self,
-                 db_path: str = "/home/marc/.claude/enhanced_memories/semantic_cache.db",
+                 db_path: str = None,
                  similarity_threshold: float = 0.92,
                  ttl_hours: int = 24,
                  model_name: str = "all-MiniLM-L6-v2"):
@@ -41,11 +51,13 @@ class SemanticCache:
         Initialize semantic cache
 
         Args:
-            db_path: SQLite database path
+            db_path: SQLite database path (auto-detected if None)
             similarity_threshold: Minimum cosine similarity for cache hit (0.92 recommended)
             ttl_hours: Time-to-live for cache entries
             model_name: SentenceTransformer model for embeddings
         """
+        if db_path is None:
+            db_path = _get_default_cache_path()
         self.db_path = Path(db_path)
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
 

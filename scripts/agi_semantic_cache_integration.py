@@ -28,6 +28,7 @@ Usage in AGI components:
 
 import sys
 import os
+import platform
 sys.path.insert(0, os.path.dirname(__file__))
 
 from semantic_cache_module import SemanticCache
@@ -35,6 +36,14 @@ from typing import Callable, Any, Optional, Dict
 import json
 import time
 from pathlib import Path
+
+
+def _get_default_db_dir() -> str:
+    """Get platform-appropriate default database directory."""
+    if platform.system() == "Darwin":  # macOS
+        return str(Path.home() / ".claude/enhanced_memories")
+    else:  # Linux
+        return "/home/marc/.claude/enhanced_memories"
 
 
 class AGISemanticCache:
@@ -75,7 +84,7 @@ class AGISemanticCache:
                  cache_domain: str = "general",
                  threshold: Optional[float] = None,
                  ttl_hours: Optional[int] = None,
-                 db_dir: str = "/home/marc/.claude/enhanced_memories"):
+                 db_dir: str = None):
         """
         Initialize AGI semantic cache
 
@@ -97,6 +106,10 @@ class AGISemanticCache:
         # Override with user params
         final_threshold = threshold if threshold is not None else domain_config["threshold"]
         final_ttl = ttl_hours if ttl_hours is not None else domain_config["ttl_hours"]
+
+        # Use platform-appropriate default if not specified
+        if db_dir is None:
+            db_dir = _get_default_db_dir()
 
         # Create cache
         db_path = Path(db_dir) / f"semantic_cache_{cache_domain}.db"

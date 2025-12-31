@@ -25,6 +25,7 @@ from temporalio import workflow, activity
 from temporalio.common import RetryPolicy
 import sys
 
+from multi_provider_executor import execute_task_with_ai, detect_task_phase, get_provider_status
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -167,10 +168,17 @@ async def execute_task(task: Dict) -> Dict:
                     result["error"] = f"Python execution failed: {e}"
 
         else:
-            # For other task types, just mark as placeholder execution
-            # In production, this would integrate with actual execution logic
-            result["success"] = True
-            result["output"] = f"Task '{task_title}' processed (placeholder execution)"
+            # AI-powered execution using Claude Code
+            phase = detect_task_phase(task_title)
+            logger.info(f"Task {task_id} phase '{phase}' - invoking Claude AI...")
+            
+            ai_result = await execute_task_with_ai(task)
+            
+            result["success"] = ai_result["success"]
+            result["output"] = ai_result.get("output")
+            result["error"] = ai_result.get("error")
+            result["phase"] = ai_result.get("phase")
+            result["execution_method"] = "claude_code"
 
         result["completed_at"] = datetime.now().isoformat()
         logger.info(f"Task {task_id} execution result: {result['success']}")

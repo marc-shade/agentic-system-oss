@@ -1,64 +1,171 @@
 """
 Overnight Automation Orchestrator Handlers
 Coordinates nightly research discovery, maintenance, and reporting
-Integrates with Temporal workflow and KutiraAI service
+Integrates with Temporal workflow, improvement cycles, and research pipelines
 """
 import json
 import time
 import requests
 from datetime import datetime
 
+# Import sibling handlers for coordination
+try:
+    from . import improvement_cycle_handlers
+    from . import research_pipeline_handlers
+except ImportError:
+    improvement_cycle_handlers = None
+    research_pipeline_handlers = None
+
 
 def orchestrate_overnight_automation(event):
     """
-    Orchestrate overnight automation:
-    1. Trigger Temporal workflow
-    2. Monitor progress
-    3. Ensure completion by 7 AM
-    4. Handle errors gracefully
+    Orchestrate comprehensive overnight automation:
+    1. Run research discovery pipeline
+    2. Run improvement cycles
+    3. Run memory consolidation
+    4. Trigger Temporal long-running workflows
+    5. Generate and send morning report
     """
     print("=" * 60)
     print(f"Starting Overnight Automation - {datetime.now()}")
     print("=" * 60)
 
-    session_id = f"session-{int(time.time())}"
+    session_id = f"overnight-{datetime.now().strftime('%Y%m%d')}"
+    results = {
+        "session_id": session_id,
+        "timestamp": datetime.now().isoformat(),
+        "research": None,
+        "improvement": None,
+        "consolidation": None,
+        "temporal": None,
+        "success": True
+    }
 
-    # Step 1: Trigger Temporal workflow
-    print("\n[1/4] Triggering Temporal workflow...")
+    # Step 1: Research Discovery
+    print("\n[1/5] Running Research Discovery...")
+    try:
+        if research_pipeline_handlers:
+            results["research"] = research_pipeline_handlers.run_research_discovery(event)
+        else:
+            results["research"] = run_research_fallback()
+        print(f"✓ Research: {results['research'].get('papers_found', 0)} papers found")
+    except Exception as e:
+        print(f"⚠️ Research failed: {e}")
+        results["research"] = {"status": "error", "error": str(e)}
+
+    # Step 2: Improvement Cycle
+    print("\n[2/5] Running Improvement Cycle...")
+    try:
+        if improvement_cycle_handlers:
+            results["improvement"] = improvement_cycle_handlers.run_improvement_cycle(event)
+        else:
+            results["improvement"] = run_improvement_fallback()
+        print(f"✓ Improvement: {results['improvement'].get('entities_created', 0)} entities created")
+    except Exception as e:
+        print(f"⚠️ Improvement failed: {e}")
+        results["improvement"] = {"status": "error", "error": str(e)}
+
+    # Step 3: Memory Consolidation
+    print("\n[3/5] Running Memory Consolidation...")
+    try:
+        if improvement_cycle_handlers:
+            results["consolidation"] = improvement_cycle_handlers.run_consolidation(event)
+        else:
+            results["consolidation"] = run_consolidation_fallback()
+        print(f"✓ Consolidation complete")
+    except Exception as e:
+        print(f"⚠️ Consolidation failed: {e}")
+        results["consolidation"] = {"status": "error", "error": str(e)}
+
+    # Step 4: Trigger Temporal workflows for long-running tasks
+    print("\n[4/5] Triggering Temporal workflows...")
     temporal_result = trigger_temporal_workflow(session_id)
-
-    if not temporal_result["success"]:
-        print(f"⚠️ Temporal workflow failed to start: {temporal_result.get('error')}")
-        send_alert("Overnight automation failed to start")
-        return {"success": False, "error": "Workflow start failed"}
-
-    print(f"✓ Temporal workflow started: {temporal_result['workflow_id']}")
-
-    # Step 2: Monitor workflow progress
-    print("\n[2/4] Monitoring workflow progress...")
-    status = monitor_workflow_progress(temporal_result["workflow_id"])
-
-    # Step 3: Verify completion
-    print("\n[3/4] Verifying completion...")
-    if status["completed"]:
-        print("✓ Workflow completed successfully")
+    results["temporal"] = temporal_result
+    if temporal_result["success"]:
+        print(f"✓ Temporal workflow started: {temporal_result['workflow_id']}")
     else:
-        print(f"⚠️ Workflow incomplete: {status.get('status')}")
+        print(f"⚠️ Temporal: {temporal_result.get('error')}")
 
-    # Step 4: Send final status
-    print("\n[4/4] Sending status notification...")
-    send_completion_notification(session_id, status)
+    # Step 5: Generate and send morning report
+    print("\n[5/5] Generating morning report...")
+    send_morning_report(results)
 
     print("\n" + "=" * 60)
     print("Overnight Automation Complete")
     print("=" * 60)
 
-    return {
-        "success": True,
-        "session_id": session_id,
-        "workflow_id": temporal_result["workflow_id"],
-        "status": status
-    }
+    return results
+
+
+def run_research_fallback():
+    """Fallback research when handler not available"""
+    try:
+        response = requests.post(
+            "http://localhost:9980/api/webhooks/research",
+            json={},
+            timeout=10
+        )
+        return {"status": "triggered", "via": "webhook"}
+    except:
+        return {"status": "skipped", "reason": "handler unavailable"}
+
+
+def run_improvement_fallback():
+    """Fallback improvement when handler not available"""
+    try:
+        response = requests.post(
+            "http://localhost:9980/api/webhooks/improve",
+            json={},
+            timeout=10
+        )
+        return {"status": "triggered", "via": "webhook"}
+    except:
+        return {"status": "skipped", "reason": "handler unavailable"}
+
+
+def run_consolidation_fallback():
+    """Fallback consolidation when handler not available"""
+    try:
+        response = requests.post(
+            "http://localhost:8101/consolidate",
+            json={"time_window_hours": 24},
+            timeout=120
+        )
+        return response.json() if response.status_code == 200 else {"status": "error"}
+    except:
+        return {"status": "skipped", "reason": "MCP unavailable"}
+
+
+def send_morning_report(results):
+    """Generate and send comprehensive morning report"""
+    report = []
+    report.append("=" * 50)
+    report.append("OVERNIGHT AUTOMATION REPORT")
+    report.append(f"Session: {results['session_id']}")
+    report.append("=" * 50)
+
+    # Research summary
+    research = results.get("research", {})
+    report.append(f"\n📚 RESEARCH DISCOVERY:")
+    report.append(f"   Papers found: {research.get('papers_found', 0)}")
+    report.append(f"   Insights extracted: {research.get('insights_extracted', 0)}")
+
+    # Improvement summary
+    improvement = results.get("improvement", {})
+    report.append(f"\n🔧 IMPROVEMENT CYCLE:")
+    report.append(f"   Entities created: {improvement.get('entities_created', 0)}")
+    report.append(f"   Causal links: {improvement.get('causal_links', 0)}")
+
+    # Consolidation summary
+    consolidation = results.get("consolidation", {})
+    report.append(f"\n🧠 MEMORY CONSOLIDATION:")
+    report.append(f"   Patterns promoted: {consolidation.get('patterns_promoted', 0)}")
+
+    report_text = "\n".join(report)
+    print(report_text)
+
+    # Send voice notification
+    send_completion_notification(results['session_id'], results)
 
 
 def trigger_temporal_workflow(session_id):

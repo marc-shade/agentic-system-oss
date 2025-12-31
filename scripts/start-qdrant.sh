@@ -59,9 +59,8 @@ fi
 mkdir -p "${STORAGE_BASE}/logs"
 mkdir -p "${STORAGE_BASE}/databases/qdrant"
 
-# Start qdrant with dynamic storage path (overrides config file)
+# Start qdrant (storage path is set in config file)
 exec "$QDRANT_BIN" \
   --config-path "${STORAGE_BASE}/config/qdrant-config.yaml" \
-  --storage "${STORAGE_BASE}/databases/qdrant" \
   >> "${STORAGE_BASE}/logs/qdrant-stdout.log" \
   2>> "${STORAGE_BASE}/logs/qdrant-stderr.log"

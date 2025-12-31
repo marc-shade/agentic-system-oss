@@ -59,6 +59,17 @@ class NodeChatClient:
         """Get SSH user from discovery config."""
         return self._discovery_config.get('ssh_user', 'marc')
 
+    def _resolve_node(self, node_ref: str) -> Optional[str]:
+        """Resolve node reference (role or machine name) to machine name key."""
+        # Direct match by machine name
+        if node_ref in self.cluster_nodes:
+            return node_ref
+        # Lookup by node_id (role)
+        for machine_name, config in self.cluster_nodes.items():
+            if config.get('node_id') == node_ref or config.get('role') == node_ref:
+                return machine_name
+        return None
+
     def send_message(self, to_node: str, content: str, conversation_id: Optional[str] = None) -> Dict:
         """
         Send message using multiple channels for redundancy
@@ -70,8 +81,11 @@ class NodeChatClient:
 
         Returns delivery status for each channel.
         """
-        if to_node not in self.cluster_nodes:
+        # Resolve role name (e.g., "builder") to machine name (e.g., "macpro51")
+        resolved_node = self._resolve_node(to_node)
+        if not resolved_node:
             return {'error': f'Unknown node: {to_node}', 'success': False}
+        to_node = resolved_node
 
         # Generate message
         message_id = str(uuid.uuid4())
@@ -327,6 +341,88 @@ class NodeChatClient:
                 break
             except Exception as e:
                 print(f"Error: {e}")
+
+    def check_for_messages(self, mark_as_read: bool = True) -> Dict:
+        """Check for new/unread messages addressed to this node."""
+        conn = sqlite3.connect(str(self.chat_db))
+        cursor = conn.cursor()
+
+        # Get unread messages to this node
+        cursor.execute("""
+            SELECT message_id, from_node, content, timestamp, conversation_id
+            FROM messages
+            WHERE to_node = ? AND read = 0
+            ORDER BY timestamp DESC
+        """, (self.node_id,))
+
+        messages = []
+        for row in cursor.fetchall():
+            messages.append({
+                'message_id': row[0],
+                'from_node': row[1],
+                'content': row[2],
+                'timestamp': row[3],
+                'conversation_id': row[4]
+            })
+
+        if mark_as_read and messages:
+            message_ids = [m['message_id'] for m in messages]
+            placeholders = ','.join('?' * len(message_ids))
+            cursor.execute(f"""
+                UPDATE messages SET read = 1 WHERE message_id IN ({placeholders})
+            """, message_ids)
+            conn.commit()
+
+        conn.close()
+        return {
+            'node_id': self.node_id,
+            'unread_count': len(messages),
+            'messages': messages
+        }
+
+    def get_active_conversations(self) -> Dict:
+        """Get all active conversations this node is participating in."""
+        conn = sqlite3.connect(str(self.chat_db))
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            SELECT conversation_id, participants, last_activity
+            FROM conversations
+            WHERE participants LIKE ?
+            ORDER BY last_activity DESC
+        """, (f'%{self.node_id}%',))
+
+        conversations = []
+        for row in cursor.fetchall():
+            participants = row[1].split(',')
+            other_node = [p for p in participants if p != self.node_id][0] if len(participants) > 1 else 'unknown'
+            conversations.append({
+                'conversation_id': row[0],
+                'with_node': other_node,
+                'last_activity': row[2]
+            })
+
+        conn.close()
+        return {
+            'node_id': self.node_id,
+            'active_conversations': conversations
+        }
+
+    def broadcast(self, message: str, priority: str = "normal") -> Dict:
+        """Send message to all other nodes in the cluster."""
+        results = {}
+        for node_name, node_config in self.cluster_nodes.items():
+            node_id = node_config.get('node_id', node_name)
+            if node_id != self.node_id:
+                result = self.send_message(node_id, f"[{priority.upper()}] {message}")
+                results[node_id] = result.get('success', False)
+
+        return {
+            'broadcast_from': self.node_id,
+            'priority': priority,
+            'results': results,
+            'success': any(results.values())
+        }
 
 
 def main():

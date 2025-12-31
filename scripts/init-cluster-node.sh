@@ -87,11 +87,11 @@ export CLUSTER_BUILDER_IP="192.168.1.27"
 
 # Orchestrator Node (mac-studio - macOS ARM64)
 export CLUSTER_ORCHESTRATOR_HOST="mac-studio.local"
-export CLUSTER_ORCHESTRATOR_IP="192.168.1.20"
+export CLUSTER_ORCHESTRATOR_IP="192.168.1.16"
 
 # Researcher Node (macbook-air - macOS ARM64)
 export CLUSTER_RESEARCHER_HOST="macbook-air.local"
-export CLUSTER_RESEARCHER_IP="192.168.1.21"
+export CLUSTER_RESEARCHER_IP="192.168.1.76"
 
 # Inference Node (completeu-server - macOS ARM64)
 export CLUSTER_INFERENCE_HOST="completeu-server.local"

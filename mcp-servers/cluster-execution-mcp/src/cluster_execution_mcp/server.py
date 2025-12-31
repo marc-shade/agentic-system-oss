@@ -158,29 +158,39 @@ class ClusterExecutionServer:
                 )
 
                 if result.returncode == 0:
+                    # Get last line to skip shell startup messages (e.g., "Cluster environment loaded...")
                     lines = result.stdout.strip().split('\n')
-                    if len(lines) >= 3:
-                        cpu = float(lines[0])
-                        memory = float(lines[1])
-                        load = float(lines[2])
+                    last_line = lines[-1] if lines else ""
+                    parts = last_line.split()
 
-                        is_overloaded = (
-                            cpu > config.cpu_threshold or
-                            memory > config.memory_threshold or
-                            load > config.load_threshold
-                        )
+                    if len(parts) >= 3:
+                        try:
+                            cpu = float(parts[0])
+                            memory = float(parts[1])
+                            load = float(parts[2])
 
-                        status["nodes"][node_id] = {
-                            "cpu_percent": round(cpu, 1),
-                            "memory_percent": round(memory, 1),
-                            "load_1m": round(load, 2),
-                            "status": "overloaded" if is_overloaded else "healthy",
-                            "reachable": True
-                        }
+                            is_overloaded = (
+                                cpu > config.cpu_threshold or
+                                memory > config.memory_threshold or
+                                load > config.load_threshold
+                            )
+
+                            status["nodes"][node_id] = {
+                                "cpu_percent": round(cpu, 1),
+                                "memory_percent": round(memory, 1),
+                                "load_1m": round(load, 2),
+                                "status": "overloaded" if is_overloaded else "healthy",
+                                "reachable": True
+                            }
+                        except ValueError as e:
+                            status["nodes"][node_id] = {
+                                "reachable": True,
+                                "error": f"Parse error: {e}, output: {last_line[:100]}"
+                            }
                     else:
                         status["nodes"][node_id] = {
                             "reachable": True,
-                            "error": "Unexpected output format"
+                            "error": f"Unexpected output format: {last_line[:100]}"
                         }
                 else:
                     status["nodes"][node_id] = {

@@ -21,18 +21,43 @@ from temporalio.client import Client
 from temporalio.worker import Worker
 import sys
 
-sys.path.insert(0, '/home/marc/agentic-system/mcp-servers/enhanced-memory-mcp')
+# Auto-detect storage path for cross-platform compatibility
+import os
+STORAGE_BASE = os.environ.get('STORAGE_BASE', '/Volumes/SSDRAID0/agentic-system')
+if not os.path.exists(STORAGE_BASE):
+    STORAGE_BASE = '/home/marc/agentic-system'  # Linux fallback
+sys.path.insert(0, f'{STORAGE_BASE}/mcp-servers/enhanced-memory-mcp')
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+
+def get_memory_db_path():
+    """Get the primary memory database path - prioritize main Claude DB"""
+    from pathlib import Path
+    # Primary: Main Claude enhanced memory DB (has full schema)
+    primary = Path.home() / ".claude" / "enhanced_memories" / "memory.db"
+    if primary.exists():
+        return primary
+    # Fallback: agentic-system databases
+    fallback = Path(STORAGE_BASE) / "databases" / "mcp" / "enhanced_memories.db"
+    if fallback.exists():
+        return fallback
+    # Last resort: safla memories
+    return Path(STORAGE_BASE) / "databases" / "safla_memories.db"
 
 
 @activity.defn
 async def curate_memories() -> dict:
     """Run memory curation across all tiers"""
     try:
-        from server import autonomous_memory_curation
-        result = await autonomous_memory_curation()
+        from safla_orchestrator import SAFLAOrchestrator
+
+        db_path = get_memory_db_path()
+        logger.info(f"Curating memories from: {db_path}")
+
+        safla = SAFLAOrchestrator(db_path=db_path)
+        result = await safla.autonomous_memory_curation()
         logger.info(f"Memory curation: {result}")
         return result
     except Exception as e:
@@ -44,8 +69,47 @@ async def curate_memories() -> dict:
 async def analyze_distribution() -> dict:
     """Analyze memory distribution vs optimal 75/15 rule"""
     try:
-        from server import analyze_memory_distribution
-        analysis = await analyze_memory_distribution()
+        import sqlite3
+
+        db_path = get_memory_db_path()
+        logger.info(f"Analyzing distribution from: {db_path}")
+
+        conn = sqlite3.connect(str(db_path))
+        cursor = conn.cursor()
+
+        # Count by tier
+        tier_counts = {}
+        for tier in ["working", "episodic", "semantic", "procedural"]:
+            try:
+                cursor.execute(f"SELECT COUNT(*) FROM {tier}_memory")
+                tier_counts[tier] = cursor.fetchone()[0]
+            except:
+                tier_counts[tier] = 0
+
+        # Also count main entities
+        try:
+            cursor.execute("SELECT COUNT(*) FROM entities")
+            tier_counts["entities"] = cursor.fetchone()[0]
+        except:
+            tier_counts["entities"] = 0
+
+        conn.close()
+
+        total = sum(tier_counts.values())
+        analysis = {
+            "tier_counts": tier_counts,
+            "total_memories": total,
+            "distribution": {k: round(v/total*100, 1) if total > 0 else 0 for k, v in tier_counts.items()},
+            "needs_optimization": False
+        }
+
+        # Check if working memory is overloaded
+        if total > 10:
+            working_pct = tier_counts.get("working", 0) / total * 100
+            if working_pct > 60:
+                analysis["needs_optimization"] = True
+                analysis["optimization_reason"] = "Working memory overloaded"
+
         logger.info(f"Distribution analysis: {analysis}")
         return analysis
     except Exception as e:
@@ -57,10 +121,22 @@ async def analyze_distribution() -> dict:
 async def optimize_tiers() -> dict:
     """Optimize memory tier assignments"""
     try:
-        from server import optimize_memory_tiers
-        result = await optimize_memory_tiers()
-        logger.info(f"Tier optimization: {result}")
-        return result
+        from safla_orchestrator import SAFLAOrchestrator
+
+        db_path = get_memory_db_path()
+        logger.info(f"Optimizing tiers from: {db_path}")
+
+        safla = SAFLAOrchestrator(db_path=db_path)
+        result = await safla.autonomous_memory_curation()
+
+        optimization_result = {
+            "status": "optimized",
+            "promotions": result.get("promotions", {}),
+            "demotions": result.get("demotions", {}),
+            "total_changes": result.get("total_promoted", 0) + result.get("total_demoted", 0)
+        }
+        logger.info(f"Tier optimization: {optimization_result}")
+        return optimization_result
     except Exception as e:
         logger.error(f"Optimization failed: {e}")
         return {"error": str(e)}
@@ -70,8 +146,13 @@ async def optimize_tiers() -> dict:
 async def get_memory_usage_patterns() -> dict:
     """Analyze memory usage patterns"""
     try:
-        from server import analyze_memory_usage_patterns
-        patterns = await analyze_memory_usage_patterns()
+        from safla_orchestrator import SAFLAOrchestrator
+
+        db_path = get_memory_db_path()
+        logger.info(f"Analyzing usage patterns from: {db_path}")
+
+        safla = SAFLAOrchestrator(db_path=db_path)
+        patterns = await safla.analyze_memory_usage_patterns()
         logger.info(f"Usage patterns: {patterns}")
         return patterns
     except Exception as e:
@@ -91,7 +172,7 @@ class AutonomousMemoryManagerWorkflow:
         workflow.logger.info("Starting autonomous memory management")
         
         results = {
-            "start_time": datetime.now().isoformat(),
+            "start_time": workflow.now().isoformat(),
             "steps": {}
         }
         
@@ -129,7 +210,7 @@ class AutonomousMemoryManagerWorkflow:
             )
             results["steps"]["usage_patterns"] = patterns
             
-            results["end_time"] = datetime.now().isoformat()
+            results["end_time"] = workflow.now().isoformat()
             results["status"] = "success"
             
             workflow.logger.info(f"Memory management complete: {results}")

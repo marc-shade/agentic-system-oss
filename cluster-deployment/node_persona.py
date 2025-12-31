@@ -42,7 +42,9 @@ class NodePersona:
         # Initialize persona attributes
         self.role = self.config.get('role', 'unknown')
         self.capabilities = self.config.get('capabilities', [])
-        self.specialties = self.cluster_config['nodes'][node_id].get('specialties', [])
+        # Look up node by node_id field (e.g., "orchestrator") not by machine name key
+        node_config = self._find_node_by_id(node_id)
+        self.specialties = node_config.get('specialties', []) if node_config else []
 
         # Default avatar (can be overridden by subclasses)
         self.avatar = {
@@ -52,6 +54,13 @@ class NodePersona:
             "ascii_art": "[ NODE ]",
             "description": "Generic node agent"
         }
+
+    def _find_node_by_id(self, node_id: str) -> Optional[Dict]:
+        """Find node config by node_id field value (not machine name key)."""
+        for machine_name, config in self.cluster_config.get('nodes', {}).items():
+            if config.get('node_id') == node_id or machine_name == node_id:
+                return config
+        return None
 
     def get_environmental_awareness(self) -> Dict:
         """Get complete local system environmental awareness"""

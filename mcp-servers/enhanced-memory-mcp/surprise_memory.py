@@ -48,6 +48,10 @@ class SurpriseBasedMemory:
     MOMENTUM_WINDOW = 3  # Store N memories after high-surprise event
     MAX_SIMILAR_MEMORIES = 5  # Max near-duplicates before raising threshold
 
+    # MIRAS-style momentum smoothing parameters
+    MOMENTUM_BETA = 0.9  # EMA decay factor (higher = more smoothing)
+    MOMENTUM_BOOST = 1.3  # Boost factor for high-momentum periods
+
     def __init__(self, embedding_fn=None, search_fn=None):
         """
         Initialize surprise-based memory system.
@@ -61,6 +65,10 @@ class SurpriseBasedMemory:
         self.momentum_counter = 0
         self.recent_surprises: List[float] = []
         self.adaptive_threshold = self.BASE_SURPRISE_THRESHOLD
+
+        # MIRAS-style momentum smoothing (EMA)
+        self.momentum_ema = 0.5  # Running EMA of surprise scores
+        self.momentum_gradient = 0.0  # Rate of change in surprise
 
     def calculate_surprise(
         self,
@@ -115,11 +123,31 @@ class SurpriseBasedMemory:
 
             # Combine components (weighted average)
             # Novelty is most important, followed by salience, then temporal
-            combined_score = (
+            raw_score = (
                 novelty * 0.5 +
                 salience * 0.3 +
                 temporal * 0.2
             )
+
+            # MIRAS-style momentum smoothing (EMA)
+            # m_t = β * m_{t-1} + (1-β) * score_t
+            old_ema = self.momentum_ema
+            self.momentum_ema = (
+                self.MOMENTUM_BETA * self.momentum_ema +
+                (1 - self.MOMENTUM_BETA) * raw_score
+            )
+            self.momentum_gradient = raw_score - old_ema
+
+            # Apply momentum boost when gradient is positive (rising surprise)
+            # This implements MIRAS's "momentum smooths surprise signals"
+            if self.momentum_gradient > 0.1:
+                # Rising surprise trend - boost current score
+                combined_score = min(1.0, raw_score * self.MOMENTUM_BOOST)
+            elif self.momentum_gradient < -0.1:
+                # Falling surprise trend - slight dampening
+                combined_score = raw_score * 0.95
+            else:
+                combined_score = raw_score
 
             # Apply momentum: if we recently saw high surprise, lower threshold
             effective_threshold = self._get_effective_threshold()
@@ -340,6 +368,12 @@ class SurpriseBasedMemory:
 
         if self.momentum_counter > 0:
             parts.append(f"momentum active ({self.momentum_counter} remaining)")
+
+        # MIRAS momentum smoothing info
+        if self.momentum_gradient > 0.1:
+            parts.append(f"⬆ rising surprise (grad={self.momentum_gradient:.2f})")
+        elif self.momentum_gradient < -0.1:
+            parts.append(f"⬇ falling surprise (grad={self.momentum_gradient:.2f})")
 
         return " | ".join(parts)
 

@@ -497,7 +497,13 @@ class ReasoningBank:
         config: Optional[ReasoningBankConfig] = None,
         embedding_fn: Optional[Callable[[str], np.ndarray]] = None
     ):
-        self.db_path = db_path or Path.home() / ".claude" / "reasoning_bank.db"
+        # Use agentic-system databases path for consistency with AGI orchestrator
+        import os
+        storage_base = os.environ.get('STORAGE_BASE', '/Volumes/SSDRAID0/agentic-system')
+        if not Path(storage_base).exists():
+            storage_base = '/home/marc/agentic-system'  # Linux fallback
+        default_db = Path(storage_base) / "databases" / "reasoning_bank.db"
+        self.db_path = db_path or default_db
         self.config = config or ReasoningBankConfig()
         self._embedding_fn = embedding_fn
         self._initialized = False
@@ -582,15 +588,30 @@ class ReasoningBank:
         ).hexdigest()[:16]
 
     async def _compute_embedding(self, text: str) -> np.ndarray:
-        """Compute embedding for text."""
+        """Compute embedding for text using sentence-transformers."""
         if self._embedding_fn:
             return self._embedding_fn(text)
 
-        # Fallback: simple hash-based embedding (1024-dim)
-        # In production, use SAFLA or sentence-transformers
+        # Use sentence-transformers for semantic embeddings
+        if not hasattr(self, '_st_model'):
+            try:
+                from sentence_transformers import SentenceTransformer
+                self._st_model = SentenceTransformer('all-MiniLM-L6-v2')
+                logger.info("Loaded sentence-transformers model for ReasoningBank")
+            except ImportError:
+                logger.warning("sentence-transformers not available, using hash fallback")
+                self._st_model = None
+
+        if self._st_model is not None:
+            # Truncate text to avoid token limits
+            truncated = text[:8000] if len(text) > 8000 else text
+            embedding = self._st_model.encode(truncated, convert_to_numpy=True)
+            return embedding.astype(np.float32)
+
+        # Fallback: hash-based embedding (only if sentence-transformers unavailable)
         hash_val = int(hashlib.sha256(text.encode()).hexdigest(), 16)
         np.random.seed(hash_val % (2**32))
-        vec = np.random.randn(1024).astype(np.float32)
+        vec = np.random.randn(384).astype(np.float32)  # Match sentence-transformers dim
         return vec / np.linalg.norm(vec)
 
     def _cosine_similarity(self, a: np.ndarray, b: np.ndarray) -> float:

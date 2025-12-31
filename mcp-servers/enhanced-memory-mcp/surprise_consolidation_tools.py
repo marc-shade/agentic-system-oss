@@ -60,8 +60,9 @@ def register_surprise_consolidation_tools(app, db_path):
             cursor = conn.cursor()
 
             # Fetch recent episodic memories
+            # Note: episodic_memory table uses episode_data (not content) and event_type (not memory_type)
             cursor.execute("""
-                SELECT id, content, memory_type, created_at, metadata
+                SELECT id, episode_data, event_type, created_at, significance_score
                 FROM episodic_memory
                 WHERE created_at > datetime('now', ?)
                 ORDER BY created_at DESC
@@ -72,8 +73,8 @@ def register_surprise_consolidation_tools(app, db_path):
             for row in rows:
                 episodic_memories.append({
                     'id': row['id'],
-                    'content': row['content'],
-                    'memory_type': row['memory_type'] or 'episodic',
+                    'content': row['episode_data'],  # Map episode_data to content for consolidator
+                    'memory_type': row['event_type'] or 'episodic',
                     'created_at': row['created_at']
                 })
 
@@ -105,18 +106,25 @@ def register_surprise_consolidation_tools(app, db_path):
                 for item in result['promoted']:
                     memory = item['memory']
                     score = item['surprise_score']
+                    content = memory.get('content', '')
 
-                    # Insert into semantic memory
+                    # Generate concept name from content (first 100 chars, sanitized)
+                    import hashlib
+                    concept_name = f"promoted_{memory.get('id', 'unknown')}_{hashlib.md5(content.encode()).hexdigest()[:8]}"
+
+                    # Insert into semantic memory using correct schema
+                    # Schema: concept_name (UNIQUE), concept_type, definition, confidence_score, related_concepts
                     cursor.execute("""
                         INSERT OR REPLACE INTO semantic_memory
-                        (content, memory_type, surprise_score, created_at, metadata)
-                        VALUES (?, ?, ?, ?, ?)
+                        (concept_name, concept_type, definition, confidence_score, related_concepts, created_at)
+                        VALUES (?, ?, ?, ?, ?, ?)
                     """, (
-                        memory.get('content', ''),
-                        'semantic',
+                        concept_name,
+                        'promoted_episodic',
+                        content,
                         score.score if hasattr(score, 'score') else score,
-                        datetime.now().isoformat(),
-                        f'{{"promoted_from": "episodic", "surprise_reasoning": "{item.get("reason", "")[:200]}"}}'
+                        f'{{"promoted_from": "episodic", "surprise_reasoning": "{item.get("reason", "")[:200]}"}}',
+                        datetime.now().isoformat()
                     ))
 
                 conn.commit()
@@ -246,9 +254,10 @@ def register_surprise_consolidation_tools(app, db_path):
             cursor = conn.cursor()
 
             # Get all semantic memories with metadata
+            # Note: semantic_memory uses concept_name, definition, concept_type, confidence_score
             cursor.execute("""
-                SELECT id, content, memory_type, created_at,
-                       COALESCE(surprise_score, 0.5) as surprise_score
+                SELECT id, concept_name, definition, concept_type, created_at,
+                       COALESCE(confidence_score, 0.5) as surprise_score
                 FROM semantic_memory
                 ORDER BY created_at DESC
                 LIMIT 10000
@@ -261,7 +270,7 @@ def register_surprise_consolidation_tools(app, db_path):
                     'id': str(row['id']),
                     'surprise_score': row['surprise_score'],
                     'created_at': row['created_at'],
-                    'memory_type': row['memory_type'] or 'semantic'
+                    'memory_type': row['concept_type'] or 'semantic'
                 })
 
             conn.close()

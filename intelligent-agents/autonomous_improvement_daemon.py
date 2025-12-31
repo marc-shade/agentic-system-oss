@@ -43,7 +43,7 @@ logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler('/mnt/agentic-system/logs/autonomous_improvement.log'),
+        logging.FileHandler('/Volumes/SSDRAID0/agentic-system/logs/autonomous_improvement.log'),
         logging.StreamHandler()
     ]
 )
@@ -204,7 +204,7 @@ class AutonomousImprovementDaemon:
 
     def _save_cycle_report(self, summary: Dict):
         """Save cycle report to file"""
-        reports_dir = Path("/mnt/agentic-system/logs/improvement_cycles")
+        reports_dir = Path("/Volumes/SSDRAID0/agentic-system/logs/improvement_cycles")
         reports_dir.mkdir(parents=True, exist_ok=True)
 
         report_file = reports_dir / f"cycle_{self.cycle_count:04d}.json"
