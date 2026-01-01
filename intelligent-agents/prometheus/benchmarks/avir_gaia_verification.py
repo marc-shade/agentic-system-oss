@@ -253,7 +253,7 @@ class AVIRGAIAVerifier:
         # Normalize answers for comparison
         answers = {}
         for r in results:
-            normalized = self.validator._normalize(r.answer)
+            normalized = GAIAAnswerValidator.normalize_answer(r.answer)
             if normalized not in answers:
                 answers[normalized] = []
             answers[normalized].append(r)
@@ -364,11 +364,15 @@ class AVIRGAIAVerifier:
         print("AVIR-VERIFIED GAIA BENCHMARK RESULTS")
         print("=" * 70)
 
+        if "error" in summary:
+            print(f"\nError: {summary['error']}")
+            return
+
         print(f"\nProtocol: {summary.get('protocol', 'AVIR')}")
         print(f"Blinding: {summary.get('blinding_mode', 'double_blind')}")
         print(f"Providers: {', '.join(summary.get('providers', []))}")
 
-        print(f"\nTotal tasks: {summary['total_tasks']}")
+        print(f"\nTotal tasks: {summary.get('total_tasks', 0)}")
         print(f"Correct: {summary['correct']}")
         print(f"Accuracy: {summary['accuracy']:.1f}%")
         print(f"Average Agreement: {summary['average_agreement']:.1f}%")
