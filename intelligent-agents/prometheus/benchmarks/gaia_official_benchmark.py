@@ -724,6 +724,18 @@ class GAIABenchmarkRunner:
 
 async def main():
     """Run GAIA benchmark evaluation."""
+    import argparse
+
+    parser = argparse.ArgumentParser(description="GAIA Benchmark Evaluation")
+    parser.add_argument("--level", type=int, default=1, choices=[1, 2, 3],
+                        help="GAIA difficulty level (1-3)")
+    parser.add_argument("--limit", type=int, default=None,
+                        help="Max number of tasks to run (default: all)")
+    parser.add_argument("--split", type=str, default="validation",
+                        choices=["validation", "test"],
+                        help="Dataset split to use")
+    args = parser.parse_args()
+
     print("=" * 70)
     print("GAIA Official Benchmark Evaluation")
     print("https://huggingface.co/datasets/gaia-benchmark/GAIA")
@@ -743,11 +755,11 @@ async def main():
     print("✓ Dataset access verified")
 
     # Run benchmark
-    print("\nStarting evaluation...")
+    print(f"\nStarting evaluation (Level {args.level}, limit={args.limit or 'all'})...")
     summary = await runner.run_benchmark(
-        level=1,  # Start with level 1
-        max_tasks=10,  # Limit for testing
-        split="validation"
+        level=args.level,
+        max_tasks=args.limit,
+        split=args.split
     )
 
     # Display results
