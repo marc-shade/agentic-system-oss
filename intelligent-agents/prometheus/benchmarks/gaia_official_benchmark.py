@@ -275,6 +275,9 @@ class GAIAAnswerValidator:
         answer = answer.replace(' %', '%')
         answer = answer.replace(' $', '$')
 
+        # Normalize comma-spacing in lists (e.g., "b,e" -> "b, e")
+        answer = re.sub(r',\s*', ', ', answer)
+
         return answer
 
     @classmethod
@@ -291,19 +294,22 @@ class GAIAAnswerValidator:
         if norm_agent == norm_expected:
             return True
 
+        # Try numeric comparison for number answers (exact match required)
+        expected_is_numeric = bool(re.match(r'^[\d.\-,]+$', norm_expected.strip()))
+        if expected_is_numeric:
+            try:
+                agent_num = float(re.sub(r'[^\d.-]', '', norm_agent))
+                expected_num = float(re.sub(r'[^\d.-]', '', norm_expected))
+                # Numeric answers must match exactly (within tolerance)
+                return abs(agent_num - expected_num) < 0.001
+            except (ValueError, TypeError):
+                return False
+
         # Check if expected is contained in agent answer
         # (handles cases where agent provides more context)
+        # Only for non-numeric expected answers
         if norm_expected in norm_agent:
             return True
-
-        # Try numeric comparison for number answers
-        try:
-            agent_num = float(re.sub(r'[^\d.-]', '', norm_agent))
-            expected_num = float(re.sub(r'[^\d.-]', '', norm_expected))
-            if abs(agent_num - expected_num) < 0.001:
-                return True
-        except (ValueError, TypeError):
-            pass
 
         return False
 

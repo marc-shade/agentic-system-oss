@@ -1,0 +1,68 @@
+======================================================================
+GAIA-AVIR CLUSTER CROSS-VERIFICATION REPORT
+======================================================================
+
+Timestamp: 2026-01-02T17:27:48.141115+00:00
+Nodes Participating: macpro51, mac-studio
+
+SUMMARY
+----------------------------------------
+Total Tasks Verified: 53
+  - VERIFIED (>=80% agreement): 23
+  - PARTIAL (50-79% agreement): 0
+  - FAILED (<50% agreement): 24
+  - INCONCLUSIVE: 6
+
+Overall Accuracy (avg across nodes): 39.5%
+Consensus Accuracy (verified only): 43.4%
+Fleiss' Kappa (inter-rater reliability): 1.000
+
+OVERALL VERDICT: FAILED
+
+Kappa Interpretation: Almost perfect agreement
+
+NODE PERFORMANCE
+----------------------------------------
+  macpro51 (builder): 47.2% (25/53)
+  mac-studio (orchestrator): 31.9% (15/47)
+
+CROSS-VERIFICATION MATRIX (first 5 tasks)
+----------------------------------------
+
+Task 1: b816bfce-3d80-4913-a...
+  Expected: fluffy
+  Agreement: 0.0% (failed)
+         macpro51 mac-stud
+macpro51     --      DIFF  
+mac-stud    DIFF      --   
+
+Task 2: e1fc63a2-da7a-432f-b...
+  Expected: 17
+  Agreement: 100.0% (verified)
+         macpro51 mac-stud
+macpro51     --       OK   
+mac-stud     OK       --   
+
+Task 3: a1e91b78-d3d8-4675-b...
+  Expected: 3
+  Agreement: 0.0% (failed)
+         macpro51 mac-stud
+macpro51     --      DIFF  
+mac-stud    DIFF      --   
+
+Task 4: a3fbeb63-0e8c-4a11-b...
+  Expected: 4
+  Agreement: 0.0% (inconclusive)
+         macpro51 mac-stud
+macpro51     --       ?    
+mac-stud     ?        ?    
+
+Task 5: 99c9cc74-fdc8-46c6-8...
+  Expected: cornstarch, freshly squeezed lemon juice, granulated sugar, pure vanilla extract, ripe strawberries
+  Agreement: 100.0% (verified)
+         macpro51 mac-stud
+macpro51     --       OK   
+mac-stud     OK       --   
+
+======================================================================
+End of Report

@@ -1,0 +1,387 @@
+{
+  "node_id": "mac-studio",
+  "solver": "codex (gpt-5.2-codex)",
+  "level": 1,
+  "accuracy": 0.3191489361702128,
+  "correct": 15,
+  "total": 47,
+  "timestamp": "2026-01-02T12:23:44.655507",
+  "results": [
+    {
+      "task_id": "gaia_l1_000",
+      "question": "If Eliud Kipchoge could maintain his record-making marathon pace indefinitely, how many thousand hou",
+      "answer": "17",
+      "expected": "17",
+      "correct": true,
+      "confidence": 0.95
+    },
+    {
+      "task_id": "gaia_l1_001",
+      "question": "How many studio albums were published by Mercedes Sosa between 2000 and 2009 (included)? You can use",
+      "answer": "",
+      "expected": "3",
+      "correct": false,
+      "confidence": 0.7
+    },
+    {
+      "task_id": "gaia_l1_002",
+      "question": "Here's a fun riddle that I think you'll enjoy.\n\nYou have been selected to play the final round of th",
+      "answer": "I\u2019m missing the actual puzzle statement (it\u2019s cut off after \u201ccash pri\u2026\u201d). Please paste the full ridd",
+      "expected": "3",
+      "correct": false,
+      "confidence": 0.7
+    },
+    {
+      "task_id": "gaia_l1_003",
+      "question": "What was the volume in m^3 of the fish bag that was calculated in the University of Leicester paper ",
+      "answer": "0.036",
+      "expected": "0.1777",
+      "correct": false,
+      "confidence": 0.7
+    },
+    {
+      "task_id": "gaia_l1_004",
+      "question": "In the video https://www.youtube.com/watch?v=L1vXCYZAYYM, what is the highest number of bird species",
+      "answer": "",
+      "expected": "3",
+      "correct": false,
+      "confidence": 0.7
+    },
+    {
+      "task_id": "gaia_l1_005",
+      "question": "Of the authors (First M. Last) that worked on the paper \"Pie Menus or Linear Menus, Which Is Better?",
+      "answer": "",
+      "expected": "Mapping Human Oriented Information to Software Agents for Online Systems Usage",
+      "correct": false,
+      "confidence": 0.7
+    },
+    {
+      "task_id": "gaia_l1_006",
+      "question": "In Series 9, Episode 11 of Doctor Who, the Doctor is trapped inside an ever-shifting maze. What is t",
+      "answer": "THE CASTLE",
+      "expected": "THE CASTLE",
+      "correct": true,
+      "confidence": 0.7
+    },
+    {
+      "task_id": "gaia_l1_007",
+      "question": "An office held a Secret Santa gift exchange where each of its twelve employees was assigned one othe",
+      "answer": "",
+      "expected": "Fred",
+      "correct": false,
+      "confidence": 0.7
+    },
+    {
+      "task_id": "gaia_l1_008",
+      "question": ".rewsna eht sa \"tfel\" drow eht fo etisoppo eht etirw ,ecnetnes siht dnatsrednu uoy fI",
+      "answer": "right",
+      "expected": "Right",
+      "correct": true,
+      "confidence": 0.7
+    },
+    {
+      "task_id": "gaia_l1_009",
+      "question": "\u00ac(A \u2227 B) \u2194 (\u00acA \u2228 \u00acB)\n\u00ac(A \u2228 B) \u2194 (\u00acA \u2227 \u00acB)\n(A \u2192 B) \u2194 (\u00acB \u2192 \u00acA)\n(A \u2192 B) \u2194 (\u00acA \u2228 B)\n(\u00acA \u2192 B) \u2194 (A \u2228 \u00acB)",
+      "answer": "5",
+      "expected": "(\u00acA \u2192 B) \u2194 (A \u2228 \u00acB)",
+      "correct": false,
+      "confidence": 0.7
+    },
+    {
+      "task_id": "gaia_l1_010",
+      "question": "My family reunion is this week, and I was assigned the mashed potatoes to bring. The attendees inclu",
+      "answer": "What\u2019s the actual question you want answered?",
+      "expected": "2",
+      "correct": false,
+      "confidence": 0.7
+    },
+    {
+      "task_id": "gaia_l1_011",
+      "question": "In Emily Midkiff's June 2014 article in a journal named for the one of Hreidmar's sons that guarded ",
+      "answer": "pet",
+      "expected": "fluffy",
+      "correct": false,
+      "confidence": 0.7
+    },
+    {
+      "task_id": "gaia_l1_012",
+      "question": "Under DDC 633 on Bielefeld University Library's BASE, as of 2020, from what country was the unknown ",
+      "answer": "",
+      "expected": "Guatemala",
+      "correct": false,
+      "confidence": 0.7
+    },
+    {
+      "task_id": "gaia_l1_013",
+      "question": "In the fictional language of Tizin, basic sentences are arranged with the Verb first, followed by th",
+      "answer": "",
+      "expected": "Maktay mato apple",
+      "correct": false,
+      "confidence": 0.7
+    },
+    {
+      "task_id": "gaia_l1_014",
+      "question": "In Nature journal's Scientific Reports conference proceedings from 2012, in the article that did not",
+      "answer": "diamond",
+      "expected": "diamond",
+      "correct": true,
+      "confidence": 0.7
+    },
+    {
+      "task_id": "gaia_l1_015",
+      "question": "In the year 2022, and before December, what does \"R\" stand for in the three core policies of the typ",
+      "answer": "research",
+      "expected": "research",
+      "correct": true,
+      "confidence": 0.7
+    },
+    {
+      "task_id": "gaia_l1_016",
+      "question": "Who nominated the only Featured Article on English Wikipedia about a dinosaur that was promoted in N",
+      "answer": "FunkMonk",
+      "expected": "FunkMonk",
+      "correct": true,
+      "confidence": 0.7
+    },
+    {
+      "task_id": "gaia_l1_017",
+      "question": "What writer is quoted by Merriam-Webster for the Word of the Day from June 27, 2022?",
+      "answer": "",
+      "expected": "Annie Levin",
+      "correct": false,
+      "confidence": 0.7
+    },
+    {
+      "task_id": "gaia_l1_018",
+      "question": "Given this table defining * on the set S = {a, b, c, d, e}\n\n|*|a|b|c|d|e|\n|---|---|---|---|---|---|\n",
+      "answer": "a",
+      "expected": "b, e",
+      "correct": false,
+      "confidence": 0.7
+    },
+    {
+      "task_id": "gaia_l1_019",
+      "question": "You are a telecommunications engineer who wants to build cell phone towers on a stretch of road. In ",
+      "answer": "3",
+      "expected": "3",
+      "correct": true,
+      "confidence": 0.7
+    },
+    {
+      "task_id": "gaia_l1_020",
+      "question": "If there is anything that doesn't make sense in the instructions, write the word \"Pineapple.\" Do not",
+      "answer": "Guava",
+      "expected": "Guava",
+      "correct": true,
+      "confidence": 0.7
+    },
+    {
+      "task_id": "gaia_l1_021",
+      "question": "You are Van Helsing, a renowned vampire hunter. A Count of Moldova, La\u021bcu IV, son of  Costea, has ta",
+      "answer": "",
+      "expected": "100",
+      "correct": false,
+      "confidence": 0.7
+    },
+    {
+      "task_id": "gaia_l1_022",
+      "question": "Examine the video at https://www.youtube.com/watch?v=1htKBjuUWec.\n\nWhat does Teal'c say in response ",
+      "answer": "",
+      "expected": "Extremely",
+      "correct": false,
+      "confidence": 0.7
+    },
+    {
+      "task_id": "gaia_l1_023",
+      "question": "What is the surname of the equine veterinarian mentioned in 1.E Exercises from the chemistry materia",
+      "answer": "Louvrier",
+      "expected": "Louvrier",
+      "correct": true,
+      "confidence": 0.7
+    },
+    {
+      "task_id": "gaia_l1_024",
+      "question": "I'm making a grocery list for my mom, but she's a professor of botany and she's a real stickler when",
+      "answer": "Please resend the full question text (it was truncated after \u201cgroce\u2026\u201d).",
+      "expected": "broccoli, celery, fresh basil, lettuce, sweet potatoes",
+      "correct": false,
+      "confidence": 0.7
+    },
+    {
+      "task_id": "gaia_l1_025",
+      "question": "Hi, I'm making a pie but I could use some help with my shopping list. I have everything I need for t",
+      "answer": "adityas",
+      "expected": "cornstarch, freshly squeezed lemon juice, granulated sugar, pure vanilla extract, ripe strawberries",
+      "correct": false,
+      "confidence": 0.7
+    },
+    {
+      "task_id": "gaia_l1_026",
+      "question": "In the Scikit-Learn July 2017 changelog, what other predictor base command received a bug fix? Just ",
+      "answer": "",
+      "expected": "BaseLabelPropagation",
+      "correct": false,
+      "confidence": 0.0
+    },
+    {
+      "task_id": "gaia_l1_027",
+      "question": "Who did the actor who played Ray in the Polish-language version of Everybody Loves Raymond play in M",
+      "answer": "\u0141ukasz",
+      "expected": "Wojciech",
+      "correct": false,
+      "confidence": 0.7
+    },
+    {
+      "task_id": "gaia_l1_028",
+      "question": "On the BBC Earth YouTube video of the Top 5 Silliest Animal Moments, what species of bird is feature",
+      "answer": "",
+      "expected": "Rockhopper penguin",
+      "correct": false,
+      "confidence": 0.7
+    },
+    {
+      "task_id": "gaia_l1_029",
+      "question": "What is the final numeric output from the attached Python code?",
+      "answer": "0",
+      "expected": "0",
+      "correct": true,
+      "confidence": 0.7
+    },
+    {
+      "task_id": "gaia_l1_030",
+      "question": "How many more blocks (also denoted as layers) in BERT base encoder than the encoder from the archite",
+      "answer": "1. Calculate the difference between BERT base encoder layers and the Transformer encoder layers in \u201c",
+      "expected": "6",
+      "correct": false,
+      "confidence": 0.7
+    },
+    {
+      "task_id": "gaia_l1_031",
+      "question": "Bob was invited to participate in a game show, and he advanced to the final round. The final round o",
+      "answer": "The puzzle statement is truncated (\u201c30 shiny p\u2026\u201d). Please paste the full puzzle text",
+      "expected": "16000",
+      "correct": false,
+      "confidence": 0.7
+    },
+    {
+      "task_id": "gaia_l1_032",
+      "question": "Pull out the sentence in the following 5x7 block of text. Read from left to right and use all of the",
+      "answer": "THE SEAGULL GLIDED PEACEFULLY TO MY CHAIR",
+      "expected": "The seagull glided peacefully to my chair.",
+      "correct": false,
+      "confidence": 0.7
+    },
+    {
+      "task_id": "gaia_l1_033",
+      "question": "On Cornell Law School website's legal information institute, under the fifth section of federal rule",
+      "answer": "",
+      "expected": "inference",
+      "correct": false,
+      "confidence": 0.7
+    },
+    {
+      "task_id": "gaia_l1_034",
+      "question": "Of the cities within the United States where U.S. presidents were born, which two are the farthest a",
+      "answer": "Honolulu and Quincy",
+      "expected": "Braintree, Honolulu",
+      "correct": false,
+      "confidence": 0.7
+    },
+    {
+      "task_id": "gaia_l1_035",
+      "question": "According to Girls Who Code, how long did it take in years for the percentage of computer scientists",
+      "answer": "1. We need the number of years for a 13 percentage-point change starting from 37%.",
+      "expected": "22",
+      "correct": false,
+      "confidence": 0.7
+    },
+    {
+      "task_id": "gaia_l1_036",
+      "question": "What was the complete title of the book in which two James Beard Award winners recommended the resta",
+      "answer": "Five Hundred Things To Eat Before It's Too Late: and the Very Best Places to Eat Them",
+      "expected": "Five Hundred Things To Eat Before It's Too Late: and the Very Best Places to Eat Them",
+      "correct": true,
+      "confidence": 0.7
+    },
+    {
+      "task_id": "gaia_l1_037",
+      "question": "How many at bats did the Yankee with the most walks in the 1977 regular season have that same season",
+      "answer": "",
+      "expected": "519",
+      "correct": false,
+      "confidence": 0.7
+    },
+    {
+      "task_id": "gaia_l1_038",
+      "question": "In Audre Lorde\u2019s poem \u201cFather Son and Holy Ghost\u201d, what is the number of the stanza in which some li",
+      "answer": "2",
+      "expected": "2",
+      "correct": true,
+      "confidence": 0.7
+    },
+    {
+      "task_id": "gaia_l1_039",
+      "question": "Hi, I was out sick from my classes on Friday, so I'm trying to figure out what I need to study for m",
+      "answer": "differential calculus and integral calculus",
+      "expected": "132, 133, 134, 197, 245",
+      "correct": false,
+      "confidence": 0.7
+    },
+    {
+      "task_id": "gaia_l1_040",
+      "question": "On June 6, 2023, an article by Carolyn Collins Petersen was published in Universe Today. This articl",
+      "answer": "80GSFC21M0002",
+      "expected": "80GSFC21M0002",
+      "correct": true,
+      "confidence": 0.7
+    },
+    {
+      "task_id": "gaia_l1_041",
+      "question": "What was the actual enrollment count of the clinical trial on H. pylori in acne vulgaris patients fr",
+      "answer": "",
+      "expected": "90",
+      "correct": false,
+      "confidence": 0.7
+    },
+    {
+      "task_id": "gaia_l1_042",
+      "question": "Where were the Vietnamese specimens described by Kuznetzov in Nedoshivina's 2010 paper eventually de",
+      "answer": "I don\u2019t have enough information to answer that.",
+      "expected": "Saint Petersburg",
+      "correct": false,
+      "confidence": 0.7
+    },
+    {
+      "task_id": "gaia_l1_043",
+      "question": "A standard Rubik\u2019s cube has been broken into cubes making up its sides. The cubes are jumbled, and o",
+      "answer": "corner cubes with three colored faces",
+      "expected": "green, white",
+      "correct": false,
+      "confidence": 0.7
+    },
+    {
+      "task_id": "gaia_l1_044",
+      "question": "What country had the least number of athletes at the 1928 Summer Olympics? If there's a tie for a nu",
+      "answer": "CUB",
+      "expected": "CUB",
+      "correct": true,
+      "confidence": 0.7
+    },
+    {
+      "task_id": "gaia_l1_045",
+      "question": "Who are the pitchers with the number before and after Taish\u014d Tamai's number as of July 2023? Give th",
+      "answer": "Yoshida, Uehara",
+      "expected": "Yoshida, Uehara",
+      "correct": true,
+      "confidence": 0.7
+    },
+    {
+      "task_id": "gaia_l1_046",
+      "question": "What is the first name of the only Malko Competition recipient from the 20th Century (after 1977) wh",
+      "answer": "Alexander",
+      "expected": "Claus",
+      "correct": false,
+      "confidence": 0.7
+    }
+  ]
+}

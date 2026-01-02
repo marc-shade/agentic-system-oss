@@ -1,0 +1,62 @@
+======================================================================
+GAIA-AVIR CLUSTER CROSS-VERIFICATION REPORT
+======================================================================
+
+Timestamp: 2026-01-02T17:25:56.233118+00:00
+Nodes Participating: macpro51
+
+SUMMARY
+----------------------------------------
+Total Tasks Verified: 53
+  - VERIFIED (>=80% agreement): 0
+  - PARTIAL (50-79% agreement): 0
+  - FAILED (<50% agreement): 0
+  - INCONCLUSIVE: 53
+
+Overall Accuracy (avg across nodes): 47.2%
+Consensus Accuracy (verified only): 0.0%
+Fleiss' Kappa (inter-rater reliability): 0.000
+
+OVERALL VERDICT: INCONCLUSIVE
+
+Kappa Interpretation: Slight agreement or less
+
+NODE PERFORMANCE
+----------------------------------------
+  macpro51 (builder): 47.2% (25/53)
+
+CROSS-VERIFICATION MATRIX (first 5 tasks)
+----------------------------------------
+
+Task 1: a1e91b78-d3d8-4675-b...
+  Expected: 3
+  Agreement: 0.0% (inconclusive)
+         macpro51
+macpro51     --   
+
+Task 2: 27d5d136-8563-469e-9...
+  Expected: (¬A → B) ↔ (A ∨ ¬B)
+  Agreement: 0.0% (inconclusive)
+         macpro51
+macpro51     --   
+
+Task 3: 65afbc8a-89ca-4ad5-8...
+  Expected: F478A7
+  Agreement: 0.0% (inconclusive)
+         macpro51
+macpro51     --   
+
+Task 4: e142056d-56ab-4352-b...
+  Expected: 16000
+  Agreement: 0.0% (inconclusive)
+         macpro51
+macpro51     --   
+
+Task 5: 5cfb274c-0207-4aa7-9...
+  Expected: No
+  Agreement: 0.0% (inconclusive)
+         macpro51
+macpro51     --   
+
+======================================================================
+End of Report
