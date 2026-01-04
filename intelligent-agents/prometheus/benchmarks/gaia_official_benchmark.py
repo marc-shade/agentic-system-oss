@@ -2885,9 +2885,12 @@ Respond with ONLY the exact paper title, nothing else. No explanation, no quotes
 
         # IMPROVEMENT 30: Dialogue extraction from video transcripts
         # Pattern: "What does X say in response to Y" or "What is X's response to Y"
-        if (('response' in q_lower or 'say in response' in q_lower or 'reply' in q_lower or 'answer' in q_lower) and
-            ('video' in q_lower or 'youtube' in q_lower or 'watch?v=' in question.lower())):
+        imp30_response_check = 'response' in q_lower or 'say in response' in q_lower or 'reply' in q_lower or 'answer' in q_lower
+        imp30_video_check = 'video' in q_lower or 'youtube' in q_lower or 'watch?v=' in question.lower()
+        logger.info(f"IMPROVEMENT 30 check: response={imp30_response_check}, video={imp30_video_check}")
+        if imp30_response_check and imp30_video_check:
             youtube_url = self._extract_youtube_url(question)
+            logger.info(f"IMPROVEMENT 30 entered: youtube_url={youtube_url}")
             if youtube_url:
                 self.reasoning_steps.append(f"IMPROVEMENT 30: Dialogue extraction from {youtube_url}")
                 try:
@@ -2898,45 +2901,61 @@ Respond with ONLY the exact paper title, nothing else. No explanation, no quotes
                         # Use backreference to match same quote type (avoid apostrophe in "Isn't")
                         trigger_match = re.search(r'(?:in response to|response to|reply to|answer(?:s)? to)(?: the)?(?: question)?\s*(["\'])(.+?)\1', question, re.IGNORECASE)
                         if trigger_match:
-                            trigger_phrase = trigger_match.group(2).lower().strip()  # Group 2 is the captured content
-                            trigger_phrase = re.sub(r'[^\w\s]', '', trigger_phrase)  # Remove punctuation
-                            logger.info(f"Looking for response to: '{trigger_phrase}'")
+                            trigger_phrase_raw = trigger_match.group(2).strip()  # Keep original for matching
+                            trigger_phrase_clean = re.sub(r'[^\w\s]', '', trigger_phrase_raw).lower()
+                            logger.info(f"Looking for response to: '{trigger_phrase_raw}' (clean: '{trigger_phrase_clean}')")
 
-                            # Clean transcript and look for the trigger phrase
                             transcript_lower = transcript.lower()
-                            trigger_pos = transcript_lower.find(trigger_phrase[:20])  # First 20 chars
 
-                            if trigger_pos == -1:
-                                # Try partial match
-                                for word in trigger_phrase.split()[:3]:
-                                    if word in transcript_lower:
-                                        trigger_pos = transcript_lower.find(word)
-                                        break
+                            # Strategy 1: Find the EXACT phrase (with question mark) - most reliable
+                            # This finds "Isn't that hot?" in transcript and gets text after
+                            exact_patterns = [
+                                trigger_phrase_raw.lower() + r'[?\s]',  # "isn't that hot?"
+                                trigger_phrase_raw.lower().replace("'", "'") + r'[?\s]',  # apostrophe variation
+                                trigger_phrase_clean + r'[?\s]',  # without punctuation "isnt that hot?"
+                            ]
 
-                            if trigger_pos != -1:
-                                # Get the text after the trigger
-                                after_trigger = transcript[trigger_pos:trigger_pos + 200]
-                                logger.info(f"Text after trigger: {after_trigger}")
+                            trigger_end_pos = -1
+                            for pattern in exact_patterns:
+                                match = re.search(re.escape(pattern.replace(r'[?\s]', '')) + r'[?.\s]', transcript_lower)
+                                if match:
+                                    trigger_end_pos = match.end()
+                                    logger.info(f"Found exact phrase at position {match.start()}, ends at {trigger_end_pos}")
+                                    break
 
-                                # Split into words and find the response
+                            # Strategy 2: Find last occurrence of key words (questions are usually near end)
+                            if trigger_end_pos == -1:
+                                # Find the LAST occurrence of distinctive words from the trigger
+                                key_words = [w for w in trigger_phrase_clean.split() if len(w) > 2]
+                                if key_words:
+                                    # Find last occurrence of the phrase
+                                    last_pos = -1
+                                    for i in range(len(transcript_lower) - 10, -1, -1):
+                                        segment = transcript_lower[i:i+len(trigger_phrase_clean)+5]
+                                        if all(w in segment for w in key_words):
+                                            # Find where this phrase ends
+                                            last_pos = i + len(trigger_phrase_clean)
+                                            break
+                                    if last_pos != -1:
+                                        trigger_end_pos = last_pos
+                                        logger.info(f"Found phrase by keywords at approx position {trigger_end_pos}")
+
+                            if trigger_end_pos != -1:
+                                # Get text AFTER the trigger phrase ends
+                                after_trigger = transcript[trigger_end_pos:trigger_end_pos + 50].strip()
+                                logger.info(f"Text after trigger: '{after_trigger}'")
+
+                                # The response is the FIRST word(s) after the question
                                 words = re.findall(r'\b\w+\b', after_trigger)
 
-                                # The response is typically right after the trigger
-                                if len(words) > 5:
-                                    # Skip the trigger phrase words
-                                    trigger_words = trigger_phrase.split()
-                                    response_start = len(trigger_words)
-
-                                    # Get potential response (next 1-3 words)
-                                    if response_start < len(words):
-                                        potential_response = words[response_start:response_start + 3]
-
-                                        # For single-word responses like "Extremely"
-                                        for word in potential_response:
-                                            if word.lower() not in ['a', 'an', 'the', 'is', 'it', 'that', 'this', 'hot']:
-                                                logger.info(f"Dialogue extraction found response: {word}")
-                                                self.tools_used.append("dialogue_extraction")
-                                                return word.capitalize()
+                                if words:
+                                    # Filter out common filler words
+                                    skip_words = {'a', 'an', 'the', 'is', 'it', 'that', 'this', 'yeah', 'yes', 'no', 'well', 'um', 'uh'}
+                                    for word in words[:3]:  # Check first 3 words
+                                        if word.lower() not in skip_words and len(word) > 1:
+                                            logger.info(f"Dialogue extraction found response: {word}")
+                                            self.tools_used.append("dialogue_extraction")
+                                            return word.capitalize()
                 except Exception as e:
                     logger.warning(f"Dialogue extraction failed: {e}")
 
