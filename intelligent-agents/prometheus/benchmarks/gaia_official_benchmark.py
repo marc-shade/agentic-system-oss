@@ -2894,9 +2894,11 @@ Respond with ONLY the exact paper title, nothing else. No explanation, no quotes
                     transcript = await self._fetch_video_transcript(youtube_url)
                     if transcript:
                         # Extract the trigger phrase (what someone is responding to)
-                        trigger_match = re.search(r'(?:response to|in response to|reply to|answer(?:s)? (?:the )?(?:question )?)["\']([^"\']+)["\']', question, re.IGNORECASE)
+                        # Fixed: Handle "in response to the question" pattern
+                        # Use backreference to match same quote type (avoid apostrophe in "Isn't")
+                        trigger_match = re.search(r'(?:in response to|response to|reply to|answer(?:s)? to)(?: the)?(?: question)?\s*(["\'])(.+?)\1', question, re.IGNORECASE)
                         if trigger_match:
-                            trigger_phrase = trigger_match.group(1).lower().strip()
+                            trigger_phrase = trigger_match.group(2).lower().strip()  # Group 2 is the captured content
                             trigger_phrase = re.sub(r'[^\w\s]', '', trigger_phrase)  # Remove punctuation
                             logger.info(f"Looking for response to: '{trigger_phrase}'")
 
