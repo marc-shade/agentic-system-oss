@@ -3689,23 +3689,49 @@ FINAL ANSWER (just the answer, nothing else):"""
             return True
         answer_lower = answer.lower().strip()
 
-        # Check for search suggestion patterns (IMPROVEMENT 32)
+        # Check for search suggestion patterns (IMPROVEMENT 32 + 35)
         search_suggestion_patterns = [
             "search query",
             "search for:",
             "would you like",
             "i can search",
             "let me search",
+            "let's search",  # IMPROVEMENT 35
+            "let's look",    # IMPROVEMENT 35
+            "let's find",    # IMPROVEMENT 35
+            "let's directly",  # IMPROVEMENT 35
             "try searching",
             "search again",
             "i recommend searching",
             "you could search",
+            "i'll search",   # IMPROVEMENT 35
+            "i will search", # IMPROVEMENT 35
+            "searching for", # IMPROVEMENT 35
+            "to find ",      # IMPROVEMENT 35
+            "we need to",    # IMPROVEMENT 35
+            "we should",     # IMPROVEMENT 35
+            "first,",        # IMPROVEMENT 35
         ]
         # Check if answer STARTS with a search suggestion
         for pattern in search_suggestion_patterns:
             if answer_lower.startswith(pattern):
-                logger.debug(f"IMPROVEMENT 32: Detected search suggestion: {answer[:50]}")
+                logger.debug(f"IMPROVEMENT 32/35: Detected search suggestion: {answer[:50]}")
                 return True
+
+        # IMPROVEMENT 35: Detect chain patterns like "Search.Search.Open.X"
+        if ".search." in answer_lower or ".open." in answer_lower or ".scrolling." in answer_lower:
+            logger.debug(f"IMPROVEMENT 35: Detected Search chain pattern: {answer[:50]}")
+            return True
+
+        # IMPROVEMENT 35: Detect web snippet markers
+        if " - yahoo:" in answer_lower or " - wikipedia:" in answer_lower:
+            logger.debug(f"IMPROVEMENT 35: Detected web snippet: {answer[:50]}")
+            return True
+
+        # IMPROVEMENT 35: Very long answers are likely snippets
+        if len(answer) > 300:
+            logger.debug(f"IMPROVEMENT 35: Answer too long ({len(answer)} chars)")
+            return True
 
         failure_patterns = [
             "does not contain",

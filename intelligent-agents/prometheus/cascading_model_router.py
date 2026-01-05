@@ -436,6 +436,10 @@ class OllamaClient:
                         answer = answer[len(prefix):].strip()
                         break
 
+            # IMPROVEMENT 35: Strip reasoning artifacts from LLM output
+            if answer:
+                answer = self._clean_reasoning_artifacts(answer)
+
             return answer if answer else None
 
         except Exception as e:
@@ -469,6 +473,9 @@ class OllamaClient:
                 answer = response.json().get("response", "").strip()
                 if "<think>" in answer and "</think>" in answer:
                     answer = answer.split("</think>")[-1].strip()
+                # IMPROVEMENT 35: Apply cleaning to fallback too
+                if answer:
+                    answer = self._clean_reasoning_artifacts(answer)
                 return answer if answer else None
         except Exception as e:
             logger.debug(f"Fallback query failed ({model}): {e}")
@@ -543,6 +550,92 @@ class OllamaClient:
                     return num
 
         return None
+
+    def _clean_reasoning_artifacts(self, answer: str) -> Optional[str]:
+        """
+        IMPROVEMENT 35: Remove reasoning artifacts and extract clean answer.
+
+        Handles patterns like:
+        - "Let's search for X" -> None (needs retry)
+        - "Thus final answer: X.X" -> X
+        - "Search.Search.Open.X" -> X (extract last part)
+        - Full URL/snippet text -> None
+        """
+        import re
+
+        if not answer:
+            return None
+
+        original = answer
+
+        # Pattern 1: Reasoning prefixes that indicate no real answer
+        reasoning_starts = [
+            r"^let['']?s\s+(search|look|find|check|directly|view)",
+            r"^i('ll| will| can| should)\s+(search|look|find)",
+            r"^search(ing)?\s+for",
+            r"^to find",
+            r"^we (need|should|can)\s+(to\s+)?(search|look)",
+            r"^first,?\s+(let|i|we)",
+            r"^after\s+\d+\s+(year|month|day)",  # "After 10 years..." snippets
+        ]
+
+        for pattern in reasoning_starts:
+            if re.match(pattern, answer.lower()):
+                logger.debug(f"IMPROVEMENT 35: Detected reasoning prefix, answer rejected: {answer[:50]}")
+                return None
+
+        # Pattern 2: "Thus final answer: X" or "final answer: X" - extract X
+        final_match = re.search(r'(?:thus\s+)?final\s+answer[:\s]+([^\.]+)', answer, re.IGNORECASE)
+        if final_match:
+            extracted = final_match.group(1).strip()
+            # Remove duplicated word patterns like "Kuba.Kuba" -> "Kuba"
+            if '.' in extracted:
+                parts = extracted.split('.')
+                if len(parts) >= 2 and parts[0].strip().lower() == parts[1].strip().lower():
+                    extracted = parts[0].strip()
+            if extracted and len(extracted) < 100:
+                logger.debug(f"IMPROVEMENT 35: Extracted from 'final answer': {extracted}")
+                return extracted
+
+        # Pattern 3: "Search.Search.X" or "Open.Scrolling.X" - extract meaningful part
+        if re.search(r'\.Search\.|\.Open\.|\.Scrolling\.', answer):
+            # Split and find last substantive part
+            parts = re.split(r'(?:\.Search|\.Open|\.Scrolling|\.Results?)+\.?', answer)
+            for part in reversed(parts):
+                part = part.strip()
+                if part and len(part) > 2 and not part.lower().startswith(('let', 'search', 'open', 'scroll')):
+                    # Check if it's a real answer not another instruction
+                    if not re.match(r"^(search|let|i|we|to|first)", part.lower()):
+                        logger.debug(f"IMPROVEMENT 35: Extracted from Search chain: {part[:50]}")
+                        return part
+            return None
+
+        # Pattern 4: Full web snippets (long text with " - Yahoo:", " - Wikipedia:", etc.)
+        if ' - Yahoo:' in answer or ' - Wikipedia:' in answer:
+            # This is a search result snippet, not an answer
+            logger.debug(f"IMPROVEMENT 35: Detected search snippet, rejected")
+            return None
+
+        # Pattern 5: Answer contains URL
+        if re.search(r'https?://', answer):
+            # Try to extract text before URL
+            before_url = re.split(r'https?://', answer)[0].strip()
+            if before_url and len(before_url) > 2:
+                return before_url
+            return None
+
+        # Pattern 6: Very long answers (> 200 chars) are likely snippets not answers
+        if len(answer) > 200:
+            # Try to find a short answer within
+            lines = answer.split('\n')
+            for line in lines[:5]:
+                line = line.strip()
+                if line and len(line) < 100 and not line.lower().startswith(('let', 'search', 'i ', 'we ')):
+                    return line
+            logger.debug(f"IMPROVEMENT 35: Answer too long ({len(answer)} chars), rejected")
+            return None
+
+        return answer
 
 
 class ParallelProviderExecutor:
