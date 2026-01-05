@@ -2086,31 +2086,62 @@ Give ONLY the answer value:"""
             raise RuntimeError("AGI orchestrator not available")
 
     async def _execute_direct(self, context: Dict[str, Any]) -> str:
-        """Execute using direct tool calls."""
-        import subprocess
-
+        """Execute using direct Ollama call as last-resort fallback."""
         question = context["question"]
-        self.reasoning_steps.append("Using direct execution")
+        self.reasoning_steps.append("Using direct Ollama fallback (IMPROVEMENT 34)")
 
-        # Simple heuristic-based execution for basic questions
-        # Real implementation would use full agent loop
+        # IMPROVEMENT 34: Replace placeholder with actual Ollama query
+        try:
+            import httpx
 
-        # Check if it's a calculation question
-        if any(kw in question.lower() for kw in ["calculate", "compute", "what is", "sum", "multiply"]):
-            self.tools_used.append("python")
-            # Extract math expression and compute
-            # (simplified - real impl would be more sophisticated)
+            # Try Mac Studio cloud model first, then local
+            ollama_configs = [
+                ("http://mac-studio.local:11434", "gpt-oss:120b-cloud"),
+                ("http://localhost:11434", "qwen3:14b"),
+            ]
 
-        # Check if it requires web search
-        if any(kw in question.lower() for kw in ["who", "when", "where", "current", "latest"]):
-            self.tools_used.append("web_search")
+            prompt = f"""Answer this question directly and concisely.
 
-        # Check if it requires file reading
-        if context.get("attachment_path"):
-            self.tools_used.append("file_read")
+Question: {question}
 
-        # For now, return placeholder - real implementation would execute
-        return "[Agent execution not fully implemented]"
+IMPORTANT: Give ONLY the final answer (a number, name, date, or short phrase).
+Do NOT explain or provide context. Just the answer.
+
+Answer:"""
+
+            for base_url, model in ollama_configs:
+                try:
+                    with httpx.Client(timeout=90) as client:
+                        resp = client.post(f"{base_url}/api/generate", json={
+                            "model": model,
+                            "prompt": prompt,
+                            "stream": False,
+                            "options": {"num_predict": 200, "temperature": 0.1}
+                        })
+                        if resp.status_code == 200:
+                            data = resp.json()
+                            answer = data.get("response", "").strip()
+                            if answer:
+                                self.tools_used.append(f"ollama_direct_{model.split(':')[0]}")
+                                extracted = self._extract_answer(answer)
+                                if extracted and not self._is_failed_extraction(extracted):
+                                    logger.info(f"Direct Ollama fallback succeeded ({model}): {extracted[:50]}")
+                                    return extracted
+                except Exception as e:
+                    logger.debug(f"Ollama {base_url} failed: {e}")
+                    continue
+
+            # If all Ollama calls fail, try web search as last resort
+            logger.info("All Ollama fallbacks failed, trying web search")
+            web_result = await self._targeted_web_search(question[:100])
+            if web_result:
+                self.tools_used.append("web_search_fallback")
+                return self._extract_answer(web_result)
+
+        except Exception as e:
+            logger.warning(f"Direct execution fallback failed: {e}")
+
+        return "[NO_ANSWER_FALLBACK]"
 
     def _try_python_calculation(self, question: str) -> Optional[str]:
         """
