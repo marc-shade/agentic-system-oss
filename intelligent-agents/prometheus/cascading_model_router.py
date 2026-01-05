@@ -568,15 +568,25 @@ class OllamaClient:
 
         original = answer
 
-        # Pattern 1: Reasoning prefixes that indicate no real answer
+        # Pattern 1: Reasoning prefixes that indicate no real answer (IMPROVEMENT 35+36+37)
         reasoning_starts = [
-            r"^let['']?s\s+(search|look|find|check|directly|view)",
+            r"^let['']?s\s+(search|look|find|check|directly|view|browse|do)",  # Added browse, do
             r"^i('ll| will| can| should)\s+(search|look|find)",
             r"^search(ing)?\s+for",
             r"^to find",
-            r"^we (need|should|can)\s+(to\s+)?(search|look)",
+            r"^we (need|should|can)\s+(to\s+)?(search|look|browse)",  # Added browse
             r"^first,?\s+(let|i|we)",
             r"^after\s+\d+\s+(year|month|day)",  # "After 10 years..." snippets
+            r"^query:",  # IMPROVEMENT 36: Direct query pattern
+            r"^probably\s+need",  # IMPROVEMENT 36
+            # IMPROVEMENT 37: More reasoning patterns from thinking extraction
+            r"^first\s+move\s+(likely|would|should)",  # "first move likely down to A3"
+            r"^(the|this|it)\s+(answer|move|result)\s+(would|should|could)\s+be",  # "the answer would be"
+            r"^likely\s+(down|up|to|the|a)",  # "likely down to..."
+            r"^(based|given|considering)\s+on",  # "based on the analysis..."
+            r"^(so|thus|therefore|hence),?\s+(the|it|this)",  # "so the answer is..."
+            r"^looking\s+at",  # "looking at the board..."
+            r"^analyzing",  # "analyzing the position..."
         ]
 
         for pattern in reasoning_starts:
@@ -634,6 +644,13 @@ class OllamaClient:
                     return line
             logger.debug(f"IMPROVEMENT 35: Answer too long ({len(answer)} chars), rejected")
             return None
+
+        # IMPROVEMENT 36: Detect news headline patterns
+        news_patterns = ["has one condition", "reveals why", "here's what", "breaking:", "exclusive:"]
+        for pattern in news_patterns:
+            if pattern in answer.lower():
+                logger.debug(f"IMPROVEMENT 36: Detected news headline pattern, rejected: {answer[:50]}")
+                return None
 
         return answer
 

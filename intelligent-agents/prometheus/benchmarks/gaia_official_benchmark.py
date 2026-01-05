@@ -3689,7 +3689,7 @@ FINAL ANSWER (just the answer, nothing else):"""
             return True
         answer_lower = answer.lower().strip()
 
-        # Check for search suggestion patterns (IMPROVEMENT 32 + 35)
+        # Check for search suggestion patterns (IMPROVEMENT 32 + 35 + 36)
         search_suggestion_patterns = [
             "search query",
             "search for:",
@@ -3700,6 +3700,8 @@ FINAL ANSWER (just the answer, nothing else):"""
             "let's look",    # IMPROVEMENT 35
             "let's find",    # IMPROVEMENT 35
             "let's directly",  # IMPROVEMENT 35
+            "let's browse",  # IMPROVEMENT 36
+            "let's do",      # IMPROVEMENT 36
             "try searching",
             "search again",
             "i recommend searching",
@@ -3711,6 +3713,8 @@ FINAL ANSWER (just the answer, nothing else):"""
             "we need to",    # IMPROVEMENT 35
             "we should",     # IMPROVEMENT 35
             "first,",        # IMPROVEMENT 35
+            "query:",        # IMPROVEMENT 36 - direct query pattern
+            "probably need", # IMPROVEMENT 36
         ]
         # Check if answer STARTS with a search suggestion
         for pattern in search_suggestion_patterns:
@@ -3727,6 +3731,36 @@ FINAL ANSWER (just the answer, nothing else):"""
         if " - yahoo:" in answer_lower or " - wikipedia:" in answer_lower:
             logger.debug(f"IMPROVEMENT 35: Detected web snippet: {answer[:50]}")
             return True
+
+        # IMPROVEMENT 36: Detect news headline patterns
+        news_patterns = [
+            "has one condition",
+            "reveals why",
+            "here's what",
+            "breaking:",
+            "exclusive:",
+            "report:",
+        ]
+        for pattern in news_patterns:
+            if pattern in answer_lower:
+                logger.debug(f"IMPROVEMENT 36: Detected news headline: {answer[:50]}")
+                return True
+
+        # IMPROVEMENT 37: Detect reasoning patterns from thinking extraction
+        import re
+        reasoning_patterns = [
+            r"^first\s+move\s+(likely|would|should)",  # "first move likely down to A3"
+            r"^(the|this|it)\s+(answer|move|result)\s+(would|should|could)\s+be",  # "the answer would be"
+            r"^likely\s+(down|up|to|the|a)",  # "likely down to..."
+            r"^(based|given|considering)\s+on",  # "based on the analysis..."
+            r"^(so|thus|therefore|hence),?\s+(the|it|this)",  # "so the answer is..."
+            r"^looking\s+at",  # "looking at the board..."
+            r"^analyzing",  # "analyzing the position..."
+        ]
+        for pattern in reasoning_patterns:
+            if re.match(pattern, answer_lower):
+                logger.debug(f"IMPROVEMENT 37: Detected reasoning pattern: {answer[:50]}")
+                return True
 
         # IMPROVEMENT 35: Very long answers are likely snippets
         if len(answer) > 300:
