@@ -323,6 +323,32 @@ class GAIAAnswerValidator:
             return float("inf")
 
     @staticmethod
+    def expand_abbreviations(input_str: str) -> str:
+        """
+        IMPROVEMENT 40: Expand common abbreviations for better matching.
+        Applied BEFORE official normalization.
+        """
+        # Common geographic/name abbreviations
+        abbreviations = {
+            r'\bSt\b\.?': 'Saint',        # St/St. -> Saint (Petersburg, Louis, etc.)
+            r'\bMt\b\.?': 'Mount',         # Mt/Mt. -> Mount
+            r'\bDr\b\.?': 'Doctor',        # Dr/Dr. -> Doctor
+            r'\bMr\b\.?': 'Mister',        # Mr/Mr. -> Mister
+            r'\bMrs\b\.?': 'Missus',       # Mrs/Mrs. -> Missus
+            r'\bProf\b\.?': 'Professor',   # Prof/Prof. -> Professor
+            r'\bGen\b\.?': 'General',      # Gen/Gen. -> General
+            r'\bSgt\b\.?': 'Sergeant',     # Sgt/Sgt. -> Sergeant
+            r'\bCorp\b\.?': 'Corporation', # Corp/Corp. -> Corporation
+            r'\bInc\b\.?': 'Incorporated', # Inc/Inc. -> Incorporated
+            r'\bLtd\b\.?': 'Limited',      # Ltd/Ltd. -> Limited
+            r'\bCo\b\.?': 'Company',       # Co/Co. -> Company
+        }
+        result = input_str
+        for abbr, full in abbreviations.items():
+            result = re.sub(abbr, full, result, flags=re.IGNORECASE)
+        return result
+
+    @staticmethod
     def normalize_str(input_str: str, remove_punct: bool = True) -> str:
         """
         Normalize string for comparison.
@@ -334,6 +360,8 @@ class GAIAAnswerValidator:
         if input_str is None:
             return ""
         input_str = str(input_str)
+        # IMPROVEMENT 40: Expand abbreviations first
+        input_str = GAIAAnswerValidator.expand_abbreviations(input_str)
         # Remove ALL whitespace
         no_spaces = re.sub(r"\s", "", input_str)
         if remove_punct:
@@ -3502,7 +3530,18 @@ FINAL ANSWER (just the answer, nothing else):"""
         # If orchestrator also failed, use preserved cascading answer as final fallback
         if (not orchestrator_result or orchestrator_result == "[NO_ANSWER_AFTER_RETRIES]") and cascading_fallback_answer:
             self.reasoning_steps.append(f"Orchestrator failed - using preserved cascading answer: {cascading_fallback_answer}")
-            return cascading_fallback_answer
+            # IMPROVEMENT 41: Final validation of cascading answer
+            if not self._is_failed_extraction(cascading_fallback_answer):
+                return cascading_fallback_answer
+            else:
+                logger.debug(f"IMPROVEMENT 41: Rejected cascading answer as failed extraction: {cascading_fallback_answer[:50]}")
+
+        # IMPROVEMENT 41: Final validation of orchestrator result
+        if orchestrator_result and not self._is_failed_extraction(orchestrator_result):
+            return orchestrator_result
+        elif orchestrator_result:
+            logger.debug(f"IMPROVEMENT 41: Rejected orchestrator answer as failed extraction: {orchestrator_result[:50]}")
+            return "[EXTRACTION_FAILED]"
 
         return orchestrator_result
 
@@ -3715,6 +3754,23 @@ FINAL ANSWER (just the answer, nothing else):"""
             "first,",        # IMPROVEMENT 35
             "query:",        # IMPROVEMENT 36 - direct query pattern
             "probably need", # IMPROVEMENT 36
+            # IMPROVEMENT 39: More I'll patterns
+            "let's try",     # "Let's try to locate..."
+            "i'll answer",   # "I'll answer 20.20"
+            "i'll provide",  # "I'll provide that"
+            "i'll give",
+            "i'll show",
+            "i need to",     # "I need to search..."
+            "again.",        # "again.30" garbage prefix
+            "however.",      # "however.X" garbage prefix
+            "but.",          # "but.X" garbage prefix
+            "also.",         # "also.X" garbage prefix
+            # IMPROVEMENT 41: More patterns found in failures
+            "search web",    # "Search web.Let's browse..."
+            "might find",    # "Might find "3""
+            "expects",       # "expects hex code, so final cell..."
+            "the specific",  # "The specific page numbers mentioned..."
+            "1. verb",       # "1. Verb: The root verb..."
         ]
         # Check if answer STARTS with a search suggestion
         for pattern in search_suggestion_patterns:

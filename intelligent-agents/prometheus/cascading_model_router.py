@@ -568,10 +568,10 @@ class OllamaClient:
 
         original = answer
 
-        # Pattern 1: Reasoning prefixes that indicate no real answer (IMPROVEMENT 35+36+37)
+        # Pattern 1: Reasoning prefixes that indicate no real answer (IMPROVEMENT 35+36+37+39)
         reasoning_starts = [
-            r"^let['']?s\s+(search|look|find|check|directly|view|browse|do)",  # Added browse, do
-            r"^i('ll| will| can| should)\s+(search|look|find)",
+            r"^let['']?s\s+(search|look|find|check|directly|view|browse|do|try)",  # Added try
+            r"^i('ll| will| can| should)\s+(search|look|find|answer|provide)",  # Added answer, provide
             r"^search(ing)?\s+for",
             r"^to find",
             r"^we (need|should|can)\s+(to\s+)?(search|look|browse)",  # Added browse
@@ -587,6 +587,9 @@ class OllamaClient:
             r"^(so|thus|therefore|hence),?\s+(the|it|this)",  # "so the answer is..."
             r"^looking\s+at",  # "looking at the board..."
             r"^analyzing",  # "analyzing the position..."
+            # IMPROVEMENT 39: More I'll patterns
+            r"^i('ll| need to)\s+(provide|give|show|answer)",  # "I'll provide that"
+            r"^(again|however|but|also)\.",  # "again.30" garbage prefix
         ]
 
         for pattern in reasoning_starts:
