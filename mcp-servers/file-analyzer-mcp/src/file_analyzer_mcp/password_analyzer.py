@@ -223,9 +223,9 @@ async def analyze_password(password: str, check_hibp: bool = False) -> str:
         "note": "Password was analyzed locally and NOT transmitted or stored"
     }
 
-    # HIBP check (hash only)
+    # HIBP check (hash only) - SHA1 required by HaveIBeenPwned API specification
     if check_hibp:
-        sha1 = hashlib.sha1(password.encode()).hexdigest().upper()
+        sha1 = hashlib.sha1(password.encode(), usedforsecurity=False).hexdigest().upper()
         prefix = sha1[:5]
         result["hibp_check"] = {
             "hash_prefix": prefix,

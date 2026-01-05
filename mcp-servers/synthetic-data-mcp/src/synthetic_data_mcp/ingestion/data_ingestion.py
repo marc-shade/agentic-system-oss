@@ -322,7 +322,7 @@ class DataIngestionPipeline:
             if pd.isna(email):
                 return email
             # Hash the entire email to prevent domain leakage
-            full_hash = hashlib.md5(str(email).encode()).hexdigest()[:8]
+            full_hash = hashlib.md5(str(email).encode(), usedforsecurity=False).hexdigest()[:8]
             # Use generic domain to prevent information leakage
             return f"user_{full_hash}@example.com"
         return series.apply(hash_email)
@@ -344,7 +344,7 @@ class DataIngestionPipeline:
         
     def _anonymize_name(self, series: pd.Series) -> pd.Series:
         """Anonymize names."""
-        return series.apply(lambda x: f"Person_{hashlib.md5(str(x).encode()).hexdigest()[:6]}" if pd.notna(x) else x)
+        return series.apply(lambda x: f"Person_{hashlib.md5(str(x).encode(), usedforsecurity=False).hexdigest()[:6]}" if pd.notna(x) else x)
         
     def _anonymize_address(self, series: pd.Series) -> pd.Series:
         """Anonymize addresses."""

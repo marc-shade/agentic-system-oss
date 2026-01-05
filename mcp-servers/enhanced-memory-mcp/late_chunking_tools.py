@@ -225,7 +225,7 @@ class LateChunkingProcessor:
 
         # Generate document ID if not provided
         if document_id is None:
-            document_id = hashlib.md5(text[:1000].encode()).hexdigest()[:12]
+            document_id = hashlib.md5(text[:1000].encode(), usedforsecurity=False).hexdigest()[:12]
 
         # Estimate tokens
         total_tokens = self._estimate_tokens(text)

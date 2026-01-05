@@ -116,7 +116,7 @@ class SharedMemoryStore:
     def _generate_id(self, *args) -> str:
         """Generate deterministic ID from args"""
         combined = ":".join(str(a) for a in args)
-        return hashlib.md5(combined.encode()).hexdigest()
+        return hashlib.md5(combined.encode(), usedforsecurity=False).hexdigest()
 
     # ========== Shared Context Operations ==========
 

@@ -265,7 +265,7 @@ def tokenize_pii(text: str) -> tuple[str, dict]:
     for pii_type, pattern in PII_PATTERNS.items():
         for match in re.finditer(pattern, sanitized, re.IGNORECASE):
             original = match.group()
-            token_id = f"[{pii_type.upper()}_{hashlib.md5(original.encode()).hexdigest()[:8]}]"
+            token_id = f"[{pii_type.upper()}_{hashlib.md5(original.encode(), usedforsecurity=False).hexdigest()[:8]}]"
             tokens[token_id] = original
             sanitized = sanitized.replace(original, token_id)
 
@@ -297,7 +297,7 @@ def save_skill_internal(name: str, code: str, description: str = "") -> str:
         'name': name,
         'description': description,
         'created': datetime.now().isoformat(),
-        'code_hash': hashlib.md5(code.encode()).hexdigest(),
+        'code_hash': hashlib.md5(code.encode(), usedforsecurity=False).hexdigest(),
     }
     metadata_path.write_text(json.dumps(metadata, indent=2))
 

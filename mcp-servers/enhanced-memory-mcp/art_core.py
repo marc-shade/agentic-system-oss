@@ -204,7 +204,7 @@ class FuzzyART:
     def _generate_category_id(self, prototype: np.ndarray) -> str:
         """Generate unique ID for a category"""
         hash_input = f"{prototype.tobytes()}{datetime.now().isoformat()}"
-        return hashlib.md5(hash_input.encode()).hexdigest()[:12]
+        return hashlib.md5(hash_input.encode(), usedforsecurity=False).hexdigest()[:12]
 
     def learn(
         self,

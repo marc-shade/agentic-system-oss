@@ -112,7 +112,7 @@ class ShardedDatabaseManager:
         """Determine which shard should handle a given key."""
         if self.strategy == ShardStrategy.HASH:
             # Hash-based sharding
-            hash_value = int(hashlib.md5(key.encode()).hexdigest(), 16)
+            hash_value = int(hashlib.md5(key.encode(), usedforsecurity=False).hexdigest(), 16)
             active_shards = [s for s in self.shards.values() if s.is_active]
             shard_index = hash_value % len(active_shards)
             return active_shards[shard_index].shard_id

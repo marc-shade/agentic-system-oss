@@ -94,7 +94,7 @@ class CacheManager:
         """Generate cache key from parameters."""
         # Sort params for consistent key generation
         sorted_params = json.dumps(params, sort_keys=True)
-        hash_digest = hashlib.md5(sorted_params.encode()).hexdigest()
+        hash_digest = hashlib.md5(sorted_params.encode(), usedforsecurity=False).hexdigest()
         return f"{prefix}:{hash_digest}"
     
     async def get(

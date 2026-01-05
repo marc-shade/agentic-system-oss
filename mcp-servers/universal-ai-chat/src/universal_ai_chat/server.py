@@ -199,7 +199,7 @@ def get_session_id():
     session_id = os.environ.get("AI_SESSION_ID")
     if not session_id:
         # Generate deterministic ID based on PID and timestamp
-        session_id = hashlib.md5(f"{os.getpid()}-{datetime.now().isoformat()}".encode()).hexdigest()[:12]
+        session_id = hashlib.md5(f"{os.getpid()}-{datetime.now().isoformat()}".encode(), usedforsecurity=False).hexdigest()[:12]
     return session_id
 
 

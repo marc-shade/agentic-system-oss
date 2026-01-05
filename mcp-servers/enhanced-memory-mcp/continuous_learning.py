@@ -1044,7 +1044,7 @@ class ContinuousLearning:
             buckets.append(f"{name[:3]}:{bucket}")
 
         pattern_str = "|".join(buckets)
-        return hashlib.md5(pattern_str.encode()).hexdigest()[:12]
+        return hashlib.md5(pattern_str.encode(), usedforsecurity=False).hexdigest()[:12]
 
     def _save_pattern(self, pattern: Pattern):
         """Save pattern to database."""

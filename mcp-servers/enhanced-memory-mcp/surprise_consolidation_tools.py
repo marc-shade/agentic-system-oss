@@ -110,7 +110,7 @@ def register_surprise_consolidation_tools(app, db_path):
 
                     # Generate concept name from content (first 100 chars, sanitized)
                     import hashlib
-                    concept_name = f"promoted_{memory.get('id', 'unknown')}_{hashlib.md5(content.encode()).hexdigest()[:8]}"
+                    concept_name = f"promoted_{memory.get('id', 'unknown')}_{hashlib.md5(content.encode(), usedforsecurity=False).hexdigest()[:8]}"
 
                     # Insert into semantic memory using correct schema
                     # Schema: concept_name (UNIQUE), concept_type, definition, confidence_score, related_concepts

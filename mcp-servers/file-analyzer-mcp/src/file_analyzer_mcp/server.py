@@ -129,9 +129,10 @@ def identify_by_magic(header: bytes) -> dict:
 
 
 def calculate_hashes(file_path: str) -> dict:
-    """Calculate MD5, SHA1, and SHA256 hashes."""
-    md5 = hashlib.md5()
-    sha1 = hashlib.sha1()
+    """Calculate MD5, SHA1, and SHA256 hashes for file identification."""
+    # Using usedforsecurity=False as these are for file identification, not cryptographic security
+    md5 = hashlib.md5(usedforsecurity=False)
+    sha1 = hashlib.sha1(usedforsecurity=False)
     sha256 = hashlib.sha256()
 
     with open(file_path, 'rb') as f:

@@ -589,7 +589,8 @@ async def store_video_knowledge(args: Dict) -> List[types.TextContent]:
     try:
         # Create memory entity
         video_id = extract_video_id(video_metadata.get("url", "")) or hashlib.md5(
-            video_metadata.get("title", "").encode()
+            video_metadata.get("title", "").encode(),
+            usedforsecurity=False
         ).hexdigest()[:8]
 
         entity_name = f"video_knowledge_{video_id}"

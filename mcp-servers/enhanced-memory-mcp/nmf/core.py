@@ -276,7 +276,7 @@ class NeuralMemoryFabric:
 
         # Step 1: Check Redis cache for recent queries
         if self.redis_client:
-            cache_key = f"nmf:query:{hashlib.md5(query.encode()).hexdigest()}"
+            cache_key = f"nmf:query:{hashlib.md5(query.encode(), usedforsecurity=False).hexdigest()}"
             cached = await self.redis_client.get(cache_key)
             if cached:
                 logger.info(f"Cache hit for query: {query[:50]}...")
@@ -432,7 +432,7 @@ class NeuralMemoryFabric:
 
         # Cache results
         if self.redis_client and results:
-            cache_key = f"nmf:query:{hashlib.md5(query.encode()).hexdigest()}"
+            cache_key = f"nmf:query:{hashlib.md5(query.encode(), usedforsecurity=False).hexdigest()}"
             await self.redis_client.setex(
                 cache_key,
                 self.config['storage']['cache']['ttl'],

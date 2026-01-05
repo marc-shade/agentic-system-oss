@@ -64,7 +64,7 @@ class RobustYouTubeTranscriptServer:
     
     def get_cache_key(self, video_id: str, lang: str) -> str:
         """Generate cache key for a video/language combination."""
-        return hashlib.md5(f"{video_id}_{lang}".encode()).hexdigest()
+        return hashlib.md5(f"{video_id}_{lang}".encode(), usedforsecurity=False).hexdigest()
     
     def get_from_cache(self, video_id: str, lang: str) -> Optional[Dict[str, Any]]:
         """Get transcript from cache if available and not expired."""

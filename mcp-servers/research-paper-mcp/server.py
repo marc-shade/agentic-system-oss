@@ -537,7 +537,7 @@ async def store_paper_knowledge(args: Dict) -> List[types.TextContent]:
 
     try:
         # Create memory entity
-        entity_name = f"research_paper_{paper_metadata.get('id', hashlib.md5(paper_metadata.get('title', '').encode()).hexdigest()[:8])}"
+        entity_name = f"research_paper_{paper_metadata.get('id', hashlib.md5(paper_metadata.get('title', '').encode(), usedforsecurity=False).hexdigest()[:8])}"
 
         observations = [
             f"Title: {paper_metadata.get('title')}",

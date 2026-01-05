@@ -233,7 +233,8 @@ class AIDocIndexer:
         points = []
         for i, (chunk, embedding) in enumerate(zip(chunks, embeddings)):
             point_id = hashlib.md5(
-                f"{filepath}:{i}:{chunk['text'][:100]}".encode()
+                f"{filepath}:{i}:{chunk['text'][:100]}".encode(),
+                usedforsecurity=False
             ).hexdigest()
 
             points.append(PointStruct(

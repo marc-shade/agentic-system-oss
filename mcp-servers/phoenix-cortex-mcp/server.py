@@ -167,7 +167,7 @@ def compress_result(result: Any, max_tokens: int = 500) -> tuple[str, str]:
     result_str = json.dumps(result) if not isinstance(result, str) else result
 
     # Generate reference ID
-    ref_id = f"ref_{hashlib.md5(result_str.encode()).hexdigest()[:12]}"
+    ref_id = f"ref_{hashlib.md5(result_str.encode(), usedforsecurity=False).hexdigest()[:12]}"
 
     # Store full result (would go to enhanced-memory in production)
     _state.entity_cache[ref_id] = {
