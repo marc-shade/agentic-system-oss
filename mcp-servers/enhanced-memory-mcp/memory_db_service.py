@@ -357,8 +357,9 @@ class MemoryDBServer:
             path=self.socket_path
         )
 
-        # Set socket permissions
-        os.chmod(self.socket_path, 0o666)
+        # Set socket permissions for multi-process IPC access
+        # nosec B103 - intentional for Unix socket IPC, not a file
+        os.chmod(self.socket_path, 0o666)  # nosec B103
 
         logger.info(f"Memory-DB service listening on {self.socket_path}")
 

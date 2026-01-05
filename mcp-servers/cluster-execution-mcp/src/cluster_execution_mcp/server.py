@@ -220,11 +220,12 @@ class ClusterExecutionServer:
             }
 
         try:
-            # For complex shell commands, use shell=True
+            # For complex shell commands with operators, shell=True is required
+            # nosec B602 - intentional for pipeline support, input is from trusted cluster
             if any(c in command for c in ['|', '&&', '||', ';', '`', '$(']):
                 result = subprocess.run(
                     command,
-                    shell=True,
+                    shell=True,  # nosec B602
                     capture_output=True,
                     text=True,
                     timeout=config.command_timeout

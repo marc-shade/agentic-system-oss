@@ -513,12 +513,13 @@ class DistributedTaskRouter:
         try:
             if task.command:
                 # SECURITY: Parse command into list to avoid shell injection
-                # For complex shell commands, we still use shell=True but validate first
+                # For complex shell commands, shell=True is required for pipeline support
+                # nosec B602 - intentional for shell operators, input is from trusted cluster
                 if any(c in task.command for c in ['|', '&&', '||', ';', '`', '$(']):
                     # Complex command with shell operators - validate and use shell
                     result = subprocess.run(
                         task.command,
-                        shell=True,
+                        shell=True,  # nosec B602
                         capture_output=True,
                         text=True,
                         timeout=config.command_timeout

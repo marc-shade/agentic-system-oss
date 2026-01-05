@@ -129,15 +129,17 @@ class DevelopmentAssistantManager:
         """Generate Python code based on description and template."""
         if template:
             # Use the template if provided
+            # nosec B701 - autoescape disabled for code generation (would break code output)
             import jinja2
             env = jinja2.Environment(
                 loader=jinja2.BaseLoader(),
                 trim_blocks=True,
-                lstrip_blocks=True
+                lstrip_blocks=True,
+                autoescape=False  # nosec B701 - code templates, not HTML
             )
             template = env.from_string(template)
             return template.render(**(context or {}))
-        
+
         # Simple code generation based on description
         lines = [
             f"# {description}",
@@ -158,15 +160,17 @@ class DevelopmentAssistantManager:
         """Generate JavaScript/TypeScript code based on description and template."""
         if template:
             # Use the template if provided
+            # nosec B701 - autoescape disabled for code generation (would break code output)
             import jinja2
             env = jinja2.Environment(
                 loader=jinja2.BaseLoader(),
                 trim_blocks=True,
-                lstrip_blocks=True
+                lstrip_blocks=True,
+                autoescape=False  # nosec B701 - code templates, not HTML
             )
             template = env.from_string(template)
             return template.render(**(context or {}))
-        
+
         # Simple code generation based on description
         lines = [
             f"// {description}",

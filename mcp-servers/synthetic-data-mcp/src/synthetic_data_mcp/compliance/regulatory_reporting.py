@@ -133,7 +133,10 @@ class RegulatoryReportGenerator:
             self.templates_dir.mkdir(parents=True, exist_ok=True)
             self._create_default_templates()
         
-        self.jinja_env = Environment(loader=FileSystemLoader(str(self.templates_dir)))
+        self.jinja_env = Environment(
+            loader=FileSystemLoader(str(self.templates_dir)),
+            autoescape=True  # Enable XSS protection for HTML reports
+        )
     
     def _create_default_templates(self):
         """Create default report templates."""
