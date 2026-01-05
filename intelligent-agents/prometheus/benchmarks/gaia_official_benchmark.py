@@ -3393,17 +3393,67 @@ FINAL ANSWER:"""
         # TIER 2: Use multi-provider consensus for complex/uncertain tasks
         # OPTIMIZATION: Reduced timeout from 120s to 30s per provider (4x speedup)
         if self.coordinator:
-            self.reasoning_steps.append("Using multi-provider consensus (Claude + Codex + Gemini)")
-            consensus_result = self.coordinator.multi_provider_consensus(prompt, timeout_per_provider=30)
+            try:
+                self.reasoning_steps.append("Using multi-provider consensus (Claude + Codex + Gemini)")
+                consensus_result = self.coordinator.multi_provider_consensus(prompt, timeout_per_provider=30)
 
-            if consensus_result:
-                self.tools_used.append("multi_provider_consensus")
-                self.reasoning_steps.append(f"Providers: {consensus_result.get('consensus_providers', [])}")
-                output = consensus_result.get("output", "")
-                answer = self._extract_answer(output)
+                if consensus_result:
+                    self.tools_used.append("multi_provider_consensus")
+                    self.reasoning_steps.append(f"Providers: {consensus_result.get('consensus_providers', [])}")
+                    output = consensus_result.get("output", "")
+                    answer = self._extract_answer(output)
 
-                if answer and answer.strip():
-                    return answer
+                    if answer and answer.strip():
+                        return answer
+            except AttributeError as e:
+                # multi_provider_consensus not available - fall back to local Ollama
+                logger.info(f"Consensus method not available ({e}), falling back to local Ollama")
+                self.reasoning_steps.append("Consensus unavailable, using local Ollama fallback")
+
+                # Try cascading router's Ollama client first
+                if self.cascading_router:
+                    try:
+                        ollama_client = None
+                        if hasattr(self.cascading_router, 'parallel_executor') and self.cascading_router.parallel_executor:
+                            ollama_client = self.cascading_router.parallel_executor.ollama_client
+
+                        if ollama_client and ollama_client.available:
+                            logger.info(f"Ollama available: local={ollama_client.local_available}, mac_studio={ollama_client.mac_studio_available}")
+                            ollama_answer = ollama_client.query(prompt, tier="balanced", timeout=60)
+                            if ollama_answer and ollama_answer.strip():
+                                self.tools_used.append("ollama_local_fallback")
+                                answer = self._extract_answer(ollama_answer)
+                                if answer and answer.strip():
+                                    return answer
+                    except Exception as ollama_err:
+                        logger.warning(f"Ollama fallback failed: {ollama_err}")
+
+                # Try direct HTTP to local Ollama as last resort
+                try:
+                    import httpx
+                    ollama_urls = ["http://localhost:11434", "http://mac-studio.local:11434"]
+                    for url in ollama_urls:
+                        try:
+                            with httpx.Client(timeout=60) as client:
+                                resp = client.post(f"{url}/api/generate", json={
+                                    "model": "qwen3:14b",
+                                    "prompt": f"Answer this question concisely in 1-3 words:\n\n{prompt}\n\nAnswer:",
+                                    "stream": False,
+                                    "options": {"num_predict": 100}
+                                })
+                                if resp.status_code == 200:
+                                    data = resp.json()
+                                    ollama_answer = data.get("response", "")
+                                    if ollama_answer and ollama_answer.strip():
+                                        self.tools_used.append("ollama_direct_http")
+                                        answer = self._extract_answer(ollama_answer)
+                                        if answer and answer.strip():
+                                            logger.info(f"Direct Ollama fallback succeeded: {answer}")
+                                            return answer
+                        except Exception:
+                            continue  # Try next URL
+                except Exception as direct_err:
+                    logger.warning(f"Direct Ollama fallback failed: {direct_err}")
 
         # TIER 3: Fallback to single-provider orchestrator
         self.reasoning_steps.append("Consensus failed, falling back to orchestrator")
