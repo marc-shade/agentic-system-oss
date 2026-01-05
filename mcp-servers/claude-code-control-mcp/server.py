@@ -405,30 +405,7 @@ async def call_tool(name: str, arguments: Any) -> List[TextContent]:
 
         elif name == "run_commands":
             import subprocess
-
-def _get_storage_base() -> Path:
-    """Detect storage base path based on platform."""
-    env_path = os.environ.get("AGENTIC_SYSTEM_PATH")
-    if env_path and Path(env_path).exists():
-        return Path(env_path)
-
-    system = platform.system()
-    if system == "Darwin":  # macOS
-        if Path(str(_STORAGE_BASE)).exists():
-            return Path(str(_STORAGE_BASE))
-        elif Path(str(_STORAGE_BASE)).exists():
-            return Path(str(_STORAGE_BASE))
-    elif system == "Linux":
-        if Path(str(_STORAGE_BASE)).exists():
-            return Path(str(_STORAGE_BASE))
-        elif Path(str(_STORAGE_BASE)).exists():
-            return Path(str(_STORAGE_BASE))
-    return Path(__file__).parent.parent
-
-
-_STORAGE_BASE = _get_storage_base()
-
-
+            import shlex
             commands = arguments["commands"]
             working_directory = arguments.get("working_directory", os.environ.get("AGENTIC_SYSTEM_PATH", str(_STORAGE_BASE)))
             timeout = arguments.get("timeout", 30)

@@ -122,29 +122,6 @@ def create_safe_globals(workspace_path: Path, context_vars: dict = None):
     import collections
     from datetime import datetime, date, timedelta
 
-def _get_storage_base() -> Path:
-    """Detect storage base path based on platform."""
-    env_path = os.environ.get("AGENTIC_SYSTEM_PATH")
-    if env_path and Path(env_path).exists():
-        return Path(env_path)
-
-    system = platform.system()
-    if system == "Darwin":  # macOS
-        if Path(str(_STORAGE_BASE)).exists():
-            return Path(str(_STORAGE_BASE))
-        elif Path(str(_STORAGE_BASE)).exists():
-            return Path(str(_STORAGE_BASE))
-    elif system == "Linux":
-        if Path(str(_STORAGE_BASE)).exists():
-            return Path(str(_STORAGE_BASE))
-        elif Path(str(_STORAGE_BASE)).exists():
-            return Path(str(_STORAGE_BASE))
-    return Path(__file__).parent.parent
-
-
-_STORAGE_BASE = _get_storage_base()
-
-
     safe_globals = {
         '__builtins__': create_safe_builtins(),
 
