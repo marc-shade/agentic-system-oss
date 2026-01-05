@@ -429,10 +429,12 @@ class OllamaClient:
                 if after_think:
                     answer = after_think
 
-            # Clean up common prefixes
-            for prefix in ["The answer is ", "Answer: ", "The result is "]:
-                if answer.lower().startswith(prefix.lower()):
-                    answer = answer[len(prefix):].strip()
+            # Clean up common prefixes (with null check)
+            if answer:
+                for prefix in ["The answer is ", "Answer: ", "The result is "]:
+                    if answer.lower().startswith(prefix.lower()):
+                        answer = answer[len(prefix):].strip()
+                        break
 
             return answer if answer else None
 

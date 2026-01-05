@@ -3259,16 +3259,21 @@ FINAL ANSWER (just the value, nothing else):"""
                     if web_result:
                         self.reasoning_steps.append(f"Web search returned: {web_result[:100]}...")
                         # Now ask an LLM to extract the answer from the web results
-                        extract_prompt = f"""Based on this web search result, answer the following question.
+                        # IMPROVEMENT 33: More explicit extraction prompt
+                        extract_prompt = f"""Extract the answer from this web search result.
 
 Question: {question}
 
 Web search result:
 {web_result[:2000]}
 
-Extract the SPECIFIC answer (number, name, title) from the search result.
-If the search result does not contain the answer, respond with just: NOT_FOUND
-FINAL ANSWER:"""
+IMPORTANT INSTRUCTIONS:
+1. Return ONLY the specific answer (a number, name, date, or short phrase)
+2. Do NOT suggest searching for more information
+3. Do NOT explain or provide context
+4. If the exact answer is not in the text, respond: NOT_FOUND
+
+FINAL ANSWER (just the answer, nothing else):"""
                         # Use Groq for fast extraction (with Ollama fallback for rate limits)
                         groq_answer = None
                         if self.cascading_router and hasattr(self.cascading_router, 'groq'):
@@ -3321,17 +3326,21 @@ FINAL ANSWER:"""
                                 try:
                                     full_content = await self._fetch_full_page_content(page_url, max_chars=8000)
                                     if full_content and len(full_content) > 200:
-                                        # Re-extract from full page content
-                                        full_extract_prompt = f"""Based on this webpage content, answer the following question.
+                                        # Re-extract from full page content (IMPROVEMENT 33)
+                                        full_extract_prompt = f"""Extract the answer from this webpage content.
 
 Question: {question}
 
 Webpage content:
 {full_content[:6000]}
 
-Extract the SPECIFIC answer (number, name, title) from the content.
-If the content does not contain the answer, respond with just: NOT_FOUND
-FINAL ANSWER:"""
+IMPORTANT INSTRUCTIONS:
+1. Return ONLY the specific answer (a number, name, date, or short phrase)
+2. Do NOT suggest searching for more information
+3. Do NOT explain or provide context
+4. If the exact answer is not in the text, respond: NOT_FOUND
+
+FINAL ANSWER (just the answer, nothing else):"""
                                         if ollama_client and ollama_client.available:
                                             full_answer = ollama_client.query(full_extract_prompt, tier="balanced", timeout=45)
                                             if full_answer:
@@ -3647,7 +3656,26 @@ FINAL ANSWER:"""
         """Check if extracted answer indicates search failure (needs retry)."""
         if not answer:
             return True
-        answer_lower = answer.lower()
+        answer_lower = answer.lower().strip()
+
+        # Check for search suggestion patterns (IMPROVEMENT 32)
+        search_suggestion_patterns = [
+            "search query",
+            "search for:",
+            "would you like",
+            "i can search",
+            "let me search",
+            "try searching",
+            "search again",
+            "i recommend searching",
+            "you could search",
+        ]
+        # Check if answer STARTS with a search suggestion
+        for pattern in search_suggestion_patterns:
+            if answer_lower.startswith(pattern):
+                logger.debug(f"IMPROVEMENT 32: Detected search suggestion: {answer[:50]}")
+                return True
+
         failure_patterns = [
             "does not contain",
             "provided search result",
@@ -3661,11 +3689,14 @@ FINAL ANSWER:"""
             "not_found",  # Explicit NOT_FOUND response from extraction prompt
             "information needed",
             "not available in",
-            "search again",
-            "try searching",
-            "let me search",
             "i need more information",
             "insufficient information",
+            "the answer is not",
+            "no direct answer",
+            "no specific answer",
+            "doesn't mention",
+            "does not mention",
+            "no mention of",
         ]
         return any(pattern in answer_lower for pattern in failure_patterns)
 
