@@ -29,9 +29,31 @@ def init_database() -> None:
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             last_accessed TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             current_version INTEGER DEFAULT 1,
-            current_branch TEXT DEFAULT 'main'
+            current_branch TEXT DEFAULT 'main',
+            compaction_level INTEGER DEFAULT 0,
+            pinned INTEGER DEFAULT 0,
+            compacted_at TIMESTAMP,
+            compacted_summary TEXT
         )
     ''')
+
+    # Add compaction fields if they don't exist (migration for existing DBs)
+    try:
+        cursor.execute('ALTER TABLE entities ADD COLUMN compaction_level INTEGER DEFAULT 0')
+    except sqlite3.OperationalError:
+        pass  # Column already exists
+    try:
+        cursor.execute('ALTER TABLE entities ADD COLUMN pinned INTEGER DEFAULT 0')
+    except sqlite3.OperationalError:
+        pass
+    try:
+        cursor.execute('ALTER TABLE entities ADD COLUMN compacted_at TIMESTAMP')
+    except sqlite3.OperationalError:
+        pass
+    try:
+        cursor.execute('ALTER TABLE entities ADD COLUMN compacted_summary TEXT')
+    except sqlite3.OperationalError:
+        pass
 
     # Observations table
     cursor.execute('''

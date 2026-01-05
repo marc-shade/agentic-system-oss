@@ -8,6 +8,7 @@ from .core import register_core_tools
 from .git_ops import register_git_tools
 from .planning import register_planning_tools
 from .execution import register_execution_tools
+from .compaction_tools import register_compaction_tools
 
 
 def register_all_tools(app, memory_client):
@@ -22,6 +23,7 @@ def register_all_tools(app, memory_client):
     register_git_tools(app)
     register_planning_tools(app, memory_client)
     register_execution_tools(app)
+    register_compaction_tools(app)
 
 
 __all__ = [
@@ -30,4 +32,5 @@ __all__ = [
     'register_git_tools',
     'register_planning_tools',
     'register_execution_tools',
+    'register_compaction_tools',
 ]

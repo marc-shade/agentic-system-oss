@@ -257,6 +257,126 @@ class AgentRuntimeDB:
 
             return None
 
+    def get_ready_tasks(self, limit: int = 10, goal_id: Optional[int] = None) -> List[Dict]:
+        """
+        Get all tasks that are ready to execute (Beads-inspired pattern).
+
+        A task is "ready" when:
+        1. Status is 'pending'
+        2. All blocking dependencies are completed
+
+        This is the Beads 'bd ready' pattern - returns ALL unblocked tasks,
+        not just the next one, allowing agents to see the full scope of available work.
+
+        Args:
+            limit: Maximum number of ready tasks to return
+            goal_id: Optional filter by goal
+
+        Returns:
+            List of ready tasks sorted by priority DESC
+        """
+        with sqlite3.connect(self.db_path) as conn:
+            conn.row_factory = sqlite3.Row
+
+            # Build query with optional goal filter
+            query = """
+                SELECT t.* FROM tasks t
+                INNER JOIN task_queue q ON t.id = q.task_id
+                WHERE t.status = 'pending'
+            """
+            params = []
+
+            if goal_id is not None:
+                query += " AND t.goal_id = ?"
+                params.append(goal_id)
+
+            query += " ORDER BY t.priority DESC, q.queue_position ASC"
+
+            cursor = conn.execute(query, params)
+
+            ready_tasks = []
+            for row in cursor.fetchall():
+                task = dict(row)
+                task['dependencies'] = json.loads(task['dependencies'])
+                task['metadata'] = json.loads(task['metadata'] or '{}')
+
+                # Check if dependencies are met
+                if self._dependencies_met(conn, task['dependencies']):
+                    # Add blocking info for transparency
+                    task['ready'] = True
+                    task['blocking_count'] = 0
+                    ready_tasks.append(task)
+
+                    if len(ready_tasks) >= limit:
+                        break
+
+            return ready_tasks
+
+    def get_blocked_tasks(self, limit: int = 10, goal_id: Optional[int] = None) -> List[Dict]:
+        """
+        Get all tasks that are blocked by unmet dependencies (Beads 'bd blocked' pattern).
+
+        Returns tasks with their blocking dependencies for visibility into
+        what's holding up work.
+
+        Args:
+            limit: Maximum number of blocked tasks to return
+            goal_id: Optional filter by goal
+
+        Returns:
+            List of blocked tasks with blocking_tasks info
+        """
+        with sqlite3.connect(self.db_path) as conn:
+            conn.row_factory = sqlite3.Row
+
+            query = """
+                SELECT t.* FROM tasks t
+                INNER JOIN task_queue q ON t.id = q.task_id
+                WHERE t.status = 'pending'
+            """
+            params = []
+
+            if goal_id is not None:
+                query += " AND t.goal_id = ?"
+                params.append(goal_id)
+
+            query += " ORDER BY t.priority DESC, q.queue_position ASC"
+
+            cursor = conn.execute(query, params)
+
+            blocked_tasks = []
+            for row in cursor.fetchall():
+                task = dict(row)
+                task['dependencies'] = json.loads(task['dependencies'])
+                task['metadata'] = json.loads(task['metadata'] or '{}')
+
+                # Check if dependencies are NOT met
+                if task['dependencies'] and not self._dependencies_met(conn, task['dependencies']):
+                    # Get info about blocking tasks
+                    blocking_tasks = self._get_blocking_tasks(conn, task['dependencies'])
+                    task['ready'] = False
+                    task['blocking_count'] = len(blocking_tasks)
+                    task['blocking_tasks'] = blocking_tasks
+                    blocked_tasks.append(task)
+
+                    if len(blocked_tasks) >= limit:
+                        break
+
+            return blocked_tasks
+
+    def _get_blocking_tasks(self, conn, dependencies: List[int]) -> List[Dict]:
+        """Get info about tasks that are blocking (not completed)."""
+        if not dependencies:
+            return []
+
+        placeholders = ','.join('?' * len(dependencies))
+        cursor = conn.execute(
+            f"""SELECT id, title, status FROM tasks
+                WHERE id IN ({placeholders}) AND status != 'completed'""",
+            dependencies
+        )
+        return [dict(row) for row in cursor.fetchall()]
+
     def _dependencies_met(self, conn, dependencies: List[int]) -> bool:
         """Check if all task dependencies are completed."""
         if not dependencies:
@@ -527,6 +647,42 @@ async def list_tools() -> List[Tool]:
             inputSchema={
                 "type": "object",
                 "properties": {}
+            }
+        ),
+        Tool(
+            name="get_ready_tasks",
+            description="Get ALL tasks that are ready to execute (Beads-inspired pattern). Returns tasks where all blocking dependencies are completed. Use this to see the full scope of available work.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "goal_id": {
+                        "type": "integer",
+                        "description": "Optional filter by goal ID"
+                    },
+                    "limit": {
+                        "type": "integer",
+                        "description": "Maximum number of ready tasks to return",
+                        "default": 10
+                    }
+                }
+            }
+        ),
+        Tool(
+            name="get_blocked_tasks",
+            description="Get tasks that are blocked by unmet dependencies (Beads 'bd blocked' pattern). Returns blocked tasks with info about what's blocking them.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "goal_id": {
+                        "type": "integer",
+                        "description": "Optional filter by goal ID"
+                    },
+                    "limit": {
+                        "type": "integer",
+                        "description": "Maximum number of blocked tasks to return",
+                        "default": 10
+                    }
+                }
             }
         ),
         Tool(
@@ -1124,6 +1280,36 @@ async def call_tool(name: str, arguments: Any) -> List[TextContent]:
                 type="text",
                 text=json.dumps({"message": "No tasks available in queue"})
             )]
+
+    elif name == "get_ready_tasks":
+        # Beads-inspired: get ALL ready tasks, not just the next one
+        ready_tasks = db.get_ready_tasks(
+            limit=arguments.get("limit", 10),
+            goal_id=arguments.get("goal_id")
+        )
+        return [TextContent(
+            type="text",
+            text=json.dumps({
+                "ready_count": len(ready_tasks),
+                "tasks": ready_tasks,
+                "message": f"{len(ready_tasks)} tasks ready to execute"
+            }, indent=2)
+        )]
+
+    elif name == "get_blocked_tasks":
+        # Beads-inspired: show what's blocking work
+        blocked_tasks = db.get_blocked_tasks(
+            limit=arguments.get("limit", 10),
+            goal_id=arguments.get("goal_id")
+        )
+        return [TextContent(
+            type="text",
+            text=json.dumps({
+                "blocked_count": len(blocked_tasks),
+                "tasks": blocked_tasks,
+                "message": f"{len(blocked_tasks)} tasks blocked by dependencies"
+            }, indent=2)
+        )]
 
     elif name == "update_task_status":
         db.update_task_status(

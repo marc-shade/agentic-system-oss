@@ -35,6 +35,17 @@ from .compression import (
     classify_tier,
 )
 
+from .compaction import (
+    get_compaction_candidates,
+    compact_entity,
+    run_compaction_cycle,
+    pin_entity,
+    get_compaction_stats,
+    restore_entity,
+    TIER1_THRESHOLD_DAYS,
+    TIER2_THRESHOLD_DAYS,
+)
+
 from .versioning import (
     create_version,
     get_version_history,
@@ -77,6 +88,15 @@ __all__ = [
     'decompress_data',
     'calculate_checksum',
     'classify_tier',
+    # Compaction (Beads-inspired)
+    'get_compaction_candidates',
+    'compact_entity',
+    'run_compaction_cycle',
+    'pin_entity',
+    'get_compaction_stats',
+    'restore_entity',
+    'TIER1_THRESHOLD_DAYS',
+    'TIER2_THRESHOLD_DAYS',
     # Versioning
     'create_version',
     'get_version_history',
