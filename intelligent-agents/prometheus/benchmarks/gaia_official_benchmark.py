@@ -3568,6 +3568,17 @@ FINAL ANSWER:"""
         #         logger.info(f"Cleaned search prefix: '{result[:50]}' -> '{cleaned}'")
         #         result = cleaned
 
+        # IMPROVEMENT 31: Normalize hex color codes (ARGB to RGB)
+        # Excel sometimes returns 8-digit ARGB (e.g., FFF478A7) when 6-digit RGB is expected (F478A7)
+        hex_match = re.match(r'^([A-Fa-f0-9]{6,8})$', result.strip())
+        if hex_match:
+            hex_val = hex_match.group(1).upper()
+            # If 8-digit starting with FF (fully opaque), strip the alpha
+            if len(hex_val) == 8 and hex_val.startswith('FF'):
+                hex_val = hex_val[2:]
+                logger.info(f"Normalized ARGB to RGB: FF{hex_val} -> {hex_val}")
+            return hex_val
+
         # QUICK EXIT: If result is already a clean number, return it immediately
         # This prevents IMPROVEMENT 7 from extracting wrong numbers from explanatory text
         clean_number_match = re.match(r'^(\d+(?:\.\d+)?)\s*$', result.strip())
