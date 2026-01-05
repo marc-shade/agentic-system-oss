@@ -3771,6 +3771,18 @@ FINAL ANSWER (just the answer, nothing else):"""
             "expects",       # "expects hex code, so final cell..."
             "the specific",  # "The specific page numbers mentioned..."
             "1. verb",       # "1. Verb: The root verb..."
+            # IMPROVEMENT 42: More reasoning patterns
+            "turn1:",        # "turn1: from A1 to C1..."
+            "turn 1:",       # "turn 1: from A1 to C1..."
+            "alternatively", # "Alternatively, maybe the other..."
+            "for a=",        # "for a=2 allowed triples: (2,8,20)..."
+            "for b=",
+            "for c=",
+            "for x=",
+            "for y=",
+            "for z=",
+            "allowed triples",  # "allowed triples: (2,8,20)..."
+            "the shared",    # "the shared first letter of the authors..."
         ]
         # Check if answer STARTS with a search suggestion
         for pattern in search_suggestion_patterns:

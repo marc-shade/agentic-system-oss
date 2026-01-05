@@ -590,6 +590,12 @@ class OllamaClient:
             # IMPROVEMENT 39: More I'll patterns
             r"^i('ll| need to)\s+(provide|give|show|answer)",  # "I'll provide that"
             r"^(again|however|but|also)\.",  # "again.30" garbage prefix
+            # IMPROVEMENT 42: More reasoning patterns
+            r"^turn\s*\d+:",  # "turn1:" or "turn 1:"
+            r"^alternatively",  # "Alternatively, maybe the other..."
+            r"^for\s+[a-z]\s*=\s*\d+\s+",  # "for a=2 allowed triples..."
+            r"^allowed\s+(triples|pairs|values)",  # "allowed triples: (2,8,20)..."
+            r"^the\s+shared",  # "the shared first letter of the authors..."
         ]
 
         for pattern in reasoning_starts:
