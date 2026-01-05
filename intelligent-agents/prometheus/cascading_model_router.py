@@ -652,6 +652,21 @@ class OllamaClient:
                 logger.debug(f"IMPROVEMENT 36: Detected news headline pattern, rejected: {answer[:50]}")
                 return None
 
+        # IMPROVEMENT 38: Detect mathematical reasoning/formula patterns
+        math_reasoning_patterns = [
+            r"possible\s+(triples|pairs|tuples|values|solutions)",  # "possible triples (t, t+6, 24-2t)"
+            r"for\s+[a-z]\s*=\s*\d+\.\.\d+",  # "for t=0..6"
+            r"\([a-z],\s*[a-z]\s*[+\-*/]\s*\d+",  # "(t, t+6, ..." mathematical expressions
+            r"where\s+[a-z]\s*(is|=|represents)",  # "where t is..."
+            r"let\s+[a-z]\s*=",  # "let t ="
+            r"if\s+[a-z]\s*[<>=]",  # "if t < 5"
+            r"^\d+\s*[+\-*/]\s*\d+\s*=",  # "5 + 3 = 8" style arithmetic
+        ]
+        for pattern in math_reasoning_patterns:
+            if re.search(pattern, answer.lower()):
+                logger.debug(f"IMPROVEMENT 38: Detected math reasoning pattern, rejected: {answer[:50]}")
+                return None
+
         return answer
 
 

@@ -3762,6 +3762,21 @@ FINAL ANSWER (just the answer, nothing else):"""
                 logger.debug(f"IMPROVEMENT 37: Detected reasoning pattern: {answer[:50]}")
                 return True
 
+        # IMPROVEMENT 38: Detect mathematical reasoning/formula patterns
+        math_reasoning_patterns = [
+            r"possible\s+(triples|pairs|tuples|values|solutions)",  # "possible triples (t, t+6, 24-2t)"
+            r"for\s+[a-z]\s*=\s*\d+\.\.\d+",  # "for t=0..6"
+            r"\([a-z],\s*[a-z]\s*[+\-*/]\s*\d+",  # "(t, t+6, ..." mathematical expressions
+            r"where\s+[a-z]\s*(is|=|represents)",  # "where t is..."
+            r"let\s+[a-z]\s*=",  # "let t ="
+            r"if\s+[a-z]\s*[<>=]",  # "if t < 5"
+            r"^\d+\s*[+\-*/]\s*\d+\s*=",  # "5 + 3 = 8" style arithmetic
+        ]
+        for pattern in math_reasoning_patterns:
+            if re.search(pattern, answer_lower):
+                logger.debug(f"IMPROVEMENT 38: Detected math reasoning: {answer[:50]}")
+                return True
+
         # IMPROVEMENT 35: Very long answers are likely snippets
         if len(answer) > 300:
             logger.debug(f"IMPROVEMENT 35: Answer too long ({len(answer)} chars)")
