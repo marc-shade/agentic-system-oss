@@ -32,6 +32,7 @@ Usage in Claude Code sessions:
 import os
 import sys
 import json
+import shlex
 import subprocess
 from pathlib import Path
 from typing import Optional, List, Dict
@@ -232,10 +233,10 @@ class ClusterExecutionServer:
                 "task_id": task_id
             }
         else:
-            # Execute locally
+            # Execute locally - use shlex.split for security (no shell injection)
             result = subprocess.run(
-                command,
-                shell=True,
+                shlex.split(command),
+                shell=False,
                 capture_output=True,
                 text=True,
                 timeout=300

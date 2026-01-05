@@ -22,6 +22,8 @@ import asyncio
 import json
 import logging
 import os
+import shlex
+import subprocess
 import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -435,8 +437,8 @@ _STORAGE_BASE = _get_storage_base()
             for cmd in commands:
                 try:
                     result = subprocess.run(
-                        cmd,
-                        shell=True,
+                        shlex.split(cmd),
+                        shell=False,
                         cwd=working_directory,
                         capture_output=True,
                         text=True,

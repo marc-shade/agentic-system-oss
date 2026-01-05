@@ -66,7 +66,7 @@ class OllamaSetup:
         elif self.system == "linux":
             print("Installing Ollama via official installer...")
             try:
-                subprocess.run(["curl", "-fsSL", "https://ollama.ai/install.sh"], check=True, shell=True)
+                subprocess.run(["curl", "-fsSL", "https://ollama.ai/install.sh"], check=True)
                 print("✅ Ollama installed successfully")
                 return True
             except subprocess.CalledProcessError:

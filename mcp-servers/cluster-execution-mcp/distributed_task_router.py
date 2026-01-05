@@ -25,6 +25,7 @@ Usage:
 import json
 import os
 import re
+import shlex
 import socket
 import subprocess
 import time
@@ -548,8 +549,8 @@ class DistributedTaskRouter:
         try:
             if task.command:
                 result = subprocess.run(
-                    task.command,
-                    shell=True,
+                    shlex.split(task.command),
+                    shell=False,
                     capture_output=True,
                     text=True,
                     timeout=300
@@ -618,9 +619,9 @@ class DistributedTaskRouter:
             conn.close()
             return
 
-        # Build remote execution command
+        # Build remote execution command (use list format for security)
         if task.command:
-            remote_cmd = f"ssh -o ConnectTimeout=5 marc@{node_ip} '{task.command}'"
+            ssh_cmd = ["ssh", "-o", "ConnectTimeout=5", f"marc@{node_ip}", task.command]
         elif task.script:
             # Transfer script and execute
             import tempfile
@@ -630,14 +631,15 @@ class DistributedTaskRouter:
 
             remote_script = f"/tmp/task_{task.task_id}.sh"
 
-            # SCP script to remote node
+            # SCP script to remote node (list format for security)
             subprocess.run(
-                f"scp -o ConnectTimeout=5 {local_script} marc@{node_ip}:{remote_script}",
-                shell=True,
+                ["scp", "-o", "ConnectTimeout=5", local_script, f"marc@{node_ip}:{remote_script}"],
+                shell=False,
                 capture_output=True
             )
 
-            remote_cmd = f"ssh -o ConnectTimeout=5 marc@{node_ip} 'chmod +x {remote_script} && {remote_script} && rm {remote_script}'"
+            ssh_cmd = ["ssh", "-o", "ConnectTimeout=5", f"marc@{node_ip}",
+                       f"chmod +x {remote_script} && {remote_script} && rm {remote_script}"]
             os.unlink(local_script)
         else:
             # No command, mark as failed
@@ -653,10 +655,10 @@ class DistributedTaskRouter:
             return
 
         try:
-            # Execute remotely
+            # Execute remotely (list format for security - no shell injection)
             result = subprocess.run(
-                remote_cmd,
-                shell=True,
+                ssh_cmd,
+                shell=False,
                 capture_output=True,
                 text=True,
                 timeout=300

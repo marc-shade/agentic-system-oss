@@ -9,6 +9,7 @@ import asyncio
 import json
 import logging
 import os
+import shlex
 import subprocess
 from pathlib import Path
 from typing import Dict, List, Optional, Any
@@ -277,8 +278,8 @@ Current working directory: {working_directory}
 
                 logger.info(f"Executing command: {command}")
                 result = subprocess.run(
-                    command,
-                    shell=True,
+                    shlex.split(command),
+                    shell=False,
                     cwd=working_directory,
                     capture_output=True,
                     text=True,
