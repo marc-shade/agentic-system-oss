@@ -2164,6 +2164,32 @@ Answer:"""
             web_result = await self._targeted_web_search(question[:100])
             if web_result:
                 self.tools_used.append("web_search_fallback")
+                # IMPROVEMENT 43: Use LLM to extract answer from web search results
+                # Don't just return raw snippets - extract the actual answer
+                extract_prompt = f"""Based on this web search result, answer the question.
+
+Question: {question[:500]}
+
+Web search result:
+{web_result[:2000]}
+
+Extract ONLY the specific answer to the question. Give a single value, name, number, or short phrase.
+If the answer cannot be found, respond with "UNKNOWN".
+
+ANSWER:"""
+                # Try Groq first for extraction
+                groq_extracted = None
+                try:
+                    if hasattr(self, 'cascading_router') and self.cascading_router and hasattr(self.cascading_router, 'groq'):
+                        groq_extracted = self.cascading_router.groq.answer_simple(extract_prompt, timeout=15)
+                        if groq_extracted and groq_extracted.strip().upper() != "UNKNOWN":
+                            logger.info(f"Web search + Groq extraction: {groq_extracted[:50]}")
+                            self.tools_used.append("groq_web_extraction")
+                            return self._extract_answer(groq_extracted)
+                except Exception as e:
+                    logger.debug(f"Groq extraction from web failed: {e}")
+
+                # Fallback to direct regex extraction if Groq unavailable
                 return self._extract_answer(web_result)
 
         except Exception as e:

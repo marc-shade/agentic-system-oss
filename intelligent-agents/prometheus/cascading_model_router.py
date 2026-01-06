@@ -108,7 +108,17 @@ Classification:"""
         """
         Fast task classification using Groq's fastest model.
         Target: <2s response time.
+
+        When GAIA_LOCAL_ONLY=1, uses heuristic classification to avoid Groq API calls.
         """
+        # LOCAL_ONLY or HYBRID mode: Skip Groq API entirely
+        local_only = os.environ.get("GAIA_LOCAL_ONLY", "").lower() in ("1", "true", "yes")
+        hybrid = os.environ.get("GAIA_HYBRID", "").lower() in ("1", "true", "yes")
+        if local_only or hybrid:
+            mode = "HYBRID" if hybrid else "LOCAL_ONLY"
+            logger.info(f"{mode} mode: Using heuristic classification (skipping Groq)")
+            return self._heuristic_classification(task)
+
         if not self.client:
             # Fallback to heuristic classification
             return self._heuristic_classification(task)
@@ -262,6 +272,9 @@ class OllamaClient:
     3. Fallback to local models if Mac Studio unreachable
 
     NO external API keys needed - Mac Studio handles cloud auth.
+
+    ENVIRONMENT VARIABLES:
+    - GAIA_LOCAL_ONLY=1: Force local-only mode (bypass rate-limited cloud models)
     """
 
     # Mac Studio for cloud models (has Ollama Cloud auth configured)
@@ -269,11 +282,26 @@ class OllamaClient:
     # Local Ollama for GPU models
     LOCAL_URL = "http://localhost:11434"
 
+    # Check for LOCAL_ONLY mode (bypass rate-limited cloud models)
+    LOCAL_ONLY = os.environ.get("GAIA_LOCAL_ONLY", "").lower() in ("1", "true", "yes")
+
+    # HYBRID mode: Local GPU for simple, Anthropic API for complex
+    HYBRID = os.environ.get("GAIA_HYBRID", "").lower() in ("1", "true", "yes")
+
     # Model tiers - cloud via Mac Studio, local on GPU
     MODELS = {
         "fast": "deepseek-r1:14b",         # Local 14B reasoning
         "balanced": "gpt-oss:120b-cloud",   # Cloud 120B via Mac Studio
         "powerful": "gpt-oss:120b-cloud",   # Cloud 120B via Mac Studio
+    }
+
+    # LOCAL_ONLY models - optimized for RTX 3060 12GB
+    # Using gemma3:12b (7GB VRAM) for all tiers to avoid model swapping
+    # Model stays loaded in GPU memory for fast inference
+    LOCAL_ONLY_MODELS = {
+        "fast": "gemma3:12b",                # 7GB, fast general purpose
+        "balanced": "gemma3:12b",            # Same model, different prompting
+        "powerful": "gemma3:12b",            # Single model avoids swap overhead
     }
 
     # Fallback models if cloud unavailable
@@ -290,9 +318,9 @@ class OllamaClient:
         "powerful": 8192,     # Reasoning models need even more
     }
 
-    # Cloud models need longer timeout (120B model over network)
-    CLOUD_TIMEOUT = 180.0
-    LOCAL_TIMEOUT = 60.0
+    # Timeouts - reduced for faster iteration
+    CLOUD_TIMEOUT = 120.0  # Cloud models over network
+    LOCAL_TIMEOUT = 90.0   # Local GPU models (may need time for reasoning)
     MAX_RETRIES = 2
 
     def __init__(self):
@@ -316,6 +344,75 @@ class OllamaClient:
         self.mac_studio_available = self._check_availability(self.MAC_STUDIO_URL)
         self.available = self.local_available or self.mac_studio_available
 
+    def _query_anthropic(self, prompt: str, tier: str, timeout: float) -> Optional[str]:
+        """Query Anthropic Claude API for complex tasks (HYBRID mode).
+
+        Uses claude-3-5-haiku for balanced (fast but capable)
+        Uses claude-3-5-sonnet for powerful (best quality)
+        """
+        try:
+            import anthropic
+
+            # Model selection based on tier
+            if tier == "powerful":
+                model = "claude-sonnet-4-20250514"  # Best quality
+                max_tokens = 4096
+            else:  # balanced
+                model = "claude-3-5-haiku-20241022"  # Fast but capable
+                max_tokens = 2048
+
+            client = anthropic.Anthropic()
+            message = client.messages.create(
+                model=model,
+                max_tokens=max_tokens,
+                messages=[
+                    {"role": "user", "content": prompt}
+                ]
+            )
+
+            if message.content and len(message.content) > 0:
+                response = message.content[0].text
+                logger.info(f"[HYBRID/ANTHROPIC] {model} returned {len(response)} chars")
+                return response
+            return None
+
+        except anthropic.RateLimitError as e:
+            logger.warning(f"[HYBRID/ANTHROPIC] Rate limit: {e}")
+            # Fall back to local model
+            return self._query_local_fallback(prompt, tier, timeout)
+        except Exception as e:
+            logger.warning(f"[HYBRID/ANTHROPIC] Error: {e}")
+            return self._query_local_fallback(prompt, tier, timeout)
+
+    def _query_local_fallback(self, prompt: str, tier: str, timeout: float) -> Optional[str]:
+        """Fallback to local model when Anthropic fails."""
+        model = self.LOCAL_ONLY_MODELS.get(tier, "deepseek-r1:14b")
+        logger.info(f"[HYBRID/LOCAL_FALLBACK] Using {model}")
+        return self._do_ollama_query(prompt, model, self.LOCAL_URL, timeout, 2048)
+
+    def _do_ollama_query(self, prompt: str, model: str, base_url: str, timeout: float, max_tokens: int) -> Optional[str]:
+        """Execute Ollama query with given parameters."""
+        import requests
+        try:
+            resp = requests.post(
+                f"{base_url}/api/generate",
+                json={
+                    "model": model,
+                    "prompt": prompt,
+                    "stream": False,
+                    "options": {"num_predict": max_tokens}
+                },
+                timeout=timeout
+            )
+            if resp.status_code == 200:
+                return resp.json().get("response", "").strip()
+            else:
+                logger.warning(f"Ollama error: {resp.status_code} - {resp.text[:200]}")
+                return None
+        except Exception as e:
+            logger.warning(f"Ollama exception: {e}")
+            return None
+
     def query(self, prompt: str, tier: str = "balanced", timeout: float = None) -> Optional[str]:
         """Query Ollama - routes to appropriate node based on tier.
 
@@ -324,25 +421,55 @@ class OllamaClient:
         - balanced/powerful: Mac Studio cloud (gpt-oss:120b-cloud)
         - Fallback to local/Mac Studio local models if cloud fails
         - Retry on failures with availability refresh
+
+        LOCAL_ONLY MODE (GAIA_LOCAL_ONLY=1):
+        - Bypasses cloud models entirely (rate limit workaround)
+        - Uses local GPU models only (RTX 3060 12GB)
         """
         if not self.available:
             self._refresh_availability()
             if not self.available:
                 return None
 
-        # Select model based on tier
-        model = self.MODELS.get(tier, self.MODELS["balanced"])
-        max_tokens = self.MAX_TOKENS.get(tier, 500)
+        # HYBRID mode: Local GPU for simple/fast, Anthropic API for complex
+        if self.HYBRID:
+            if tier == "fast":
+                # Use local GPU for simple tasks
+                model = self.LOCAL_ONLY_MODELS.get("fast", "qwen3:14b")
+                max_tokens = 500
+                is_cloud_model = False
+                base_url = self.LOCAL_URL
+                if timeout is None:
+                    timeout = 60.0
+                logger.info(f"OllamaClient.query [HYBRID/LOCAL]: tier={tier}, model={model}")
+            else:
+                # Use Anthropic API for complex tasks
+                logger.info(f"OllamaClient.query [HYBRID/ANTHROPIC]: tier={tier}")
+                return self._query_anthropic(prompt, tier, timeout or 120.0)
 
-        # Cloud models → Mac Studio, local models → local GPU
-        is_cloud_model = "cloud" in model
+        # LOCAL_ONLY mode: Force local models to bypass rate limits
+        elif self.LOCAL_ONLY:
+            model = self.LOCAL_ONLY_MODELS.get(tier, self.LOCAL_ONLY_MODELS["balanced"])
+            max_tokens = self.MAX_TOKENS.get(tier, 500)
+            is_cloud_model = False
+            base_url = self.LOCAL_URL
+            if timeout is None:
+                timeout = self.LOCAL_TIMEOUT
+            logger.info(f"OllamaClient.query [LOCAL_ONLY]: tier={tier}, model={model}, url={base_url}")
+        else:
+            # Select model based on tier
+            model = self.MODELS.get(tier, self.MODELS["balanced"])
+            max_tokens = self.MAX_TOKENS.get(tier, 500)
 
-        # Use appropriate timeout
-        if timeout is None:
-            timeout = self.CLOUD_TIMEOUT if is_cloud_model else self.LOCAL_TIMEOUT
+            # Cloud models → Mac Studio, local models → local GPU
+            is_cloud_model = "cloud" in model
 
-        base_url = self.MAC_STUDIO_URL if is_cloud_model else self.LOCAL_URL
-        logger.info(f"OllamaClient.query: tier={tier}, model={model}, cloud={is_cloud_model}, url={base_url}")
+            # Use appropriate timeout
+            if timeout is None:
+                timeout = self.CLOUD_TIMEOUT if is_cloud_model else self.LOCAL_TIMEOUT
+
+            base_url = self.MAC_STUDIO_URL if is_cloud_model else self.LOCAL_URL
+            logger.info(f"OllamaClient.query: tier={tier}, model={model}, cloud={is_cloud_model}, url={base_url}")
 
         # Check if target is available (with refresh if too many failures)
         if self._cloud_failures >= 3:
@@ -399,7 +526,10 @@ class OllamaClient:
                             logger.warning(f"Could not extract answer from thinking (len={len(thinking)})")
                 else:
                     logger.warning(f"Cloud model error: {response.status_code} - {response.text[:500]}")
-                    return None
+                    # IMPROVEMENT 44: Fall back to local GPU when cloud model fails (429, etc.)
+                    if self.local_available and response.status_code in (429, 503, 504):
+                        logger.info("Mac Studio cloud unavailable, falling back to local GPU")
+                        return self._query_local_fallback(prompt, tier, timeout)
             else:
                 # Local models use /api/generate endpoint
                 full_prompt = f"Answer precisely: {prompt}"
@@ -793,6 +923,89 @@ class ParallelProviderExecutor:
     def shutdown(self):
         """Cleanup executor."""
         self.executor.shutdown(wait=False)
+
+
+class HuggingFaceClient:
+    """
+    HuggingFace Inference API client - FREE fallback provider.
+
+    Uses HF Inference API with free tier for:
+    - Llama models
+    - Mistral models
+    - Other open models
+
+    Requires HF_TOKEN in ~/.cache/huggingface/token or HF_TOKEN env var.
+    """
+
+    # Free models on HuggingFace Inference API
+    MODELS = {
+        "fast": "meta-llama/Llama-3.2-3B-Instruct",       # Small, fast
+        "balanced": "mistralai/Mistral-7B-Instruct-v0.3", # Good balance
+        "powerful": "meta-llama/Llama-3.1-8B-Instruct",   # Best free option
+    }
+
+    def __init__(self):
+        self.token = self._get_token()
+        self.available = self.token is not None
+
+    def _get_token(self) -> Optional[str]:
+        """Get HuggingFace token from env or cache."""
+        # Check env first
+        token = os.environ.get("HF_TOKEN") or os.environ.get("HUGGINGFACE_TOKEN")
+        if token:
+            return token
+        # Check cache file
+        try:
+            cache_path = os.path.expanduser("~/.cache/huggingface/token")
+            if os.path.exists(cache_path):
+                with open(cache_path) as f:
+                    return f.read().strip()
+        except:
+            pass
+        return None
+
+    def query(self, prompt: str, tier: str = "balanced", timeout: float = 60.0) -> Optional[str]:
+        """Query HuggingFace Inference API."""
+        if not self.available:
+            logger.warning("[HF] No HuggingFace token available")
+            return None
+
+        import requests
+
+        model = self.MODELS.get(tier, self.MODELS["balanced"])
+        api_url = f"https://api-inference.huggingface.co/models/{model}"
+
+        headers = {"Authorization": f"Bearer {self.token}"}
+        payload = {
+            "inputs": prompt,
+            "parameters": {
+                "max_new_tokens": 500,
+                "temperature": 0.1,
+                "return_full_text": False,
+            }
+        }
+
+        try:
+            resp = requests.post(api_url, headers=headers, json=payload, timeout=timeout)
+
+            if resp.status_code == 200:
+                result = resp.json()
+                if isinstance(result, list) and len(result) > 0:
+                    text = result[0].get("generated_text", "").strip()
+                    logger.info(f"[HF] {model} returned {len(text)} chars")
+                    return text
+            elif resp.status_code == 503:
+                # Model loading, wait and retry
+                logger.info(f"[HF] Model {model} loading, waiting...")
+                time.sleep(10)
+                return self.query(prompt, tier, timeout - 10)
+            else:
+                logger.warning(f"[HF] Error {resp.status_code}: {resp.text[:200]}")
+                return None
+
+        except Exception as e:
+            logger.warning(f"[HF] Exception: {e}")
+            return None
 
 
 class CascadingModelRouter:
