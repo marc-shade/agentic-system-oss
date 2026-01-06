@@ -378,11 +378,12 @@ class OllamaClient:
 
         except anthropic.RateLimitError as e:
             logger.warning(f"[HYBRID/ANTHROPIC] Rate limit: {e}")
-            # Fall back to local model
-            return self._query_local_fallback(prompt, tier, timeout)
+            # Return None - caller decides fallback (IMPROVEMENT 45 handles this)
+            return None
         except Exception as e:
             logger.warning(f"[HYBRID/ANTHROPIC] Error: {e}")
-            return self._query_local_fallback(prompt, tier, timeout)
+            # Return None - caller decides fallback (IMPROVEMENT 45 handles this)
+            return None
 
     def _query_local_fallback(self, prompt: str, tier: str, timeout: float) -> Optional[str]:
         """Fallback to local model when Anthropic fails."""
@@ -528,6 +529,18 @@ class OllamaClient:
                     logger.warning(f"Cloud model error: {response.status_code} - {response.text[:500]}")
                     # IMPROVEMENT 44: Fall back to local GPU when cloud model fails (429, etc.)
                     if self.local_available and response.status_code in (429, 503, 504):
+                        # IMPROVEMENT 45: Try Anthropic API first for complex tasks before local GPU
+                        # Local GPU (12B) is much weaker than cloud (120B) for reasoning
+                        if tier in ("balanced", "powerful"):
+                            logger.info("Mac Studio cloud unavailable, trying Anthropic API first")
+                            try:
+                                anthropic_result = self._query_anthropic(prompt, tier, timeout or 60.0)
+                                if anthropic_result:
+                                    logger.info(f"[ANTHROPIC FALLBACK] Success for {tier} tier")
+                                    return anthropic_result
+                                logger.info("Anthropic API returned None, falling back to local GPU")
+                            except Exception as e:
+                                logger.warning(f"Anthropic API error: {e}, falling back to local GPU")
                         logger.info("Mac Studio cloud unavailable, falling back to local GPU")
                         return self._query_local_fallback(prompt, tier, timeout)
             else:
