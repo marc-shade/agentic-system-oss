@@ -385,6 +385,59 @@ class OllamaClient:
             # Return None - caller decides fallback (IMPROVEMENT 45 handles this)
             return None
 
+    def _query_openai(self, prompt: str, tier: str, timeout: float) -> Optional[str]:
+        """IMPROVEMENT 46: Query OpenAI API as fallback for complex tasks."""
+        try:
+            import openai
+
+            # Model selection based on tier
+            if tier == "powerful":
+                model = "gpt-4o"  # Best quality
+                max_tokens = 4096
+            else:  # balanced
+                model = "gpt-4o-mini"  # Fast but capable
+                max_tokens = 2048
+
+            client = openai.OpenAI()
+            response = client.chat.completions.create(
+                model=model,
+                max_tokens=max_tokens,
+                messages=[{"role": "user", "content": prompt}]
+            )
+
+            if response.choices and len(response.choices) > 0:
+                result = response.choices[0].message.content
+                logger.info(f"[OPENAI FALLBACK] {model} returned {len(result)} chars")
+                return result
+            return None
+
+        except Exception as e:
+            logger.warning(f"[OPENAI FALLBACK] Error: {e}")
+            return None
+
+    def _query_gemini(self, prompt: str, tier: str, timeout: float) -> Optional[str]:
+        """IMPROVEMENT 46: Query Google Gemini API as fallback for complex tasks."""
+        try:
+            import google.generativeai as genai
+
+            # Model selection based on tier
+            if tier == "powerful":
+                model_name = "gemini-1.5-pro"  # Best quality
+            else:  # balanced
+                model_name = "gemini-1.5-flash"  # Fast but capable
+
+            model = genai.GenerativeModel(model_name)
+            response = model.generate_content(prompt)
+
+            if response.text:
+                logger.info(f"[GEMINI FALLBACK] {model_name} returned {len(response.text)} chars")
+                return response.text
+            return None
+
+        except Exception as e:
+            logger.warning(f"[GEMINI FALLBACK] Error: {e}")
+            return None
+
     def _query_local_fallback(self, prompt: str, tier: str, timeout: float) -> Optional[str]:
         """Fallback to local model when Anthropic fails."""
         model = self.LOCAL_ONLY_MODELS.get(tier, "deepseek-r1:14b")
@@ -529,18 +582,40 @@ class OllamaClient:
                     logger.warning(f"Cloud model error: {response.status_code} - {response.text[:500]}")
                     # IMPROVEMENT 44: Fall back to local GPU when cloud model fails (429, etc.)
                     if self.local_available and response.status_code in (429, 503, 504):
-                        # IMPROVEMENT 45: Try Anthropic API first for complex tasks before local GPU
+                        # IMPROVEMENT 45/46: Try cloud APIs in cascade before local GPU
                         # Local GPU (12B) is much weaker than cloud (120B) for reasoning
                         if tier in ("balanced", "powerful"):
+                            # Try Anthropic first
                             logger.info("Mac Studio cloud unavailable, trying Anthropic API first")
                             try:
                                 anthropic_result = self._query_anthropic(prompt, tier, timeout or 60.0)
                                 if anthropic_result:
                                     logger.info(f"[ANTHROPIC FALLBACK] Success for {tier} tier")
                                     return anthropic_result
-                                logger.info("Anthropic API returned None, falling back to local GPU")
                             except Exception as e:
-                                logger.warning(f"Anthropic API error: {e}, falling back to local GPU")
+                                logger.warning(f"Anthropic API error: {e}")
+
+                            # IMPROVEMENT 46: Try OpenAI next
+                            logger.info("Trying OpenAI API...")
+                            try:
+                                openai_result = self._query_openai(prompt, tier, timeout or 60.0)
+                                if openai_result:
+                                    logger.info(f"[OPENAI FALLBACK] Success for {tier} tier")
+                                    return openai_result
+                            except Exception as e:
+                                logger.warning(f"OpenAI API error: {e}")
+
+                            # IMPROVEMENT 46: Try Gemini as last cloud option
+                            logger.info("Trying Gemini API...")
+                            try:
+                                gemini_result = self._query_gemini(prompt, tier, timeout or 60.0)
+                                if gemini_result:
+                                    logger.info(f"[GEMINI FALLBACK] Success for {tier} tier")
+                                    return gemini_result
+                            except Exception as e:
+                                logger.warning(f"Gemini API error: {e}")
+
+                            logger.info("All cloud APIs failed, falling back to local GPU")
                         logger.info("Mac Studio cloud unavailable, falling back to local GPU")
                         return self._query_local_fallback(prompt, tier, timeout)
             else:
