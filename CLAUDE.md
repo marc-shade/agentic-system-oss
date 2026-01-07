@@ -68,6 +68,12 @@ Container runtime preference varies by platform:
 
 All sandboxed testing environments automatically detect and prefer the optimal runtime for the platform.
 
+**Apple Container Sandbox** (used by Prometheus agents):
+- Swift-based native container, OCI-compatible
+- 1.5s cold start, 0.3s warm start
+- Secure isolated execution for untrusted code
+- Installation: See `INSTALL_APPLE_CONTAINER.md`
+
 ### Storage Architecture
 
 Storage paths vary by node:
@@ -129,6 +135,8 @@ Each node has:
 - `research-paper-mcp`: arXiv/Semantic Scholar paper search and analysis
 - `video-transcript-mcp`: YouTube transcript extraction and concept mining
 
+**Note**: 61 MCP servers available in `mcp-servers/`. Essential servers listed above; see directory for full catalog including: context-engine-mcp, ollama-cloud-mcp, phoenix-cortex, sidecar-context, and specialized domain servers.
+
 **Intelligent Agents** (replaces polling scripts):
 - Multi-provider support: Claude Code, OpenAI Codex, Gemini CLI
 - Autonomous reasoning and decision-making
@@ -136,6 +144,22 @@ Each node has:
 - Evolution-aware protection systems
 - Claude Code Skills for automatic AI routing (`codex-consultant`, `gemini-analyst`, `ai-orchestrator`)
 - Programmatic CLI execution (formerly "headless"): `claude -p "task" --output-format json` or `gemini "task"` with image support
+
+**Prometheus Agent System** (`intelligent-agents/prometheus/`):
+- `agent_loop.py`: Main agent execution loop with tool orchestration
+- `llm_client.py`: Multi-provider LLM client (Claude, GPT, Gemini)
+- `apple_container.py`: Native macOS sandbox integration
+- `parallel_executor.py`: Parallel task execution (1.3x speedup)
+- `visual_grounding.py`: Multi-modal visual understanding
+- `streaming.py`: Real-time response streaming
+- Entry point: `python3 -m prometheus.cli "your task"`
+
+**LLM Council** (`llm-council/`):
+- 3-stage multi-LLM deliberation: First opinions → Anonymized peer review → Chairman synthesis
+- Prevents model bias through anonymous evaluation
+- MCP tools: `mcp__llm-council__council_deliberate`, `council_quick_query`, `council_run_pattern`
+- 9 deliberation patterns: debate, socratic, red_team, tree_of_thought, etc.
+- Backend port 8001, frontend port 5173
 
 **AGI Orchestrator** (6-phase unified workflow):
 - Goal Decomposition → Context Synthesis → Multi-Agent Coordination → Meta-Learning → Skill Evolution → Darwin Gödel
@@ -194,6 +218,8 @@ Each node has:
 | Builder API | 9000 | HTTP | Linux |
 | Hardware Info | 8888 | HTTP | Linux |
 | Ollama | 11434 | HTTP | Linux |
+| LLM Council Backend | 8001 | HTTP | All |
+| LLM Council Frontend | 5173 | HTTP | All |
 
 ## Development Workflows
 
@@ -287,6 +313,18 @@ systemctl --user start builder-node-api.service
 # Access at http://localhost:9000/api/v1/status
 ```
 
+**LLM Council** (multi-LLM deliberation):
+```bash
+cd $STORAGE_BASE/llm-council
+
+# Backend (required for MCP)
+python -m uvicorn backend.main:app --host 0.0.0.0 --port 8001
+
+# Frontend (optional, for web UI)
+cd frontend && npm run dev
+# Access at http://localhost:5173
+```
+
 ### Container Management
 
 ```bash
@@ -347,6 +385,30 @@ python3 check_rag_status.py
 # Check learning progress
 python3 check_learning_progress.py
 ```
+
+### GAIA Benchmark (Official AI Assessment)
+
+The system supports the official [GAIA benchmark](https://arxiv.org/abs/2311.12983) - the industry-standard test for AI assistants:
+
+```bash
+# Setup (requires HuggingFace token - dataset is gated)
+pip install datasets huggingface_hub
+export HF_TOKEN="hf_your_token_here"
+
+# Quick test (10 tasks)
+cd $STORAGE_BASE/intelligent-agents/prometheus/benchmarks
+python3 gaia_official_benchmark.py
+
+# Full assessment via Python API
+from gaia_official_benchmark import GAIABenchmarkRunner
+runner = GAIABenchmarkRunner()
+results = await runner.run_benchmark(level=1, split="validation")
+runner.print_results(results)
+```
+
+**Reference Scores**: Human 92%, H2O Agent (SOTA 2025) 75%, GPT-4+plugins 15%
+
+See `intelligent-agents/prometheus/benchmarks/README.md` for leaderboard submission.
 
 ### Additional Entry Points
 
@@ -664,11 +726,21 @@ agentic-system/
 │   ├── qdrant/               # Vector database storage
 │   └── mcp/                  # MCP server databases
 ├── intelligent-agents/       # AI-powered autonomous agents
+│   └── prometheus/           # Core agent system
+│       ├── agents/           # Specialized agents
+│       ├── benchmarks/       # GAIA benchmark framework
+│       └── apple_container.py # Sandbox integration
 ├── intelligent-self-healing/ # Self-optimization and protection
-├── mcp-servers/              # MCP protocol servers
+├── llm-council/              # Multi-LLM deliberation system
+│   ├── backend/              # FastAPI backend (port 8001)
+│   ├── frontend/             # React frontend (port 5173)
+│   └── llm_council_mcp/      # MCP server integration
+├── mcp-servers/              # 61 MCP protocol servers
 │   ├── enhanced-memory-mcp/  # 4-tier memory with RAG
 │   ├── agent-runtime-mcp/    # Persistent task management
 │   ├── ember-mcp/            # Quality and policy enforcement
+│   ├── context-engine-mcp/   # Tool discovery and routing
+│   ├── ollama-cloud-mcp/     # Free Ollama cloud models
 │   └── SAFLA/                # Hybrid memory architecture
 ├── monitoring/               # Prometheus + Loki + Grafana
 ├── persistent-agent-sdk/     # Multi-provider agent runtime
@@ -754,6 +826,7 @@ agentic-system/
 | RAID status (Linux) | `cat /proc/mdstat` → `mdadm --detail /dev/md0` |
 | Builder API (Linux) | `systemctl --user status builder-node-api.service` → check logs with journalctl |
 | Storage paths | `source scripts/detect-storage.sh && echo $STORAGE_BASE` |
+| LLM Council not responding | Start backend: `cd llm-council && python -m uvicorn backend.main:app --port 8001` |
 
 ## Documentation References
 
@@ -762,6 +835,9 @@ agentic-system/
 - **Arduino setup** (macOS): `arduino-surface/CLAUDE.md`
 - **Gemini overview**: `GEMINI.md` - Project overview for Gemini
 - **Intelligent agents**: `intelligent-agents/README.md`
+- **Prometheus agents**: `intelligent-agents/prometheus/GAP_ANALYSIS.md`
+- **GAIA benchmarks**: `intelligent-agents/prometheus/benchmarks/README.md`
+- **LLM Council**: `llm-council/README.md` and `llm-council/CLAUDE.md`
 - **Cluster deployment**: `cluster-deployment/README.md`
 - **Monitoring**: `monitoring/README.md`
 - **Workflows**: `workflows/README.md`
