@@ -199,11 +199,13 @@ class MarainConversation:
         conversation_id: str,
         participants: List[str],
         checkpoint_interval: int = DEFAULT_CHECKPOINT_INTERVAL,
+        checkpoint_enabled: bool = False,  # OFF by default for 100% automation
         db_path: Optional[Path] = None
     ):
         self.conversation_id = conversation_id
         self.participants = participants
         self.checkpoint_interval = checkpoint_interval
+        self.checkpoint_enabled = checkpoint_enabled  # Must be explicitly enabled
         self.messages: List[MarainMessage] = []
         self.consensus_state = ConsensusState.NONE
         self.turn_count = 0
@@ -226,6 +228,7 @@ class MarainConversation:
                 conversation_id TEXT PRIMARY KEY,
                 participants TEXT,
                 checkpoint_interval INTEGER,
+                checkpoint_enabled INTEGER DEFAULT 0,
                 consensus_state TEXT,
                 turn_count INTEGER,
                 last_checkpoint_turn INTEGER,
@@ -429,6 +432,9 @@ class MarainConversation:
 
     def _should_checkpoint(self) -> bool:
         """Check if human review checkpoint is required."""
+        # Checkpoints are OFF by default - must be explicitly enabled
+        if not self.checkpoint_enabled:
+            return False
         turns_since_checkpoint = self.turn_count - self.last_checkpoint_turn
         return turns_since_checkpoint >= self.checkpoint_interval
 
@@ -468,13 +474,14 @@ class MarainConversation:
         # Update conversation
         cursor.execute("""
             INSERT OR REPLACE INTO marain_conversations
-            (conversation_id, participants, checkpoint_interval, consensus_state,
-             turn_count, last_checkpoint_turn, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            (conversation_id, participants, checkpoint_interval, checkpoint_enabled,
+             consensus_state, turn_count, last_checkpoint_turn, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             self.conversation_id,
             json.dumps(self.participants),
             self.checkpoint_interval,
+            1 if self.checkpoint_enabled else 0,
             self.consensus_state.value,
             self.turn_count,
             self.last_checkpoint_turn,
@@ -510,16 +517,20 @@ class MarainConversation:
 
     def get_status(self) -> Dict[str, Any]:
         """Get current conversation status."""
-        return {
+        status = {
             "conversation_id": self.conversation_id,
             "participants": self.participants,
             "turn_count": self.turn_count,
             "consensus_state": self.consensus_state.value,
+            "checkpoint_enabled": self.checkpoint_enabled,
             "checkpoint_interval": self.checkpoint_interval,
-            "turns_until_checkpoint": self.checkpoint_interval - (self.turn_count - self.last_checkpoint_turn),
             "message_count": len(self.messages),
             "last_message": self.messages[-1].to_dict() if self.messages else None,
         }
+        # Only show turns_until_checkpoint if checkpoints are enabled
+        if self.checkpoint_enabled:
+            status["turns_until_checkpoint"] = self.checkpoint_interval - (self.turn_count - self.last_checkpoint_turn)
+        return status
 
     def format_checkpoint_notice(self) -> str:
         """Generate checkpoint notice for human review."""
@@ -550,8 +561,8 @@ Reply to resume conversation.
 
         # Load conversation metadata
         cursor.execute("""
-            SELECT participants, checkpoint_interval, consensus_state, turn_count,
-                   last_checkpoint_turn, created_at
+            SELECT participants, checkpoint_interval, checkpoint_enabled, consensus_state,
+                   turn_count, last_checkpoint_turn, created_at
             FROM marain_conversations WHERE conversation_id = ?
         """, (conversation_id,))
 
@@ -565,12 +576,13 @@ Reply to resume conversation.
             conversation_id=conversation_id,
             participants=participants,
             checkpoint_interval=row[1],
+            checkpoint_enabled=bool(row[2]),  # Convert INTEGER to bool
             db_path=db_path
         )
-        conversation.consensus_state = ConsensusState(row[2])
-        conversation.turn_count = row[3]
-        conversation.last_checkpoint_turn = row[4]
-        conversation.created_at = row[5]
+        conversation.consensus_state = ConsensusState(row[3])
+        conversation.turn_count = row[4]
+        conversation.last_checkpoint_turn = row[5]
+        conversation.created_at = row[6]
 
         # Load messages
         cursor.execute("""
@@ -629,9 +641,17 @@ class MarainProtocolManager:
         self,
         with_nodes: List[str],
         topic: str = "",
-        checkpoint_interval: int = DEFAULT_CHECKPOINT_INTERVAL
+        checkpoint_interval: int = DEFAULT_CHECKPOINT_INTERVAL,
+        checkpoint_enabled: bool = False  # OFF by default for 100% automation
     ) -> MarainConversation:
-        """Start a new Marain-enhanced conversation."""
+        """Start a new Marain-enhanced conversation.
+
+        Args:
+            with_nodes: List of node IDs to include in conversation
+            topic: Optional topic for the conversation
+            checkpoint_interval: Turns between checkpoints (only used if enabled)
+            checkpoint_enabled: Whether to require human review at intervals (default: False)
+        """
         participants = [self.node_id] + with_nodes
         conversation_id = hashlib.sha256(
             f"{'-'.join(sorted(participants))}:{time.time()}:{topic}".encode()
@@ -641,6 +661,7 @@ class MarainProtocolManager:
             conversation_id=conversation_id,
             participants=participants,
             checkpoint_interval=checkpoint_interval,
+            checkpoint_enabled=checkpoint_enabled,
             db_path=self.db_path
         )
 
@@ -650,7 +671,8 @@ class MarainProtocolManager:
     def get_or_create_conversation(
         self,
         with_node: str,
-        checkpoint_interval: int = DEFAULT_CHECKPOINT_INTERVAL
+        checkpoint_interval: int = DEFAULT_CHECKPOINT_INTERVAL,
+        checkpoint_enabled: bool = False  # OFF by default
     ) -> MarainConversation:
         """Get existing conversation with node or create new one."""
         # Try to find existing
@@ -659,7 +681,11 @@ class MarainProtocolManager:
                 return conv
 
         # Create new
-        return self.start_conversation([with_node], checkpoint_interval=checkpoint_interval)
+        return self.start_conversation(
+            [with_node],
+            checkpoint_interval=checkpoint_interval,
+            checkpoint_enabled=checkpoint_enabled
+        )
 
     def send_message(
         self,
@@ -808,6 +834,7 @@ class MarainProtocolManager:
             "consensus_events": total_consensus,
             "average_confidence": round(avg_confidence, 1),
             "active_conversations": len(self.active_conversations),
+            "checkpoint_default": False,  # Checkpoints OFF by default for 100% automation
         }
 
     def _ensure_db_initialized(self):
@@ -823,6 +850,7 @@ class MarainProtocolManager:
                 conversation_id TEXT PRIMARY KEY,
                 participants TEXT,
                 checkpoint_interval INTEGER,
+                checkpoint_enabled INTEGER DEFAULT 0,
                 consensus_state TEXT,
                 turn_count INTEGER,
                 last_checkpoint_turn INTEGER,
