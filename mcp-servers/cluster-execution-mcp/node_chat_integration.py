@@ -49,6 +49,24 @@ except ImportError as e:
     logger.warning(f"Local modules not available: {e}")
     LOCAL_MODULES_AVAILABLE = False
 
+# Import Marain Protocol (AI-to-AI communication enhancement)
+try:
+    from marain_protocol import (
+        MarainProtocolManager,
+        MarainMessage,
+        MarainConversation,
+        Position,
+        Delta,
+        MessageType,
+        ConsensusState,
+        detect_consensus,
+        DEFAULT_CHECKPOINT_INTERVAL,
+    )
+    MARAIN_AVAILABLE = True
+except ImportError as e:
+    logger.warning(f"Marain protocol not available: {e}")
+    MARAIN_AVAILABLE = False
+
 
 class NodeChatServer:
     """Handles node chat operations for the cluster."""
@@ -78,6 +96,13 @@ class NodeChatServer:
             storage_path = f"{self.storage_base}/databases/cluster"
             self.memory_integration = get_memory_integration(storage_path, self.node_id)
             self.context_manager = get_context_manager(storage_path, self.node_id)
+
+        # Initialize Marain Protocol for enhanced AI-to-AI communication
+        self.marain_manager = None
+        if MARAIN_AVAILABLE:
+            from pathlib import Path
+            marain_db = Path(self.storage_base) / "databases" / "marain" / "conversations.db"
+            self.marain_manager = MarainProtocolManager(self.node_id, marain_db)
 
     def _detect_node_id(self) -> str:
         """Detect node ID from hostname."""
@@ -336,6 +361,209 @@ class NodeChatServer:
             key_decisions=key_decisions or [],
             summary=summary or ""
         )
+
+    # =========================================================================
+    # MARAIN PROTOCOL METHODS - AI-to-AI Communication Enhancement
+    # Inspired by https://github.com/marc-shade/marain-protocol
+    # =========================================================================
+
+    async def marain_send_message(
+        self,
+        to_node: str,
+        content: str,
+        confidence: int = 75,
+        stance: Optional[str] = None,
+        reasoning: Optional[str] = None,
+        message_type: str = "standard"
+    ) -> Dict[str, Any]:
+        """
+        Send a Marain-enhanced message with confidence, position, and delta tracking.
+
+        Unlike regular messages, Marain messages include:
+        - Confidence score (0-100)
+        - Optional position/stance for consensus tracking
+        - Automatic delta computation (what changed since last message)
+        - Checkpoint enforcement (human review after N turns)
+        """
+        if not MARAIN_AVAILABLE or not self.marain_manager:
+            return {"error": "Marain protocol not available"}
+
+        if to_node not in self.VALID_NODES:
+            return {"error": f"Invalid node: {to_node}. Valid: {self.VALID_NODES}"}
+
+        # Build position if stance provided
+        position = None
+        if stance:
+            position = Position(
+                stance=stance,
+                confidence=confidence,
+                reasoning=reasoning or ""
+            )
+
+        # Map string to MessageType enum
+        msg_type = MessageType.STANDARD
+        type_map = {
+            "standard": MessageType.STANDARD,
+            "proposal": MessageType.PROPOSAL,
+            "agreement": MessageType.AGREEMENT,
+            "disagreement": MessageType.DISAGREEMENT,
+            "clarification": MessageType.CLARIFICATION,
+            "consensus": MessageType.CONSENSUS,
+        }
+        if message_type in type_map:
+            msg_type = type_map[message_type]
+
+        # Send enhanced message
+        message, metadata = self.marain_manager.send_message(
+            to_node=to_node,
+            content=content,
+            confidence=confidence,
+            position=position,
+            message_type=msg_type
+        )
+
+        # Also send via regular channel for delivery
+        if NODE_CHAT_AVAILABLE and self.chat_client:
+            # Include Marain metadata in the message
+            enhanced_content = f"""[MARAIN] Confidence: {confidence}%
+{f"Position: {stance}" if stance else ""}
+{f"Δ: {metadata.get('delta', {}).get('reason_for_change', 'Initial')}" if metadata.get('delta') else ""}
+
+{content}"""
+            self.chat_client.send_message(to_node, enhanced_content)
+
+        result = {
+            "message_id": message.message_id,
+            "delivered": True,
+            "marain_metadata": metadata,
+            "turn_number": message.turn_number,
+            "consensus_state": metadata.get("consensus_state"),
+        }
+
+        # Include checkpoint notice if required
+        if metadata.get("requires_checkpoint"):
+            result["checkpoint_required"] = True
+            result["checkpoint_notice"] = metadata.get("checkpoint_notice")
+
+        return result
+
+    async def marain_check_consensus(self, with_node: str) -> Dict[str, Any]:
+        """
+        Check if consensus has been reached with another node.
+
+        Consensus requires:
+        - Matching stances/positions
+        - Confidence within 10 points
+        - 2 consecutive turns with agreement
+        """
+        if not MARAIN_AVAILABLE or not self.marain_manager:
+            return {"error": "Marain protocol not available"}
+
+        if with_node not in self.VALID_NODES:
+            return {"error": f"Invalid node: {with_node}. Valid: {self.VALID_NODES}"}
+
+        # Find conversation with this node
+        conversations = self.marain_manager.list_conversations()
+        target_conv = None
+        for conv in conversations:
+            if with_node in conv.get("participants", []):
+                target_conv = conv
+                break
+
+        if not target_conv:
+            return {
+                "consensus_state": "none",
+                "reason": f"No active conversation with {with_node}",
+                "consensus_reached": False
+            }
+
+        return self.marain_manager.check_consensus(target_conv["conversation_id"])
+
+    async def marain_get_conversation_status(self, with_node: str) -> Dict[str, Any]:
+        """
+        Get Marain conversation status including confidence history and delta tracking.
+        """
+        if not MARAIN_AVAILABLE or not self.marain_manager:
+            return {"error": "Marain protocol not available"}
+
+        if with_node not in self.VALID_NODES:
+            return {"error": f"Invalid node: {with_node}. Valid: {self.VALID_NODES}"}
+
+        # Find conversation
+        conversations = self.marain_manager.list_conversations()
+        target_conv = None
+        for conv in conversations:
+            if with_node in conv.get("participants", []):
+                target_conv = conv
+                break
+
+        if not target_conv:
+            return {
+                "has_conversation": False,
+                "with_node": with_node
+            }
+
+        # Get full history
+        history = self.marain_manager.get_conversation_history(target_conv["conversation_id"])
+
+        # Compute confidence trend
+        confidence_history = [
+            {"turn": msg.get("turn_number"), "confidence": msg.get("confidence")}
+            for msg in history
+        ]
+
+        # Get deltas
+        delta_history = [
+            {
+                "turn": msg.get("turn_number"),
+                "from": msg.get("from_node"),
+                "delta": msg.get("delta")
+            }
+            for msg in history
+            if msg.get("delta")
+        ]
+
+        return {
+            "has_conversation": True,
+            "conversation_id": target_conv["conversation_id"],
+            "with_node": with_node,
+            "turn_count": target_conv.get("turn_count", 0),
+            "consensus_state": target_conv.get("consensus_state", "none"),
+            "confidence_history": confidence_history,
+            "delta_history": delta_history,
+            "last_message": history[-1] if history else None
+        }
+
+    async def marain_get_protocol_stats(self) -> Dict[str, Any]:
+        """
+        Get Marain Protocol usage statistics.
+
+        Shows:
+        - Total conversations
+        - Total messages with confidence tracking
+        - Consensus events achieved
+        - Average confidence scores
+        """
+        if not MARAIN_AVAILABLE or not self.marain_manager:
+            return {"error": "Marain protocol not available"}
+
+        stats = self.marain_manager.get_stats()
+        stats["protocol_enabled"] = True
+        stats["checkpoint_interval"] = DEFAULT_CHECKPOINT_INTERVAL
+        return stats
+
+    async def marain_list_conversations(self) -> Dict[str, Any]:
+        """
+        List all Marain-enhanced conversations.
+        """
+        if not MARAIN_AVAILABLE or not self.marain_manager:
+            return {"error": "Marain protocol not available"}
+
+        conversations = self.marain_manager.list_conversations()
+        return {
+            "conversations": conversations,
+            "count": len(conversations)
+        }
 
 
 # Tool definitions for MCP
@@ -934,6 +1162,156 @@ NODE_CHAT_TOOLS = [
             },
             "required": ["with_node"]
         }
+    ),
+    # =========================================================================
+    # MARAIN PROTOCOL TOOLS - AI-to-AI Communication Enhancement
+    # =========================================================================
+    Tool(
+        name="marain_send_message",
+        description="""
+            Send a Marain-enhanced message with confidence scoring and delta tracking.
+
+            MARAIN PROTOCOL features:
+            - Confidence score (0-100): How confident you are in your message
+            - Position/stance: Your position on a topic for consensus tracking
+            - Delta tracking: Automatically tracks what changed since your last message
+            - Checkpoint enforcement: Forces human review every 10 turns
+
+            Use this for structured AI-to-AI dialogue that tracks reasoning evolution.
+
+            Example: marain_send_message(
+                to_node="builder",
+                content="I recommend using React Native for the MVP",
+                confidence=75,
+                stance="cross_platform",
+                reasoning="Team has no Android experience"
+            )
+            """,
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "to_node": {
+                    "type": "string",
+                    "description": "Target node",
+                    "enum": ["builder", "orchestrator", "researcher", "ai-inference", "small-inference", "sentinel"]
+                },
+                "content": {
+                    "type": "string",
+                    "description": "Message content"
+                },
+                "confidence": {
+                    "type": "integer",
+                    "description": "Confidence score 0-100 (default: 75)",
+                    "minimum": 0,
+                    "maximum": 100,
+                    "default": 75
+                },
+                "stance": {
+                    "type": "string",
+                    "description": "Your position/stance on the topic (for consensus tracking)"
+                },
+                "reasoning": {
+                    "type": "string",
+                    "description": "Brief reasoning for your position"
+                },
+                "message_type": {
+                    "type": "string",
+                    "description": "Message type for protocol state",
+                    "enum": ["standard", "proposal", "agreement", "disagreement", "clarification", "consensus"],
+                    "default": "standard"
+                }
+            },
+            "required": ["to_node", "content"]
+        }
+    ),
+    Tool(
+        name="marain_check_consensus",
+        description="""
+            Check if consensus has been reached with another node.
+
+            CONSENSUS CRITERIA (from Marain Protocol):
+            - Both nodes have matching stances/positions
+            - Confidence scores within 10 points of each other
+            - Agreement maintained for 2 consecutive turns
+
+            Returns current consensus state:
+            - none: No consensus discussion
+            - proposed: Position proposed
+            - converging: Positions moving closer
+            - diverging: Positions moving apart
+            - reached: Consensus achieved!
+            - escalated: Escalated to human review
+            """,
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "with_node": {
+                    "type": "string",
+                    "description": "Node to check consensus with",
+                    "enum": ["builder", "orchestrator", "researcher", "ai-inference", "small-inference", "sentinel"]
+                }
+            },
+            "required": ["with_node"]
+        }
+    ),
+    Tool(
+        name="marain_get_conversation_status",
+        description="""
+            Get detailed Marain conversation status.
+
+            Includes:
+            - Confidence history (how confidence evolved over turns)
+            - Delta history (what changed in each message)
+            - Current consensus state
+            - Turn count and checkpoint status
+            - Last message details
+            """,
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "with_node": {
+                    "type": "string",
+                    "description": "Node to get conversation status with",
+                    "enum": ["builder", "orchestrator", "researcher", "ai-inference", "small-inference", "sentinel"]
+                }
+            },
+            "required": ["with_node"]
+        }
+    ),
+    Tool(
+        name="marain_get_protocol_stats",
+        description="""
+            Get Marain Protocol usage statistics.
+
+            Shows:
+            - Total Marain-enhanced conversations
+            - Total messages with confidence tracking
+            - Consensus events achieved
+            - Average confidence scores
+            - Checkpoint interval setting
+            """,
+        inputSchema={
+            "type": "object",
+            "properties": {},
+            "required": []
+        }
+    ),
+    Tool(
+        name="marain_list_conversations",
+        description="""
+            List all Marain-enhanced conversations.
+
+            Shows all conversations using the Marain Protocol with their:
+            - Participants
+            - Turn count
+            - Consensus state
+            - Last updated time
+            """,
+        inputSchema={
+            "type": "object",
+            "properties": {},
+            "required": []
+        }
     )
 ]
 
@@ -1043,6 +1421,24 @@ async def handle_node_chat_tool(name: str, arguments: dict) -> List[TextContent]
                 arguments.get("key_decisions", []),
                 arguments.get("summary", "")
             )
+        # Marain Protocol tools
+        elif name == "marain_send_message":
+            result = await server.marain_send_message(
+                arguments["to_node"],
+                arguments["content"],
+                arguments.get("confidence", 75),
+                arguments.get("stance"),
+                arguments.get("reasoning"),
+                arguments.get("message_type", "standard")
+            )
+        elif name == "marain_check_consensus":
+            result = await server.marain_check_consensus(arguments["with_node"])
+        elif name == "marain_get_conversation_status":
+            result = await server.marain_get_conversation_status(arguments["with_node"])
+        elif name == "marain_get_protocol_stats":
+            result = await server.marain_get_protocol_stats()
+        elif name == "marain_list_conversations":
+            result = await server.marain_list_conversations()
         else:
             result = {"error": f"Unknown node chat tool: {name}"}
 
@@ -1053,4 +1449,4 @@ async def handle_node_chat_tool(name: str, arguments: dict) -> List[TextContent]
         return [TextContent(type="text", text=json.dumps({"error": str(e)}))]
 
 
-logger.info("Node chat integration loaded (22 tools)")
+logger.info("Node chat integration loaded (27 tools - including 5 Marain Protocol)")
