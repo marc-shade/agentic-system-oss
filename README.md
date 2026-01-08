@@ -16,40 +16,6 @@
 
 ---
 
-## 🏆 Performance Benchmarks
-
-We run the same **GAIA benchmark** that [Manus AI](https://manus.im) uses to promote their capabilities. Here are the head-to-head results:
-
-### GAIA Benchmark Comparison
-
-| Level | Prometheus | Manus | Delta | Description |
-|-------|------------|-------|-------|-------------|
-| **Level 1** | **87.5%** | 86.5% | **+1.0%** | Basic tasks (<5 steps) |
-| **Level 2** | **80.0%** | 70.0% | **+10.0%** | Intermediate (5-10 steps) |
-| **Level 3** | **100.0%** | N/A | - | Complex multi-tool |
-| **Overall** | **86.7%** | ~78% | **+8.7%** | All levels combined |
-
-> **GAIA** (General AI Assistants) is the industry-standard benchmark created by Meta AI, Hugging Face, and AutoGPT. It tests real-world reasoning, tool use, and task completion. Humans score 92%.
-
-### Unique Capabilities (Manus = 0)
-
-| Capability | Prometheus | Manus | Benefit |
-|------------|-----------|-------|---------|
-| **Native Container Sandbox** | ✅ Apple Container | ❌ | Secure isolated execution |
-| **Parallel Execution** | ✅ 1.3x speedup | ❌ | Faster task completion |
-| **Distributed Cluster** | ✅ 4 nodes | ❌ | Horizontal scaling |
-| **Multi-Provider LLM** | ✅ Claude+GPT+Gemini | ❌ | Best model for each task |
-| **Physical Hardware I/O** | ✅ Arduino Surface | ❌ | Real-world interaction |
-| **Voice Communication** | ✅ TTS/STT | ❌ | Hands-free operation |
-
-**Run benchmarks yourself:**
-```bash
-cd intelligent-agents/prometheus
-python3 benchmarks/gaia_comparable_benchmarks.py
-```
-
----
-
 ## Overview
 <img width="300" height="300" align="right" alt="agentic-system-oss" src="https://github.com/user-attachments/assets/ac0ba0df-ec74-4aff-a616-e668420b7018" />
 A production-ready distributed AI system running 24/7 across multiple nodes with automatic workload distribution, cluster memory, and intelligent task routing.
