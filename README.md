@@ -148,26 +148,6 @@ result = offload("make build && make test")
 
 ---
 
-## 📊 Test Results
-
-```
-Distributed Execution Tests: 7/7 ✅
-├─ ✅ Simple Offload
-├─ ✅ Linux Routing (100% accuracy → macpro51)
-├─ ✅ macOS Routing (100% accuracy → Mac nodes)
-├─ ✅ Parallel Execution (5/5 tasks)
-├─ ✅ Capability Routing (docker → macpro51)
-├─ ✅ Aggressive Offloading (0 local, 10 remote)
-└─ ✅ Cluster Status
-
-GAIA Benchmarks: 13/15 ✅
-├─ Level 1: 7/8 (87.5%)
-├─ Level 2: 4/5 (80.0%)
-└─ Level 3: 2/2 (100.0%)
-```
-
----
-
 ## 📁 Repository Structure
 
 ```
