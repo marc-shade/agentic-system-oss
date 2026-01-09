@@ -424,6 +424,110 @@ class NodeChatClient:
             'success': any(results.values())
         }
 
+    def get_cluster_status(self) -> Dict:
+        """Get status of all nodes in the cluster with reachability checks."""
+        nodes_status = {}
+
+        for machine_name, node_config in self.cluster_nodes.items():
+            node_id = node_config.get('node_id', machine_name)
+            status = self._check_node_reachability(machine_name, node_config)
+            nodes_status[node_id] = status
+
+        # Summary
+        online_count = sum(1 for s in nodes_status.values() if s.get('reachable'))
+        total_count = len(nodes_status)
+
+        return {
+            'cluster_status': 'healthy' if online_count == total_count else 'degraded' if online_count > 0 else 'offline',
+            'nodes_online': online_count,
+            'nodes_total': total_count,
+            'nodes': nodes_status,
+            'timestamp': datetime.now().isoformat()
+        }
+
+    def get_node_status(self, node_id: str) -> Dict:
+        """Get detailed status of a specific node."""
+        # Resolve node reference
+        resolved_node = self._resolve_node(node_id)
+        if not resolved_node:
+            return {'error': f'Unknown node: {node_id}', 'reachable': False}
+
+        node_config = self.cluster_nodes[resolved_node]
+        status = self._check_node_reachability(resolved_node, node_config)
+
+        # Add additional details
+        status['node_id'] = node_config.get('node_id', resolved_node)
+        status['machine_name'] = resolved_node
+        status['role'] = node_config.get('role', 'unknown')
+        status['capabilities'] = node_config.get('capabilities', [])
+        status['specialties'] = node_config.get('specialties', [])
+
+        return status
+
+    def _check_node_reachability(self, machine_name: str, node_config: Dict) -> Dict:
+        """Check if a node is reachable via multiple channels."""
+        address = self._get_node_address(node_config)
+        node_id = node_config.get('node_id', machine_name)
+
+        result = {
+            'address': address,
+            'reachable': False,
+            'channels': {
+                'http': False,
+                'ssh': False,
+                'ping': False
+            },
+            'latency_ms': None,
+            'last_check': datetime.now().isoformat()
+        }
+
+        # Check 1: HTTP API (fastest check)
+        try:
+            import time
+            start = time.time()
+            response = requests.get(f"http://{address}:5200/api/health", timeout=2)
+            latency = (time.time() - start) * 1000
+            if response.status_code == 200:
+                result['channels']['http'] = True
+                result['reachable'] = True
+                result['latency_ms'] = round(latency, 1)
+        except:
+            pass
+
+        # Check 2: SSH connectivity (if HTTP failed)
+        if not result['reachable']:
+            try:
+                ssh_result = subprocess.run(
+                    ['ssh', '-o', 'ConnectTimeout=2', '-o', 'BatchMode=yes',
+                     f"{self._get_ssh_user()}@{address}", 'echo ok'],
+                    capture_output=True, text=True, timeout=5
+                )
+                if ssh_result.returncode == 0:
+                    result['channels']['ssh'] = True
+                    result['reachable'] = True
+            except:
+                pass
+
+        # Check 3: Ping (fallback)
+        if not result['reachable']:
+            try:
+                ping_result = subprocess.run(
+                    ['ping', '-c', '1', '-W', '2', address],
+                    capture_output=True, text=True, timeout=5
+                )
+                if ping_result.returncode == 0:
+                    result['channels']['ping'] = True
+                    result['reachable'] = True
+                    # Extract latency from ping output
+                    import re
+                    match = re.search(r'time=(\d+\.?\d*)', ping_result.stdout)
+                    if match:
+                        result['latency_ms'] = float(match.group(1))
+            except:
+                pass
+
+        return result
+
 
 def main():
     """CLI interface for node chat"""

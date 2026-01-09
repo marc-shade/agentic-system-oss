@@ -308,6 +308,20 @@ class NodePersona:
         except:
             return "unknown"
 
+    def to_dict(self) -> Dict:
+        """Serialize persona to dictionary for API responses"""
+        return {
+            "node_id": self.node_id,
+            "role": self.role,
+            "capabilities": self.capabilities,
+            "specialties": self.specialties,
+            "avatar": self.avatar,
+            "name": getattr(self, 'name', self.node_id),
+            "personality": getattr(self, 'personality', {}),
+            "status": self._get_health_status(),
+            "timestamp": datetime.now().isoformat()
+        }
+
     def format_awareness_summary(self) -> str:
         """Format complete awareness summary for AI consumption"""
         env = self.get_environmental_awareness()
