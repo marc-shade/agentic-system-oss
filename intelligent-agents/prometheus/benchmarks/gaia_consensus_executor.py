@@ -26,7 +26,9 @@ from enum import Enum
 import logging
 
 # Groq API for ultra-fast inference
-GROQ_API_KEY = os.getenv("GROQ_API_KEY", "GROQ_API_KEY_REDACTED")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+if not GROQ_API_KEY:
+    raise ValueError("GROQ_API_KEY environment variable required")
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

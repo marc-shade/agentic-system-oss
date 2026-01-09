@@ -7,7 +7,7 @@ from datetime import datetime
 
 # Ensure GROQ key is set
 if not os.environ.get("GROQ_API_KEY"):
-    os.environ["GROQ_API_KEY"] = "GROQ_API_KEY_REDACTED"
+    raise ValueError("GROQ_API_KEY environment variable required")
 
 from gaia_official_benchmark import GAIABenchmarkRunner
 
