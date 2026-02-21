@@ -158,20 +158,20 @@ class TestClusterNodeConfig:
     def test_normalize_simple_format(self):
         """Test normalizing simple string format."""
         raw = {
-            "192.168.1.1": "node-1 (orchestrator)",
-            "192.168.1.2": "node-2 (worker)"
+            "198.51.100.1": "node-1 (orchestrator)",
+            "198.51.100.2": "node-2 (worker)"
         }
 
         result = _normalize_cluster_config(raw)
 
-        assert "192.168.1.1" in result
-        assert result["192.168.1.1"]["name"] == "node-1"
-        assert result["192.168.1.1"]["role"] == "orchestrator"
+        assert "198.51.100.1" in result
+        assert result["198.51.100.1"]["name"] == "node-1"
+        assert result["198.51.100.1"]["role"] == "orchestrator"
 
     def test_normalize_full_format(self):
         """Test normalizing full dict format."""
         raw = {
-            "192.168.1.1": {
+            "198.51.100.1": {
                 "name": "node-1",
                 "role": "orchestrator",
                 "type": "cluster_node"
@@ -180,53 +180,53 @@ class TestClusterNodeConfig:
 
         result = _normalize_cluster_config(raw)
 
-        assert result["192.168.1.1"]["name"] == "node-1"
-        assert result["192.168.1.1"]["role"] == "orchestrator"
+        assert result["198.51.100.1"]["name"] == "node-1"
+        assert result["198.51.100.1"]["role"] == "orchestrator"
 
     def test_normalize_simple_name_only(self):
         """Test normalizing name without role in parentheses."""
-        raw = {"192.168.1.1": "simple-node"}
+        raw = {"198.51.100.1": "simple-node"}
 
         result = _normalize_cluster_config(raw)
 
-        assert result["192.168.1.1"]["name"] == "simple-node"
-        assert result["192.168.1.1"]["role"] == "node"
+        assert result["198.51.100.1"]["name"] == "simple-node"
+        assert result["198.51.100.1"]["role"] == "node"
 
     def test_get_cluster_node_display_name(self):
         """Test getting display name for cluster node."""
         nodes = {
-            "192.168.1.1": {"name": "node-1", "role": "orchestrator", "type": "cluster_node"}
+            "198.51.100.1": {"name": "node-1", "role": "orchestrator", "type": "cluster_node"}
         }
 
-        result = get_cluster_node_display_name("192.168.1.1", nodes)
+        result = get_cluster_node_display_name("198.51.100.1", nodes)
         assert result == "node-1 (orchestrator)"
 
     def test_get_cluster_node_display_name_unknown(self):
         """Test getting display name for unknown node."""
         nodes = {}
-        result = get_cluster_node_display_name("192.168.1.99", nodes)
-        assert result == "192.168.1.99"
+        result = get_cluster_node_display_name("198.51.100.99", nodes)
+        assert result == "198.51.100.99"
 
     def test_load_cluster_nodes_from_env(self, monkeypatch, tmp_path):
         """Test loading cluster nodes from environment variable."""
-        config = {"192.168.1.1": {"name": "test", "role": "worker", "type": "cluster_node"}}
+        config = {"198.51.100.1": {"name": "test", "role": "worker", "type": "cluster_node"}}
         monkeypatch.setenv("CLUSTER_NODES_JSON", json.dumps(config))
 
         result = load_cluster_nodes(tmp_path / "nonexistent.json")
 
-        assert "192.168.1.1" in result
-        assert result["192.168.1.1"]["name"] == "test"
+        assert "198.51.100.1" in result
+        assert result["198.51.100.1"]["name"] == "test"
 
     def test_load_cluster_nodes_from_file(self, tmp_path):
         """Test loading cluster nodes from file."""
-        config = {"192.168.1.1": {"name": "file-node", "role": "builder", "type": "cluster_node"}}
+        config = {"198.51.100.1": {"name": "file-node", "role": "builder", "type": "cluster_node"}}
         config_file = tmp_path / "cluster_nodes.json"
         config_file.write_text(json.dumps(config))
 
         result = load_cluster_nodes(config_file)
 
-        assert "192.168.1.1" in result
-        assert result["192.168.1.1"]["name"] == "file-node"
+        assert "198.51.100.1" in result
+        assert result["198.51.100.1"]["name"] == "file-node"
 
 
 class TestGetConfigValue:

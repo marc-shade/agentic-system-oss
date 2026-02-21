@@ -100,14 +100,14 @@ Set environment variables for enhanced capabilities:
 
 ```python
 # Returns threat level: clean/low/medium/high/critical
-result = await check_ip_reputation("192.168.1.1")
+result = await check_ip_reputation("198.51.100.1")
 ```
 
 ### Bulk IP Check
 
 ```python
 # Comma-separated
-result = await check_bulk_ips("8.8.8.8, 1.1.1.1, 192.168.1.1")
+result = await check_bulk_ips("8.8.8.8, 1.1.1.1, 198.51.100.1")
 
 # JSON array
 result = await check_bulk_ips('["8.8.8.8", "1.1.1.1"]')
@@ -117,7 +117,7 @@ result = await check_bulk_ips('["8.8.8.8", "1.1.1.1"]')
 
 ```python
 # Check network scan results against threats
-scan_results = '{"devices": [{"ip": "192.168.1.100"}, {"ip": "10.0.0.1"}]}'
+scan_results = '{"devices": [{"ip": "198.51.100.50"}, {"ip": "203.0.113.1"}]}'
 threat_check = await check_network_against_threats(scan_results)
 ```
 

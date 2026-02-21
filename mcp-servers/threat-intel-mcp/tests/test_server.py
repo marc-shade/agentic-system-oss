@@ -18,44 +18,44 @@ class TestParseIPList:
     """Tests for IP list parsing."""
 
     def test_parse_simple_list(self):
-        content = """192.168.1.1
-10.0.0.1
+        content = """198.51.100.1
+203.0.113.1
 8.8.8.8"""
         ips = parse_ip_list(content)
         assert len(ips) == 3
-        assert "192.168.1.1" in ips
-        assert "10.0.0.1" in ips
+        assert "198.51.100.1" in ips
+        assert "203.0.113.1" in ips
 
     def test_parse_with_comments(self):
         content = """# This is a comment
-192.168.1.1
+198.51.100.1
 # Another comment
-10.0.0.1"""
+203.0.113.1"""
         ips = parse_ip_list(content)
         assert len(ips) == 2
 
     def test_parse_empty_lines(self):
-        content = """192.168.1.1
+        content = """198.51.100.1
 
-10.0.0.1
+203.0.113.1
 
 8.8.8.8"""
         ips = parse_ip_list(content)
         assert len(ips) == 3
 
     def test_parse_invalid_ips_filtered(self):
-        content = """192.168.1.1
+        content = """198.51.100.1
 invalid-ip
 256.1.1.1
-10.0.0.1"""
+203.0.113.1"""
         ips = parse_ip_list(content)
         assert len(ips) == 2
         assert "invalid-ip" not in ips
         assert "256.1.1.1" not in ips
 
     def test_parse_ip_with_trailing_content(self):
-        content = """192.168.1.1 some comment
-10.0.0.1\tmore data"""
+        content = """198.51.100.1 some comment
+203.0.113.1\tmore data"""
         ips = parse_ip_list(content)
         assert len(ips) == 2
 
@@ -91,7 +91,7 @@ class TestParseCIDRList:
 
     def test_parse_cidr_ranges(self):
         content = """192.168.0.0/24
-10.0.0.0/8"""
+203.0.113.0/8"""
         cidrs = parse_cidr_list(content)
         assert len(cidrs) == 2
 
@@ -99,14 +99,14 @@ class TestParseCIDRList:
         content = """; Spamhaus DROP list
 192.168.0.0/16
 ; Another block
-10.0.0.0/8"""
+203.0.113.0/8"""
         cidrs = parse_cidr_list(content)
         assert len(cidrs) == 2
 
     def test_parse_invalid_cidr_filtered(self):
         content = """192.168.0.0/24
 invalid/cidr
-10.0.0.0/8"""
+203.0.113.0/8"""
         cidrs = parse_cidr_list(content)
         assert len(cidrs) == 2
 
@@ -196,7 +196,7 @@ class TestServerToolsWithMocks:
         from threat_intel_mcp.server import check_bulk_ips
 
         fn = get_fn(check_bulk_ips)
-        result = await fn("8.8.8.8, 1.1.1.1, 192.168.1.1")
+        result = await fn("8.8.8.8, 1.1.1.1, 198.51.100.1")
         data = json.loads(result)
 
         assert data["success"] is True
@@ -221,7 +221,7 @@ class TestServerToolsWithMocks:
 
         fn = get_fn(check_bulk_ips)
         # Create list of 101 IPs
-        ips = ",".join([f"192.168.1.{i}" for i in range(101)])
+        ips = ",".join([f"198.51.100.{i}" for i in range(101)])
         result = await fn(ips)
         data = json.loads(result)
 

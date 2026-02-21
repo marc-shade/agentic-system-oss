@@ -106,18 +106,18 @@ Create `cluster_nodes.json` in the data directory:
 
 ```json
 {
-  "192.168.1.79": {
-    "name": "mac-studio",
+  "198.51.100.10": {
+    "name": "node-1",
     "role": "orchestrator",
     "type": "cluster_node"
   },
-  "192.168.1.87": {
-    "name": "macpro51",
+  "198.51.100.11": {
+    "name": "node-2",
     "role": "builder",
     "type": "cluster_node"
   },
-  "192.168.1.55": {
-    "name": "macbook-air",
+  "198.51.100.12": {
+    "name": "node-3",
     "role": "researcher",
     "type": "cluster_node"
   }
@@ -126,7 +126,7 @@ Create `cluster_nodes.json` in the data directory:
 
 Or set via environment variable:
 ```bash
-export CLUSTER_NODES_JSON='{"192.168.1.79": {"name": "mac-studio", "role": "orchestrator"}}'
+export CLUSTER_NODES_JSON='{"198.51.100.10": {"name": "node-1", "role": "orchestrator"}}'
 ```
 
 ## MCP Tools
@@ -206,7 +206,7 @@ mark_device_known(
 )
 
 # Get device details
-get_device_info("192.168.1.100")
+get_device_info("198.51.100.50")
 get_device_info("AA:BB:CC:DD:EE:FF")
 
 # View device history
@@ -217,13 +217,13 @@ get_device_history()
 
 ```python
 # Quick port scan (common ports)
-scan_device_ports("192.168.1.100", quick=True)
+scan_device_ports("198.51.100.50", quick=True)
 
 # Scan specific ports
-scan_device_ports("192.168.1.100", ports="22,80,443,8080")
+scan_device_ports("198.51.100.50", ports="22,80,443,8080")
 
 # Full port scan (1-1024)
-scan_device_ports("192.168.1.100", ports="all")
+scan_device_ports("198.51.100.50", ports="all")
 
 # Discover services on all devices
 discover_services()

@@ -12,6 +12,7 @@ from typing import Optional, Dict, Any
 import uvicorn
 
 # Import security components
+import os
 import sys
 sys.path.append('..')
 from security import (
@@ -437,12 +438,16 @@ async def startup_event():
     await rate_limiter.initialize()
 
     # Create default admin user if needed
+    # WARNING: Always set ADMIN_PASSWORD env var in production. Never use the fallback.
     auth_manager = app.state.auth_manager
     if not auth_manager._users:
+        admin_password = os.environ.get("ADMIN_PASSWORD", "CHANGE_ME_IN_PRODUCTION")
+        if admin_password == "CHANGE_ME_IN_PRODUCTION":
+            print("WARNING: Using default admin password. Set ADMIN_PASSWORD environment variable for production!")
         admin_user = auth_manager.create_user(
             username="admin",
             email="admin@example.com",
-            password="Admin@SecureP@ss123!",
+            password=admin_password,
             role=UserRole.ADMIN,
             tier=TierLevel.INTERNAL
         )
@@ -477,7 +482,7 @@ if __name__ == "__main__":
     print("API Documentation: http://localhost:8000/docs")
     print("\nDefault admin credentials:")
     print("  Username: admin")
-    print("  Password: Admin@SecureP@ss123!")
+    print("  Password: (set via ADMIN_PASSWORD env var)")
     print("\nPress Ctrl+C to stop")
     print("=" * 70)
 

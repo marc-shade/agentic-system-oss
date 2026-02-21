@@ -48,13 +48,13 @@ class TestDeviceScanResult:
     def test_creation(self):
         """Test creating a DeviceScanResult."""
         result = DeviceScanResult(
-            ip="192.168.1.100",
+            ip="198.51.100.100",
             mac="AA:BB:CC:DD:EE:FF",
             vendor="Test Vendor",
             scan_time="2024-01-15T12:00:00"
         )
 
-        assert result.ip == "192.168.1.100"
+        assert result.ip == "198.51.100.100"
         assert result.mac == "AA:BB:CC:DD:EE:FF"
         assert result.vendor == "Test Vendor"
         assert result.hostname is None
@@ -65,7 +65,7 @@ class TestDeviceScanResult:
     def test_to_dict(self):
         """Test converting DeviceScanResult to dictionary."""
         result = DeviceScanResult(
-            ip="192.168.1.100",
+            ip="198.51.100.100",
             mac="AA:BB:CC:DD:EE:FF",
             vendor="Test Vendor",
             scan_time="2024-01-15T12:00:00",
@@ -76,7 +76,7 @@ class TestDeviceScanResult:
 
         d = result.to_dict()
 
-        assert d["ip"] == "192.168.1.100"
+        assert d["ip"] == "198.51.100.100"
         assert d["mac"] == "AA:BB:CC:DD:EE:FF"
         assert d["hostname"] == "test-host"
         assert len(d["ports"]) == 1
@@ -162,7 +162,7 @@ class TestArpScan:
         """Test successful ARP scan with mocked subprocess."""
         from network_scanner_mcp.scanner import arp_scan
 
-        mock_output = b"192.168.1.1\taa:bb:cc:dd:ee:ff\tTest Vendor\n192.168.1.2\t11:22:33:44:55:66\tAnother Vendor\n"
+        mock_output = b"198.51.100.1\taa:bb:cc:dd:ee:ff\tTest Vendor\n198.51.100.2\t11:22:33:44:55:66\tAnother Vendor\n"
 
         with patch('asyncio.create_subprocess_exec') as mock_exec:
             mock_process = AsyncMock()
@@ -173,9 +173,9 @@ class TestArpScan:
             devices = await arp_scan(interface="eth0")
 
             assert len(devices) == 2
-            assert devices[0]["ip"] == "192.168.1.1"
+            assert devices[0]["ip"] == "198.51.100.1"
             assert devices[0]["mac"] == "AA:BB:CC:DD:EE:FF"
-            assert devices[1]["ip"] == "192.168.1.2"
+            assert devices[1]["ip"] == "198.51.100.2"
 
     @pytest.mark.asyncio
     async def test_arp_scan_no_devices(self):
@@ -224,7 +224,7 @@ class TestScanPort:
             mock_writer.wait_closed = AsyncMock()
             mock_conn.return_value = (mock_reader, mock_writer)
 
-            result = await scan_port("192.168.1.1", 22, timeout=1.0)
+            result = await scan_port("198.51.100.1", 22, timeout=1.0)
 
             assert result.port == 22
             assert result.state == "open"
@@ -237,7 +237,7 @@ class TestScanPort:
         with patch('asyncio.open_connection') as mock_conn:
             mock_conn.side_effect = ConnectionRefusedError()
 
-            result = await scan_port("192.168.1.1", 12345, timeout=1.0)
+            result = await scan_port("198.51.100.1", 12345, timeout=1.0)
 
             assert result.port == 12345
             assert result.state == "closed"
@@ -250,7 +250,7 @@ class TestScanPort:
         with patch('asyncio.open_connection') as mock_conn:
             mock_conn.side_effect = asyncio.TimeoutError()
 
-            result = await scan_port("192.168.1.1", 80, timeout=0.1)
+            result = await scan_port("198.51.100.1", 80, timeout=0.1)
 
             assert result.port == 80
             assert result.state == "filtered"
@@ -264,7 +264,7 @@ class TestPingHost:
         """Test pinging a reachable host."""
         from network_scanner_mcp.scanner import ping_host
 
-        mock_output = b"PING 192.168.1.1 (192.168.1.1) 56(84) bytes of data.\n64 bytes: icmp_seq=1 ttl=64 time=0.5 ms\nrtt min/avg/max/mdev = 0.5/0.5/0.5/0.0 ms\n"
+        mock_output = b"PING 198.51.100.1 (198.51.100.1) 56(84) bytes of data.\n64 bytes: icmp_seq=1 ttl=64 time=0.5 ms\nrtt min/avg/max/mdev = 0.5/0.5/0.5/0.0 ms\n"
 
         with patch('asyncio.create_subprocess_exec') as mock_exec:
             mock_process = AsyncMock()
@@ -272,7 +272,7 @@ class TestPingHost:
             mock_process.communicate = AsyncMock(return_value=(mock_output, b""))
             mock_exec.return_value = mock_process
 
-            is_up, latency = await ping_host("192.168.1.1")
+            is_up, latency = await ping_host("198.51.100.1")
 
             assert is_up is True
 
@@ -287,7 +287,7 @@ class TestPingHost:
             mock_process.communicate = AsyncMock(return_value=(b"", b""))
             mock_exec.return_value = mock_process
 
-            is_up, latency = await ping_host("192.168.1.99")
+            is_up, latency = await ping_host("198.51.100.99")
 
             assert is_up is False
             assert latency is None
@@ -302,9 +302,9 @@ class TestResolveHostname:
         from network_scanner_mcp.scanner import resolve_hostname
 
         with patch('socket.gethostbyaddr') as mock_lookup:
-            mock_lookup.return_value = ("test-host.local", [], ["192.168.1.1"])
+            mock_lookup.return_value = ("test-host.local", [], ["198.51.100.1"])
 
-            hostname = await resolve_hostname("192.168.1.1")
+            hostname = await resolve_hostname("198.51.100.1")
 
             assert hostname == "test-host.local"
 
@@ -317,6 +317,6 @@ class TestResolveHostname:
         with patch('socket.gethostbyaddr') as mock_lookup:
             mock_lookup.side_effect = socket.herror()
 
-            hostname = await resolve_hostname("192.168.1.99")
+            hostname = await resolve_hostname("198.51.100.99")
 
             assert hostname is None

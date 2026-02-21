@@ -1,0 +1,27 @@
+{
+  "alerts": [
+    {
+      "timestamp": "2024-01-15T10:30:00.000000",
+      "type": "new_device",
+      "severity": "info",
+      "message": "Alert! New device detected on network: 198.51.100.10, MAC 00:11:22:33:44:55, vendor Example Corp",
+      "details": {
+        "ip": "198.51.100.10",
+        "mac": "00:11:22:33:44:55",
+        "vendor": "Example Corp"
+      }
+    },
+    {
+      "timestamp": "2024-01-15T11:15:00.000000",
+      "type": "new_device",
+      "severity": "warning",
+      "message": "Alert! New device detected on network: 198.51.100.20, MAC AA:BB:CC:DD:EE:FF, vendor Unknown",
+      "details": {
+        "ip": "198.51.100.20",
+        "mac": "AA:BB:CC:DD:EE:FF",
+        "vendor": "Unknown"
+      }
+    }
+  ],
+  "_note": "This is sample data. Real alert history is generated at runtime."
+}

@@ -3,7 +3,7 @@
 Security Scanner MCP Server - Nuclei vulnerability scanning integration
 Provides automated security scanning capabilities with cluster distribution
 
-Integrates with Coral TPU for:
+Integrates with text embeddings for:
 - Anomaly detection in security findings
 - Pattern recognition across scan results
 - Importance scoring for vulnerability prioritization
@@ -21,24 +21,37 @@ from typing import List, Optional, Dict, Any
 
 from fastmcp import FastMCP
 
-# TPU integration for anomaly detection
+
+def _get_storage_base() -> Path:
+    """Detect storage base path based on platform."""
+    env_path = os.environ.get("AGENTIC_SYSTEM_PATH")
+    if env_path and Path(env_path).exists():
+        return Path(env_path)
+
+    system = platform.system()
+    if system == "Darwin":  # macOS
+        for candidate in [Path.home() / "agentic-system", Path("/opt/agentic-system")]:
+            if candidate.exists():
+                return candidate
+    elif system == "Linux":
+        for candidate in [Path.home() / "agentic-system", Path("/mnt/agentic-system")]:
+            if candidate.exists():
+                return candidate
+    return Path(__file__).parent.parent
+
+
+_STORAGE_BASE = _get_storage_base()
+
+# Embedding integration for anomaly detection
 _TPU_AVAILABLE = False
-_tpu_detect_anomaly = None
-_tpu_embed_text = None
+_text_model = None
 
 try:
-    # Add coral-tpu path for imports
-    coral_tpu_path = os.path.join(os.environ.get("AGENTIC_SYSTEM_PATH", str(_STORAGE_BASE)),
-                                   "mcp-servers/coral-tpu-mcp/src")
-    if coral_tpu_path not in sys.path:
-        sys.path.insert(0, coral_tpu_path)
-
-    # Try to import text embedding for anomaly detection
     from sentence_transformers import SentenceTransformer
     _text_model = SentenceTransformer('all-MiniLM-L6-v2')
     _TPU_AVAILABLE = True  # We have embedding capability
 except ImportError:
-    pass  # TPU features will be disabled
+    pass  # Embedding features will be disabled
 
 # Server configuration
 NUCLEI_BIN = os.path.expanduser("~/go/bin/nuclei")
@@ -51,7 +64,7 @@ def _load_cluster_nodes() -> dict:
     Load cluster node configuration from environment variable.
 
     Set CLUSTER_NODES_JSON env var with JSON like:
-    {"node1": "10.0.0.1", "node2": "10.0.0.2"}
+    {"node1": "198.51.100.1", "node2": "198.51.100.2"}
     """
     import json
     env_config = os.environ.get("CLUSTER_NODES_JSON")
@@ -336,7 +349,7 @@ async def detect_anomalous_findings(
     threshold: float = 0.7
 ) -> str:
     """
-    Use TPU-accelerated embeddings to detect anomalous security findings.
+    Use embedding-based analysis to detect anomalous security findings.
 
     Compares findings against a baseline (previous scans or expected patterns)
     to identify unusual or novel vulnerabilities that may need urgent attention.
@@ -352,7 +365,7 @@ async def detect_anomalous_findings(
     if not _TPU_AVAILABLE:
         return json.dumps({
             "success": False,
-            "error": "TPU/embedding features not available. Install sentence-transformers."
+            "error": "Embedding features not available. Install sentence-transformers."
         })
 
     # Load current scan results
@@ -374,7 +387,6 @@ async def detect_anomalous_findings(
         })
 
     # Build baseline embeddings
-    baseline_embeddings = []
     baseline_texts = []
 
     if baseline_scan_id:
@@ -402,6 +414,7 @@ async def detect_anomalous_findings(
         ]
 
     # Embed baseline
+    baseline_embeddings = []
     if baseline_texts:
         baseline_embeddings = _text_model.encode(baseline_texts)
 
@@ -423,7 +436,6 @@ async def detect_anomalous_findings(
                 similarities.append(sim)
 
             max_similarity = max(similarities)
-            avg_similarity = sum(similarities) / len(similarities)
 
             # Low similarity = anomalous (novel finding)
             if max_similarity < threshold:
@@ -445,14 +457,14 @@ async def detect_anomalous_findings(
         "anomalies_detected": len(anomalies),
         "threshold": threshold,
         "anomalies": anomalies[:20],  # Top 20 most anomalous
-        "tpu_enabled": _TPU_AVAILABLE
+        "embedding_enabled": _TPU_AVAILABLE
     }, indent=2)
 
 
 @mcp.tool()
 async def prioritize_findings(scan_id: str) -> str:
     """
-    Use TPU-accelerated importance scoring to prioritize security findings.
+    Use embedding-based importance scoring to prioritize security findings.
 
     Scores each finding based on semantic similarity to critical security
     terms and patterns, helping focus remediation efforts.
@@ -466,7 +478,7 @@ async def prioritize_findings(scan_id: str) -> str:
     if not _TPU_AVAILABLE:
         return json.dumps({
             "success": False,
-            "error": "TPU/embedding features not available"
+            "error": "Embedding features not available"
         })
 
     result_file = SCAN_RESULTS_DIR / f"{scan_id}.jsonl"
@@ -494,29 +506,6 @@ async def prioritize_findings(scan_id: str) -> str:
 
     critical_embeddings = _text_model.encode(critical_terms)
     import numpy as np
-
-def _get_storage_base() -> Path:
-    """Detect storage base path based on platform."""
-    env_path = os.environ.get("AGENTIC_SYSTEM_PATH")
-    if env_path and Path(env_path).exists():
-        return Path(env_path)
-
-    system = platform.system()
-    if system == "Darwin":  # macOS
-        if Path(str(_STORAGE_BASE)).exists():
-            return Path(str(_STORAGE_BASE))
-        elif Path(str(_STORAGE_BASE)).exists():
-            return Path(str(_STORAGE_BASE))
-    elif system == "Linux":
-        if Path(str(_STORAGE_BASE)).exists():
-            return Path(str(_STORAGE_BASE))
-        elif Path(str(_STORAGE_BASE)).exists():
-            return Path(str(_STORAGE_BASE))
-    return Path(__file__).parent.parent
-
-
-_STORAGE_BASE = _get_storage_base()
-
 
     prioritized = []
     for finding in findings:
@@ -555,7 +544,7 @@ _STORAGE_BASE = _get_storage_base()
         "scan_id": scan_id,
         "total_findings": len(findings),
         "prioritized": prioritized,
-        "tpu_enabled": _TPU_AVAILABLE
+        "embedding_enabled": _TPU_AVAILABLE
     }, indent=2)
 
 

@@ -31,7 +31,7 @@ Add to `~/.claude.json`:
       "command": "/mnt/agentic-system/.venv/bin/python",
       "args": ["-m", "security_scanner.server"],
       "env": {
-        "NUCLEI_BIN": "/home/marc/go/bin/nuclei",
+        "NUCLEI_BIN": "~/go/bin/nuclei",
         "SCAN_RESULTS_DIR": "/mnt/agentic-system/security-scans"
       }
     }
@@ -152,7 +152,7 @@ Results are stored in `/mnt/agentic-system/security-scans/`:
 ```bash
 # Via Claude Code
 scan_target({
-  "target": "192.168.1.87",
+  "target": "198.51.100.10",
   "severity": ["high", "critical"],
   "templates": ["network", "exposure"]
 })

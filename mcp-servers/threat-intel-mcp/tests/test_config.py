@@ -25,7 +25,7 @@ class TestValidateIP:
     """Tests for IP validation."""
 
     def test_valid_ipv4(self):
-        is_valid, error = validate_ip("192.168.1.1")
+        is_valid, error = validate_ip("198.51.100.1")
         assert is_valid is True
         assert error is None
 
@@ -111,7 +111,7 @@ class TestValidateDomain:
         assert is_valid is False
 
     def test_invalid_domain_ip(self):
-        is_valid, error = validate_domain("192.168.1.1")
+        is_valid, error = validate_domain("198.51.100.1")
         assert is_valid is False
 
 

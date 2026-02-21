@@ -13,7 +13,7 @@ Five new production-ready modules for fraud detection:
 ## Quick Test (2 minutes)
 
 ```bash
-cd /Volumes/FILES/code/fraud-detection-mcp
+cd /path/to/fraud-detection-mcp
 python test_new_modules.py
 ```
 
@@ -297,7 +297,7 @@ pip install torch-geometric     # For GNN
 ## File Locations
 
 ```
-/Volumes/FILES/code/fraud-detection-mcp/
+/path/to/fraud-detection-mcp/
 ├── feature_engineering.py       # Main module
 ├── explainability.py            # Main module
 ├── async_inference.py           # Main module

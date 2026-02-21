@@ -8,7 +8,7 @@ import json
 
 # We'll test by importing the server module directly and calling the handlers
 # This avoids the complexity of setting up stdio communication in a simple test script
-sys.path.insert(0, str(Path("/home/marc/agentic-system/mcp-servers/security-auditor-mcp")))
+sys.path.insert(0, str(Path(__file__).parent))
 
 from server import handle_list_tools, handle_call_tool
 

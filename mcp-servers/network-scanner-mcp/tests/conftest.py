@@ -35,7 +35,7 @@ def sample_device_history():
     return {
         "AA:BB:CC:DD:EE:FF": {
             "mac": "AA:BB:CC:DD:EE:FF",
-            "ip": "192.168.1.100",
+            "ip": "198.51.100.100",
             "vendor": "Test Vendor",
             "hostname": "test-host",
             "first_seen": "2024-01-01T12:00:00",
@@ -48,7 +48,7 @@ def sample_device_history():
         },
         "11:22:33:44:55:66": {
             "mac": "11:22:33:44:55:66",
-            "ip": "192.168.1.101",
+            "ip": "198.51.100.101",
             "vendor": "Another Vendor",
             "hostname": None,
             "first_seen": "2024-01-10T12:00:00",
@@ -78,18 +78,18 @@ def sample_known_devices():
 def sample_cluster_nodes():
     """Sample cluster nodes configuration."""
     return {
-        "192.168.1.10": {
-            "name": "mac-studio",
+        "198.51.100.10": {
+            "name": "node-1",
             "role": "orchestrator",
             "type": "cluster_node"
         },
-        "192.168.1.11": {
-            "name": "macpro51",
+        "198.51.100.11": {
+            "name": "node-2",
             "role": "builder",
             "type": "cluster_node"
         },
-        "192.168.1.12": {
-            "name": "macbook-air",
+        "198.51.100.12": {
+            "name": "node-3",
             "role": "researcher",
             "type": "cluster_node"
         }
@@ -118,9 +118,9 @@ def populated_data_dir(mock_data_dir, sample_device_history, sample_known_device
 def mock_arp_scan_success():
     """Mock successful ARP scan results."""
     return [
-        {"ip": "192.168.1.1", "mac": "AA:BB:CC:DD:EE:FF", "vendor": "Apple, Inc.", "scan_time": "2024-01-15T12:00:00", "hostname": None},
-        {"ip": "192.168.1.2", "mac": "11:22:33:44:55:66", "vendor": "Samsung", "scan_time": "2024-01-15T12:00:00", "hostname": None},
-        {"ip": "192.168.1.10", "mac": "DE:AD:BE:EF:00:01", "vendor": "Apple, Inc.", "scan_time": "2024-01-15T12:00:00", "hostname": None},
+        {"ip": "198.51.100.1", "mac": "AA:BB:CC:DD:EE:FF", "vendor": "Apple, Inc.", "scan_time": "2024-01-15T12:00:00", "hostname": None},
+        {"ip": "198.51.100.2", "mac": "11:22:33:44:55:66", "vendor": "Samsung", "scan_time": "2024-01-15T12:00:00", "hostname": None},
+        {"ip": "198.51.100.10", "mac": "DE:AD:BE:EF:00:01", "vendor": "Apple, Inc.", "scan_time": "2024-01-15T12:00:00", "hostname": None},
     ]
 
 

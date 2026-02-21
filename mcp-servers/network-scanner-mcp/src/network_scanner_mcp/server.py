@@ -251,7 +251,7 @@ async def scan_network(
     Scan the local network for all connected devices using ARP.
 
     Args:
-        subnet: Subnet to scan (e.g., "192.168.1.0/24"). Auto-detected if not specified.
+        subnet: Subnet to scan (e.g., "198.51.100.0/24"). Auto-detected if not specified.
         resolve_names: Whether to resolve hostnames for discovered devices.
 
     Returns:

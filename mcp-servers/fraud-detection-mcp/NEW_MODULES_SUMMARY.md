@@ -265,7 +265,7 @@ fraud-detection-mcp/
 ### Run All Tests
 
 ```bash
-cd /Volumes/FILES/code/fraud-detection-mcp
+cd /path/to/fraud-detection-mcp
 python test_new_modules.py
 ```
 

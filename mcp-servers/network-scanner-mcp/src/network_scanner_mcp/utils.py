@@ -277,7 +277,7 @@ def detect_local_subnet() -> str:
     Detect the local subnet for scanning.
 
     Returns:
-        Subnet in CIDR notation (e.g., "192.168.1.0/24")
+        Subnet in CIDR notation (e.g., "198.51.100.0/24")
     """
     # Check environment override
     env_subnet = os.environ.get("DEFAULT_SCAN_SUBNET")
@@ -294,7 +294,7 @@ def detect_local_subnet() -> str:
         return f"{parts[0]}.{parts[1]}.{parts[2]}.0/24"
     except Exception as e:
         logger.warning(f"Subnet detection failed: {e}, using default")
-        return "192.168.1.0/24"
+        return "198.51.100.0/24"
 
 
 # =============================================================================

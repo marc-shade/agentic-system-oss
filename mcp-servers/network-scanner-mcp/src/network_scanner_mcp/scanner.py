@@ -162,7 +162,7 @@ async def arp_scan(
     Uses arp-scan utility for reliable layer-2 discovery.
 
     Args:
-        subnet: Subnet to scan (e.g., "192.168.1.0/24"). Auto-detected if None.
+        subnet: Subnet to scan (e.g., "198.51.100.0/24"). Auto-detected if None.
         interface: Network interface to use. Auto-detected if None.
         timeout: Scan timeout in seconds.
 

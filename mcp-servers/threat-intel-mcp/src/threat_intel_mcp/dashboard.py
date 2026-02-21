@@ -891,7 +891,7 @@ def api_health() -> Any:
     })
 
 
-def run_dashboard(host: str = '0.0.0.0', port: int = 8889) -> None:
+def run_dashboard(host: str = '127.0.0.1', port: int = 8889) -> None:
     """Run the Flask dashboard."""
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     CACHE_DIR.mkdir(parents=True, exist_ok=True)

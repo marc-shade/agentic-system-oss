@@ -305,14 +305,13 @@ fraud-detect monitor --stream kafka://transactions --threshold 0.7
 ## Installation and Deployment
 
 ### Primary Installation Location
-**Standard Path**: `/Users/marc/Documents/Cline/MCP/fraud-detection-mcp/`
+**Standard Path**: `~/mcp-servers/fraud-detection-mcp/`
 
 ### Installation Methods
 
 #### 1. MCP Server Installation
 ```bash
-cd /Users/marc/Documents/Cline/MCP/
-git clone https://github.com/2-acre-studios/fraud-detection-mcp
+git clone https://github.com/marc-shade/fraud-detection-mcp
 cd fraud-detection-mcp
 pip install -e .
 ```
@@ -323,7 +322,7 @@ pip install -e .
   "mcpServers": {
     "fraud-detection": {
       "command": "python",
-      "args": ["/Users/marc/Documents/Cline/MCP/fraud-detection-mcp/server.py"],
+      "args": ["/path/to/fraud-detection-mcp/server.py"],
       "env": {}
     }
   }

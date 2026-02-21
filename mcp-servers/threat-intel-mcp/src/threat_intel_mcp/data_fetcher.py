@@ -22,15 +22,14 @@ def _get_storage_base() -> Path:
 
     system = platform.system()
     if system == "Darwin":  # macOS
-        if Path("/Volumes/SSDRAID0/agentic-system").exists():
-            return Path("/Volumes/SSDRAID0/agentic-system")
-        elif Path("/Volumes/FILES/agentic-system").exists():
-            return Path("/Volumes/FILES/agentic-system")
+        # Check common macOS installation paths
+        for candidate in [Path.home() / "agentic-system", Path("/opt/agentic-system")]:
+            if candidate.exists():
+                return candidate
     elif system == "Linux":
-        if Path("/home/marc/agentic-system").exists():
-            return Path("/home/marc/agentic-system")
-        elif Path("/mnt/agentic-system").exists():
-            return Path("/mnt/agentic-system")
+        for candidate in [Path.home() / "agentic-system", Path("/mnt/agentic-system")]:
+            if candidate.exists():
+                return candidate
     # Fallback to script location
     return Path(__file__).parent.parent.parent
 

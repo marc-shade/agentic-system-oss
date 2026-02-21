@@ -22,8 +22,8 @@ def sample_ip_list_response():
     """Sample IP list feed response."""
     return """# Comment line
 # Another comment
-192.168.1.100
-10.0.0.1
+198.51.100.100
+203.0.113.1
 8.8.8.8
 # inline comment
 172.16.0.1
@@ -94,7 +94,7 @@ def sample_threatfox_response():
         "data": [
             {
                 "id": "1",
-                "ioc": "192.168.1.1:4444",
+                "ioc": "198.51.100.1:4444",
                 "ioc_type": "ip:port",
                 "threat_type": "botnet_cc",
                 "malware": "Cobalt Strike",
@@ -192,9 +192,9 @@ def sample_network_scan_results():
     return {
         "success": True,
         "devices": [
-            {"ip": "192.168.1.1", "mac": "AA:BB:CC:DD:EE:FF", "hostname": "router"},
-            {"ip": "192.168.1.100", "mac": "11:22:33:44:55:66", "hostname": "laptop"},
-            {"ip": "10.0.0.1", "mac": "AA:AA:AA:AA:AA:AA", "hostname": "malicious-host"}
+            {"ip": "198.51.100.1", "mac": "AA:BB:CC:DD:EE:FF", "hostname": "router"},
+            {"ip": "198.51.100.100", "mac": "11:22:33:44:55:66", "hostname": "laptop"},
+            {"ip": "203.0.113.1", "mac": "AA:AA:AA:AA:AA:AA", "hostname": "malicious-host"}
         ]
     }
 
