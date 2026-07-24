@@ -1,1 +1,0 @@
-Deploy the full Meta-Orchestrator mode with cascading agent teams, distributed execution, and quality gates. Initialize the complete MCP ecosystem and prepare for complex multi-phase project execution.
